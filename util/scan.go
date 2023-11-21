@@ -32,8 +32,7 @@ func ScanBuilder[T any](db QueryAble, b sqls.Builder, fn NewScanDestFunc[T]) ([]
 func Scan[T any](db QueryAble, query string, args []any, fn NewScanDestFunc[T]) ([]T, error) {
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		query, _ := Interpolate(query, args)
-		return nil, fmt.Errorf("%w: %s", err, query)
+		return nil, err
 	}
 	defer rows.Close()
 
