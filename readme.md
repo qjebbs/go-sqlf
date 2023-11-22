@@ -27,8 +27,12 @@ plus preprocessing functions support:
 | s, seg, segment | Segment by index                   | #s1, #s(1)                 |
 | b, builder      | Builder by index                   | #b1, #b(1)                 |
 | join            | Join the template by the separator | #join('#segment', ' AND ') |
+| join            | Join from index 3 to end           | #join('#?', ',', 3)        |
+| join            | Join from index 3 to 6             | #join('#?', ',', 3, 6)     |
 | $               | Bindvar, usually used in #join()   | #join('#$', ', ')          |
 | ?               | Bindvar, usually used in #join()   | #join('#?', ', ')          |
+| global$         | global context  var by index       | #global$1                  |
+| global?         | global context  var by index       | #global?1                  |
 
 Note:
   - References in the #join template are functions, not function calls.

@@ -34,6 +34,15 @@ func TestBuildSegment(t *testing.T) {
 			wantArgs: []any{1, 2, 1, 2},
 		},
 		{
+			name: "#join range",
+			segment: &sqls.Segment{
+				Raw:  "$1,#join('#$',',', 2)",
+				Args: []any{1, 2, 3, 4},
+			},
+			want:     "$1,$2,$3,$4",
+			wantArgs: []any{1, 2, 3, 4},
+		},
+		{
 			name: "#join mixed function and call",
 			segment: &sqls.Segment{
 				Raw:      "#join('#s1#?',',')",

@@ -35,10 +35,27 @@ func init() {
 }
 
 func funcJoin(ctx *context, args ...string) (string, error) {
-	if len(args) != 2 {
-		return "", argError("join(tmpl, sep string)", args)
+	if len(args) < 2 || len(args) > 4 {
+		return "", argError("join(tmpl, sep string, from? int, to? int)", args)
 	}
 	tmpl, separator := args[0], args[1]
+	var err error
+	var from, to int
+	if len(args) > 2 {
+		from, err = strconv.Atoi(args[2])
+		if err != nil {
+			return "", fmt.Errorf("invalid from index '%s': %w", args[2], err)
+		}
+	}
+	if len(args) > 3 {
+		to, err = strconv.Atoi(args[3])
+		if err != nil {
+			return "", fmt.Errorf("invalid to index '%s': %w", args[3], err)
+		}
+	}
+	if to > 0 && from > to {
+		return "", fmt.Errorf("invalid index range %d to %d", from, to)
+	}
 	c, err := syntax.Parse(tmpl)
 	if err != nil {
 		return "", fmt.Errorf("parse join template '%s': %w", tmpl, err)
@@ -59,22 +76,33 @@ func funcJoin(ctx *context, args ...string) (string, error) {
 	if len(calls) == 0 {
 		return "", fmt.Errorf("no function in join template '%s' (e.g.: #col, not #col1)", tmpl)
 	}
-	for i := 0; ; i++ {
+	start := from
+	if start <= 0 {
+		start = 1
+	}
+	for i := start; ; i++ {
 		for _, call := range calls {
-			call.Args = []string{strconv.Itoa(i + 1)}
+			call.Args = []string{strconv.Itoa(i)}
 		}
 		s, err := buildClause(ctx, c)
 		if errors.Is(err, ErrInvalidIndex) {
+			if from > 0 && to > 0 {
+				// index must be valid if from-to explicitly specified
+				return "", err
+			}
 			break
 		}
 		if err != nil {
 			return "", err
 		}
 		if s != "" {
-			if i > 0 {
+			if b.Len() > 0 {
 				b.WriteString(separator)
 			}
 			b.WriteString(s)
+		}
+		if to > 0 && i >= to {
+			break
 		}
 	}
 	return b.String(), nil
