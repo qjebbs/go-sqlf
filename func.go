@@ -1,6 +1,7 @@
 package sqls
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,18 +41,10 @@ func join(ctx *context, args ...string) (string, error) {
 	tmpl, separator := args[0], args[1]
 	c, err := syntax.Parse(tmpl)
 	if err != nil {
-		return "", fmt.Errorf("parse enum template '%s': %w", tmpl, err)
+		return "", fmt.Errorf("parse join template '%s': %w", tmpl, err)
 	}
 	b := new(strings.Builder)
-	var (
-		firstRefType string
-		nRefs        int
-		calls        []*syntax.FuncCallExpr
-	)
-	nArgs := len(ctx.Segment.Args)
-	nGlobalArgs := len(ctx.global.args)
-	nColumns := len(ctx.Segment.Columns)
-	nSegments := len(ctx.Segment.Segments)
+	var calls []*syntax.FuncCallExpr
 	for i, expr := range c.ExprList {
 		fn, ok := expr.(*syntax.FuncExpr)
 		if !ok {
@@ -62,48 +55,18 @@ func join(ctx *context, args ...string) (string, error) {
 		}
 		c.ExprList[i] = call
 		calls = append(calls, call)
-		switch call.Name {
-		case "$", "?":
-			if firstRefType == "" {
-				firstRefType = "arg(s)"
-				nRefs = nArgs
-			} else if nRefs != nArgs {
-				return "", fmt.Errorf("unaligned references %d '%s' to %d arg(s)", nRefs, firstRefType, nArgs)
-			}
-		case "global$", "global?":
-			if firstRefType == "" {
-				firstRefType = "global arg(s)"
-				nRefs = nGlobalArgs
-			} else if nRefs != nGlobalArgs {
-				return "", fmt.Errorf("unaligned references %d '%s' to %d arg(s)", nRefs, firstRefType, nArgs)
-			}
-		case "c", "col", "column",
-			"tn", "tableName",
-			"t", "ta", "tableAlias",
-			"tna", "tableNameAlias":
-			if firstRefType == "" {
-				firstRefType = "columns(s)"
-				nRefs = nColumns
-			} else if nRefs != nColumns {
-				return "", fmt.Errorf("unaligned references %d '%s' to %d columns(s)", nRefs, firstRefType, nColumns)
-			}
-		case "s", "seg", "segment":
-			if firstRefType == "" {
-				firstRefType = "segment(s)"
-				nRefs = nSegments
-			} else if nRefs != nSegments {
-				return "", fmt.Errorf("unaligned references %d '%s' to %d segment(s)", nRefs, firstRefType, nSegments)
-			}
-		}
 	}
-	if firstRefType == "" {
-		return "", fmt.Errorf("no references found in enum template '%s'", tmpl)
+	if len(calls) == 0 {
+		return "", fmt.Errorf("no function in join template '%s' (e.g.: #col, not #col1)", tmpl)
 	}
-	for i := 0; i < nRefs; i++ {
+	for i := 0; ; i++ {
 		for _, call := range calls {
 			call.Args = []string{strconv.Itoa(i + 1)}
 		}
 		s, err := buildClause(ctx, c)
+		if errors.Is(err, ErrInvalidIndex) {
+			break
+		}
 		if err != nil {
 			return "", err
 		}

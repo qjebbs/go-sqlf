@@ -111,7 +111,7 @@ func buildClause(ctx *context, clause *syntax.Clause) (string, error) {
 // Arg renders the bindvar at index.
 func buildArg(ctx *context, index int) (string, error) {
 	if index > len(ctx.Segment.Args) {
-		return "", fmt.Errorf("invalid bindvar index %d", index)
+		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Args))
 	}
 	i := index - 1
 	ctx.ArgsUsed[i] = true
@@ -131,7 +131,7 @@ func buildArg(ctx *context, index int) (string, error) {
 // Column renders the column at index.
 func buildColumn(ctx *context, index int) (string, error) {
 	if index > len(ctx.Segment.Columns) {
-		return "", fmt.Errorf("invalid column index %d", index)
+		return "", fmt.Errorf("%w: column index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Columns))
 	}
 	i := index - 1
 	ctx.ColumnsUsed[i] = true
@@ -174,7 +174,7 @@ func buildColumn2(ctx *context, c *TableColumn) (string, error) {
 
 func buildTable(ctx *context, index int) (string, error) {
 	if index > len(ctx.Segment.Tables) {
-		return "", fmt.Errorf("invalid table index %d", index)
+		return "", fmt.Errorf("%w: table index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Tables))
 	}
 	ctx.TableUsed[index-1] = true
 	return string(ctx.Segment.Tables[index-1]), nil
@@ -182,7 +182,7 @@ func buildTable(ctx *context, index int) (string, error) {
 
 func buildSegment(ctx *context, index int) (string, error) {
 	if index > len(ctx.Segment.Segments) {
-		return "", fmt.Errorf("invalid segment index %d", index)
+		return "", fmt.Errorf("%w: segment index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Segments))
 	}
 	i := index - 1
 	ctx.SegmentsUsed[i] = true
@@ -201,7 +201,7 @@ func buildSegment(ctx *context, index int) (string, error) {
 
 func buildBuilder(ctx *context, index int) (string, error) {
 	if index > len(ctx.Segment.Builders) {
-		return "", fmt.Errorf("invalid builder index %d", index)
+		return "", fmt.Errorf("%w: builder index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Builders))
 	}
 	i := index - 1
 	ctx.BuilderUsed[i] = true

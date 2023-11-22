@@ -37,7 +37,7 @@ func (c *Context) WithArgs(args []any) *Context {
 // Arg returns the built arg in the context at index.
 func (c *Context) Arg(index int) (string, error) {
 	if index > len(c.args) {
-		return "", fmt.Errorf("invalid bindvar index %d", index)
+		return "", fmt.Errorf("%w: global bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.args))
 	}
 	if c.BindVarStyle == 0 {
 		c.BindVarStyle = syntax.Dollar
