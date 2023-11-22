@@ -37,24 +37,30 @@ func Scan[T any](db QueryAble, query string, args []any, fn NewScanDestFunc[T]) 
 	defer rows.Close()
 
 	var results []T
-	bh := &blackhole{}
 	for rows.Next() {
-		cols, err := rows.Columns()
-		if err != nil {
-			return nil, err
-		}
 		dest, fields := fn()
-		nBlacholes := len(cols) - len(fields)
-		for i := 0; i < nBlacholes; i++ {
-			fields = append(fields, &bh)
-		}
-		err = rows.Scan(fields...)
+		err = ScanRow(rows, fields...)
 		if err != nil {
 			return nil, err
 		}
 		results = append(results, dest)
 	}
 	return results, nil
+}
+
+// ScanRow scans a single row to dest, unlike rows.Scan(), it drops the extra columns.
+// It's useful when *sqlb.QueryBuilder.OrderBy() add extra column to the query.
+func ScanRow(rows *sql.Rows, dest ...any) error {
+	cols, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+	nBlacholes := len(cols) - len(dest)
+	bh := &blackhole{}
+	for i := 0; i < nBlacholes; i++ {
+		dest = append(dest, &bh)
+	}
+	return rows.Scan(dest...)
 }
 
 // CountBuilder is like Count, but it builds query from sqls.Builder.
