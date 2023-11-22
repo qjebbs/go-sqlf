@@ -2,14 +2,21 @@ package sqls
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/qjebbs/go-sqls/syntax"
 )
 
 // Context is the global context shared between all segments building.
 type Context struct {
-	ArgStore     *[]any              // args store
-	BindVarStyle syntax.BindVarStyle // bindvar style
+	// args store
+	ArgStore *[]any
+	// override  bindvar style of all segments
+	BindVarStyle syntax.BindVarStyle
+
+	args      []any    // args to be referenced by other builders, with Context.Arg(int)
+	argsUsed  []bool   // flags to indicate if an arg is used
+	argsBuilt []string // cache of built args
 }
 
 // NewContext returns a new context.
@@ -17,6 +24,46 @@ func NewContext(argStore *[]any) *Context {
 	return &Context{
 		ArgStore: argStore,
 	}
+}
+
+// WithArgs set the args to the context.
+func (c *Context) WithArgs(args []any) *Context {
+	c.args = args
+	c.argsBuilt = make([]string, len(args))
+	c.argsUsed = make([]bool, len(args))
+	return c
+}
+
+// Arg returns the built arg in the context at index.
+func (c *Context) Arg(index int) (string, error) {
+	if index > len(c.args) {
+		return "", fmt.Errorf("invalid bindvar index %d", index)
+	}
+	if c.BindVarStyle == 0 {
+		c.BindVarStyle = syntax.Dollar
+	}
+	i := index - 1
+	c.argsUsed[i] = true
+	built := c.argsBuilt[i]
+	if built == "" || c.BindVarStyle == syntax.Question {
+		*c.ArgStore = append(*c.ArgStore, c.args[i])
+		if c.BindVarStyle == syntax.Question {
+			built = "?"
+		} else {
+			built = "$" + strconv.Itoa(len(*c.ArgStore))
+		}
+		c.argsBuilt[i] = built
+	}
+	return built, nil
+}
+
+func (c *Context) checkUsage() error {
+	for i, v := range c.argsUsed {
+		if !v {
+			return fmt.Errorf("arg %d is not used", i+1)
+		}
+	}
+	return nil
 }
 
 // context is the context for current segment building.

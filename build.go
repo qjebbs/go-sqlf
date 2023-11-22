@@ -23,6 +23,12 @@ func (s *Segment) BuildContext(ctx *Context) (string, error) {
 	if s == nil {
 		return "", nil
 	}
+	if ctx == nil {
+		return "", fmt.Errorf("nil context")
+	}
+	if ctx.ArgStore == nil {
+		return "", fmt.Errorf("nil arg store (of *[]any)")
+	}
 	ctxCur := newSegmentContext(ctx, s)
 	body, err := build(ctxCur)
 	if err != nil {
@@ -31,6 +37,13 @@ func (s *Segment) BuildContext(ctx *Context) (string, error) {
 	if err := ctxCur.checkUsage(); err != nil {
 		return "", fmt.Errorf("build '%s': %w", ctxCur.Segment.Raw, err)
 	}
+	// TODO: check usage of global args
+	// check inside BuildContext() is not a good idea,
+	// because it's not called for every child segment/builder,
+	// when the building is not complete yet.
+	// if err := ctx.checkUsage(); err != nil {
+	// 	return "", fmt.Errorf("context: %w", err)
+	// }
 	body = strings.TrimSpace(body)
 	if body == "" {
 		return "", nil
@@ -51,15 +64,15 @@ func build(ctx *context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("parse '%s': %w", ctx.Segment.Raw, err)
 	}
-	built, err := buildCluase(ctx, clause)
+	built, err := buildClause(ctx, clause)
 	if err != nil {
 		return "", fmt.Errorf("build '%s': %w", ctx.Segment.Raw, err)
 	}
 	return built, nil
 }
 
-// buildCluase builds the parsed clause within current context, not updating the ctx.current.
-func buildCluase(ctx *context, clause *syntax.Clause) (string, error) {
+// buildClause builds the parsed clause within current context, not updating the ctx.current.
+func buildClause(ctx *context, clause *syntax.Clause) (string, error) {
 	b := new(strings.Builder)
 	for _, decl := range clause.ExprList {
 		switch expr := decl.(type) {

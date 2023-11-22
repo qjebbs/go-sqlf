@@ -11,11 +11,12 @@ func TestBuildSegment(t *testing.T) {
 	t.Parallel()
 	var table, alias sqls.Table = "table", "t"
 	testCases := []struct {
-		name     string
-		segment  *sqls.Segment
-		want     string
-		wantArgs []any
-		wantErr  bool
+		name       string
+		segment    *sqls.Segment
+		globalArgs []any
+		want       string
+		wantArgs   []any
+		wantErr    bool
 	}{
 		{
 			name:     "build nil segment",
@@ -247,13 +248,41 @@ func TestBuildSegment(t *testing.T) {
 			want:     "id IN (SELECT id FROM table WHERE id > $1)",
 			wantArgs: []any{1},
 		},
+		{
+			name: "build with global args $",
+			segment: &sqls.Segment{
+				Raw: "#join('#segment',' ')",
+				Segments: []*sqls.Segment{
+					{Raw: "#global$1"},
+					{Raw: "#global$2"},
+					{Raw: "#global$2"},
+				},
+			},
+			globalArgs: []any{1, 2},
+			want:       "$1 $2 $2",
+			wantArgs:   []any{1, 2},
+		},
+		{
+			name: "build with global args ?",
+			segment: &sqls.Segment{
+				Raw: "#join('#segment',' ')",
+				Segments: []*sqls.Segment{
+					{Raw: "#global?1"},
+					{Raw: "#global?2"},
+					{Raw: "#global?2"},
+				},
+			},
+			globalArgs: []any{1, 2},
+			want:       "? ? ?",
+			wantArgs:   []any{1, 2, 2},
+		},
 	}
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			args := make([]any, 0)
-			got, err := tc.segment.BuildContext(sqls.NewContext(&args))
+			got, err := tc.segment.BuildContext(sqls.NewContext(&args).WithArgs(tc.globalArgs))
 			if err != nil {
 				if tc.wantErr {
 					return

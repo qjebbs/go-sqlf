@@ -18,6 +18,8 @@ func init() {
 		"join":    join,
 		"$":       argumentDollar,
 		"?":       argumentQuestion,
+		"global$": globalArgumentDollar,
+		"global?": globalArgumentQuestion,
 		"c":       column,
 		"col":     column,
 		"column":  column,
@@ -47,6 +49,7 @@ func join(ctx *context, args ...string) (string, error) {
 		calls        []*syntax.FuncCallExpr
 	)
 	nArgs := len(ctx.Segment.Args)
+	nGlobalArgs := len(ctx.global.args)
 	nColumns := len(ctx.Segment.Columns)
 	nSegments := len(ctx.Segment.Segments)
 	for i, expr := range c.ExprList {
@@ -65,6 +68,13 @@ func join(ctx *context, args ...string) (string, error) {
 				firstRefType = "arg(s)"
 				nRefs = nArgs
 			} else if nRefs != nArgs {
+				return "", fmt.Errorf("unaligned references %d '%s' to %d arg(s)", nRefs, firstRefType, nArgs)
+			}
+		case "global$", "global?":
+			if firstRefType == "" {
+				firstRefType = "global arg(s)"
+				nRefs = nGlobalArgs
+			} else if nRefs != nGlobalArgs {
 				return "", fmt.Errorf("unaligned references %d '%s' to %d arg(s)", nRefs, firstRefType, nArgs)
 			}
 		case "c", "col", "column",
@@ -93,7 +103,7 @@ func join(ctx *context, args ...string) (string, error) {
 		for _, call := range calls {
 			call.Args = []string{strconv.Itoa(i + 1)}
 		}
-		s, err := buildCluase(ctx, c)
+		s, err := buildClause(ctx, c)
 		if err != nil {
 			return "", err
 		}
@@ -108,14 +118,22 @@ func join(ctx *context, args ...string) (string, error) {
 }
 
 func argumentDollar(ctx *context, args ...string) (string, error) {
-	return arg(ctx, syntax.Dollar, args...)
+	return arg(ctx, syntax.Dollar, false, args...)
 }
 
 func argumentQuestion(ctx *context, args ...string) (string, error) {
-	return arg(ctx, syntax.Question, args...)
+	return arg(ctx, syntax.Question, false, args...)
 }
 
-func arg(ctx *context, typ syntax.BindVarStyle, args ...string) (string, error) {
+func globalArgumentDollar(ctx *context, args ...string) (string, error) {
+	return arg(ctx, syntax.Dollar, true, args...)
+}
+
+func globalArgumentQuestion(ctx *context, args ...string) (string, error) {
+	return arg(ctx, syntax.Question, true, args...)
+}
+
+func arg(ctx *context, typ syntax.BindVarStyle, global bool, args ...string) (string, error) {
 	if ctx.global.BindVarStyle == 0 {
 		ctx.global.BindVarStyle = typ
 		// ctx.global.FirstBindvar = ctx.Segment.Raw
@@ -134,6 +152,9 @@ func arg(ctx *context, typ syntax.BindVarStyle, args ...string) (string, error) 
 	i, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", fmt.Errorf("invalid arg index '%s': %w", args[0], err)
+	}
+	if global {
+		return ctx.global.Arg(i)
 	}
 	return buildArg(ctx, i)
 }

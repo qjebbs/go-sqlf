@@ -33,6 +33,9 @@
 package sqls
 
 // Builder is the interface for sql builders.
+//
+// Implementations tip: if a builder want to render an Arg in the *Context,
+// use ctx.Arg(index).
 type Builder interface {
 	// Build builds and returns the query and args.
 	Build() (query string, args []any, err error)
