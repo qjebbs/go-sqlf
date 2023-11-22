@@ -16,25 +16,25 @@ var builtInFuncs map[string]preprocessor
 
 func init() {
 	builtInFuncs = map[string]preprocessor{
-		"join":    join,
-		"$":       argumentDollar,
-		"?":       argumentQuestion,
-		"global$": globalArgumentDollar,
-		"global?": globalArgumentQuestion,
-		"c":       column,
-		"col":     column,
-		"column":  column,
-		"t":       table,
-		"table":   table,
-		"s":       segment,
-		"seg":     segment,
-		"segment": segment,
-		"b":       builder,
-		"builder": builder,
+		"join":    funcJoin,
+		"$":       funcArgDollar,
+		"?":       funcArgQuestion,
+		"global$": funcGlobalArgDollar,
+		"global?": funcGlobalArgQuestion,
+		"c":       funcColumn,
+		"col":     funcColumn,
+		"column":  funcColumn,
+		"t":       funcTable,
+		"table":   funcTable,
+		"s":       funcSegment,
+		"seg":     funcSegment,
+		"segment": funcSegment,
+		"b":       funcBuilder,
+		"builder": funcBuilder,
 	}
 }
 
-func join(ctx *context, args ...string) (string, error) {
+func funcJoin(ctx *context, args ...string) (string, error) {
 	if len(args) != 2 {
 		return "", argError("join(tmpl, sep string)", args)
 	}
@@ -80,41 +80,41 @@ func join(ctx *context, args ...string) (string, error) {
 	return b.String(), nil
 }
 
-func argumentDollar(ctx *context, args ...string) (string, error) {
-	return arg(ctx, syntax.Dollar, false, args...)
+func funcArgDollar(ctx *context, args ...string) (string, error) {
+	if len(args) != 1 {
+		return "", argError("$(i int)", args)
+	}
+	return arg(ctx, syntax.Dollar, false, args[0])
 }
 
-func argumentQuestion(ctx *context, args ...string) (string, error) {
-	return arg(ctx, syntax.Question, false, args...)
+func funcArgQuestion(ctx *context, args ...string) (string, error) {
+	if len(args) != 1 {
+		return "", argError("?(i int)", args)
+	}
+	return arg(ctx, syntax.Question, false, args[0])
 }
 
-func globalArgumentDollar(ctx *context, args ...string) (string, error) {
-	return arg(ctx, syntax.Dollar, true, args...)
+func funcGlobalArgDollar(ctx *context, args ...string) (string, error) {
+	if len(args) != 1 {
+		return "", argError("global$(i int)", args)
+	}
+	return arg(ctx, syntax.Dollar, true, args[0])
 }
 
-func globalArgumentQuestion(ctx *context, args ...string) (string, error) {
-	return arg(ctx, syntax.Question, true, args...)
+func funcGlobalArgQuestion(ctx *context, args ...string) (string, error) {
+	if len(args) != 1 {
+		return "", argError("global?(i int)", args)
+	}
+	return arg(ctx, syntax.Question, true, args[0])
 }
 
-func arg(ctx *context, typ syntax.BindVarStyle, global bool, args ...string) (string, error) {
+func arg(ctx *context, typ syntax.BindVarStyle, global bool, arg string) (string, error) {
 	if ctx.global.BindVarStyle == 0 {
 		ctx.global.BindVarStyle = typ
-		// ctx.global.FirstBindvar = ctx.Segment.Raw
 	}
-	// if ctx.global.BindVarStyle != typ {
-	// 	return "", fmt.Errorf("mixed bindvar styles between segments '%s' and '%s'", ctx.global.FirstBindvar, ctx.Segment.Raw)
-	// }
-	if len(args) != 1 {
-		switch ctx.global.BindVarStyle {
-		case syntax.Dollar:
-			return "", argError("$(i int)", args)
-		default:
-			return "", argError("?(i int)", args)
-		}
-	}
-	i, err := strconv.Atoi(args[0])
+	i, err := strconv.Atoi(arg)
 	if err != nil {
-		return "", fmt.Errorf("invalid arg index '%s': %w", args[0], err)
+		return "", fmt.Errorf("invalid arg index '%s': %w", arg, err)
 	}
 	if global {
 		return ctx.global.Arg(i)
@@ -122,7 +122,7 @@ func arg(ctx *context, typ syntax.BindVarStyle, global bool, args ...string) (st
 	return buildArg(ctx, i)
 }
 
-func column(ctx *context, args ...string) (string, error) {
+func funcColumn(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
 		return "", argError("column(i int)", args)
 	}
@@ -133,9 +133,9 @@ func column(ctx *context, args ...string) (string, error) {
 	return buildColumn(ctx, i)
 }
 
-func table(ctx *context, args ...string) (string, error) {
+func funcTable(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
-		return "", argError("tableName(i int)", args)
+		return "", argError("table(i int)", args)
 	}
 	i, err := strconv.Atoi(args[0])
 	if err != nil {
@@ -144,7 +144,7 @@ func table(ctx *context, args ...string) (string, error) {
 	return buildTable(ctx, i)
 }
 
-func segment(ctx *context, args ...string) (string, error) {
+func funcSegment(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
 		return "", argError("segment(i int)", args)
 	}
@@ -155,7 +155,7 @@ func segment(ctx *context, args ...string) (string, error) {
 	return buildSegment(ctx, i)
 }
 
-func builder(ctx *context, args ...string) (string, error) {
+func funcBuilder(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
 		return "", argError("builder(i int)", args)
 	}

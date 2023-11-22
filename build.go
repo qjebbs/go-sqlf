@@ -91,11 +91,7 @@ func buildClause(ctx *context, clause *syntax.Clause) (string, error) {
 		case *syntax.BindVarExpr:
 			if ctx.global.BindVarStyle == 0 {
 				ctx.global.BindVarStyle = expr.Type
-				// ctx.global.FirstBindvar = ctx.Segment.Raw
 			}
-			// if ctx.global.BindVarStyle != expr.Type {
-			// 	return "", fmt.Errorf("mixed bindvar styles between segments '%s' and '%s'", ctx.global.FirstBindvar, ctx.Segment.Raw)
-			// }
 			s, err := buildArg(ctx, expr.Index)
 			if err != nil {
 				return "", err
