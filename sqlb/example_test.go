@@ -16,14 +16,14 @@ func ExampleQueryBuilder_Build() {
 	b := sqlb.NewQueryBuilder().
 		Select(foo.Column("*")).
 		From(foo).
-		InnerJoin(bar, &sqls.Segment{
+		InnerJoin(bar, &sqls.Fragment{
 			Raw: "#c1=#c2",
 			Columns: []*sqls.TableColumn{
 				bar.Column("foo_id"),
 				foo.Column("id"),
 			},
 		}).
-		Where(&sqls.Segment{
+		Where(&sqls.Fragment{
 			Raw:     "(#c1=$1 OR #c2=$1)",
 			Columns: foo.Columns("a", "b"),
 			Args:    []any{1},
@@ -60,7 +60,7 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		Select(foo.Column("*")).
 		From(foo).
 		// declare an optional LEFT JOIN
-		LeftJoinOptional(bar, &sqls.Segment{
+		LeftJoinOptional(bar, &sqls.Fragment{
 			Raw: "#c1=#c2",
 			Columns: []*sqls.TableColumn{
 				bar.Column("foo_id"),
@@ -88,7 +88,7 @@ func ExampleQueryBuilder_With() {
 	)
 	query, args, err := sqlb.NewQueryBuilder().
 		BindVar(syntax.Dollar).
-		With(cte.Name, &sqls.Segment{
+		With(cte.Name, &sqls.Fragment{
 			Raw:     "SELECT * FROM #t1 AS #t2 WHERE #c1=$1",
 			Columns: bar.Columns("type"),
 			Args:    []any{1},
@@ -99,7 +99,7 @@ func ExampleQueryBuilder_With() {
 			cte.Column("*"),
 		).
 		From(foo).
-		LeftJoinOptional(cte, &sqls.Segment{
+		LeftJoinOptional(cte, &sqls.Fragment{
 			Raw: "#c1=#c2",
 			Columns: []*sqls.TableColumn{
 				cte.Column("foo_id"),

@@ -11,7 +11,7 @@ var _ sqls.Builder = (*QueryBuilder)(nil)
 
 // QueryBuilder is the SQL query builder.
 // It's recommended to wrap it with your struct to provide a
-// more friendly API and improve segment reusability.
+// more friendly API and improve fragment reusability.
 type QueryBuilder struct {
 	bindVarStyle syntax.BindVarStyle // the bindvar style
 
@@ -20,11 +20,11 @@ type QueryBuilder struct {
 	tables       []Table              // the tables in order
 	appliedNames map[sqls.Table]Table // applied table name mapping, the name is alias, or name if alias is empty
 
-	selects    *sqls.Segment  // select columns and keep values in scanning.
-	touches    *sqls.Segment  // select columns but drop values in scanning.
-	conditions *sqls.Segment  // where conditions, joined with AND.
-	orders     *sqls.Segment  // order by columns, joined with comma.
-	groupbys   *sqls.Segment  // group by columns, joined with comma.
+	selects    *sqls.Fragment // select columns and keep values in scanning.
+	touches    *sqls.Fragment // select columns but drop values in scanning.
+	conditions *sqls.Fragment // where conditions, joined with AND.
+	orders     *sqls.Fragment // order by columns, joined with comma.
+	groupbys   *sqls.Fragment // group by columns, joined with comma.
 	distinct   bool           // select distinct
 	limit      int64          // limit count
 	offset     int64          // offset count
@@ -36,7 +36,7 @@ type QueryBuilder struct {
 }
 
 type fromTable struct {
-	Segment  *sqls.Segment
+	Fragment *sqls.Fragment
 	Optional bool
 }
 
@@ -45,25 +45,25 @@ func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{
 		froms:        map[Table]*fromTable{},
 		appliedNames: make(map[sqls.Table]Table),
-		selects: &sqls.Segment{
+		selects: &sqls.Fragment{
 			Prefix: "SELECT",
 			Raw:    "#join('#column', ', ')",
 		},
-		touches: &sqls.Segment{
+		touches: &sqls.Fragment{
 			Prefix: "",
-			Raw:    "#join('#segment', ', ')",
+			Raw:    "#join('#fragment', ', ')",
 		},
-		conditions: &sqls.Segment{
+		conditions: &sqls.Fragment{
 			Prefix: "WHERE",
-			Raw:    "#join('#segment', ' AND ')",
+			Raw:    "#join('#fragment', ' AND ')",
 		},
-		orders: &sqls.Segment{
+		orders: &sqls.Fragment{
 			Prefix: "ORDER BY",
-			Raw:    "#join('#segment', ', ')",
+			Raw:    "#join('#fragment', ', ')",
 		},
-		groupbys: &sqls.Segment{
+		groupbys: &sqls.Fragment{
 			Prefix: "GROUP BY",
-			Raw:    "#join('#segment', ', ')",
+			Raw:    "#join('#fragment', ', ')",
 		},
 	}
 }
@@ -107,7 +107,7 @@ var orders = []string{
 
 // OrderBy set the sorting order. the order can be "ASC", "DESC", "ASC NULLS FIRST" or "DESC NULLS LAST"
 func (b *QueryBuilder) OrderBy(column *sqls.TableColumn, order Order) *QueryBuilder {
-	idx := len(b.orders.Segments) + 1
+	idx := len(b.orders.Fragments) + 1
 	alias := fmt.Sprintf("_order_%d", idx)
 
 	if order > DescNullsLast {
@@ -115,11 +115,11 @@ func (b *QueryBuilder) OrderBy(column *sqls.TableColumn, order Order) *QueryBuil
 	}
 	orderStr := orders[order]
 	// pq: for SELECT DISTINCT, ORDER BY expressions must appear in select list
-	b.touches.AppendSegments(&sqls.Segment{
+	b.touches.AppendFragments(&sqls.Fragment{
 		Raw:     "#c1 AS " + alias,
 		Columns: []*sqls.TableColumn{column},
 	})
-	b.orders.AppendSegments(&sqls.Segment{
+	b.orders.AppendFragments(&sqls.Fragment{
 		Raw:     fmt.Sprintf("%s %s", alias, orderStr),
 		Columns: nil,
 		Args:    nil,
@@ -145,7 +145,7 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 
 // GroupBy set the sorting order.
 func (b *QueryBuilder) GroupBy(column *sqls.TableColumn, args ...any) *QueryBuilder {
-	b.groupbys.AppendSegments(&sqls.Segment{
+	b.groupbys.AppendFragments(&sqls.Fragment{
 		Raw:     "#c1",
 		Columns: []*sqls.TableColumn{column},
 		Args:    args,

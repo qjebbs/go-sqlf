@@ -16,21 +16,20 @@ var builtInFuncs map[string]preprocessor
 
 func init() {
 	builtInFuncs = map[string]preprocessor{
-		"join":    funcJoin,
-		"$":       funcArgDollar,
-		"?":       funcArgQuestion,
-		"global$": funcGlobalArgDollar,
-		"global?": funcGlobalArgQuestion,
-		"c":       funcColumn,
-		"col":     funcColumn,
-		"column":  funcColumn,
-		"t":       funcTable,
-		"table":   funcTable,
-		"s":       funcSegment,
-		"seg":     funcSegment,
-		"segment": funcSegment,
-		"b":       funcBuilder,
-		"builder": funcBuilder,
+		"join":     funcJoin,
+		"$":        funcArgDollar,
+		"?":        funcArgQuestion,
+		"global$":  funcGlobalArgDollar,
+		"global?":  funcGlobalArgQuestion,
+		"c":        funcColumn,
+		"col":      funcColumn,
+		"column":   funcColumn,
+		"t":        funcTable,
+		"table":    funcTable,
+		"f":        funcFragment,
+		"fragment": funcFragment,
+		"b":        funcBuilder,
+		"builder":  funcBuilder,
 	}
 }
 
@@ -172,15 +171,15 @@ func funcTable(ctx *context, args ...string) (string, error) {
 	return buildTable(ctx, i)
 }
 
-func funcSegment(ctx *context, args ...string) (string, error) {
+func funcFragment(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
-		return "", argError("segment(i int)", args)
+		return "", argError("fragment(i int)", args)
 	}
 	i, err := strconv.Atoi(args[0])
 	if err != nil {
 		return "", fmt.Errorf("invalid index '%s': %w", args[0], err)
 	}
-	return buildSegment(ctx, i)
+	return buildFragment(ctx, i)
 }
 
 func funcBuilder(ctx *context, args ...string) (string, error) {

@@ -47,7 +47,7 @@ func (b *QueryBuilder) markDependencies(dep map[Table]bool, t sqls.Table) error 
 		return nil
 	}
 	dep[ta] = true
-	for _, ft := range extractTables(from.Segment) {
+	for _, ft := range extractTables(from.Fragment) {
 		if ft.Table == t {
 			continue
 		}
@@ -64,15 +64,15 @@ type tableWithSouce struct {
 	Source string
 }
 
-func extractTables(segments ...*sqls.Segment) []*tableWithSouce {
+func extractTables(fragments ...*sqls.Fragment) []*tableWithSouce {
 	tables := []*tableWithSouce{}
 	dict := map[sqls.Table]bool{}
-	extractTables2(segments, &tables, &dict)
+	extractTables2(fragments, &tables, &dict)
 	return tables
 }
 
-func extractTables2(segments []*sqls.Segment, tables *[]*tableWithSouce, dict *map[sqls.Table]bool) {
-	for _, s := range segments {
+func extractTables2(fragments []*sqls.Fragment, tables *[]*tableWithSouce, dict *map[sqls.Table]bool) {
+	for _, s := range fragments {
 		if s == nil {
 			continue
 		}
@@ -96,6 +96,6 @@ func extractTables2(segments []*sqls.Segment, tables *[]*tableWithSouce, dict *m
 			})
 			(*dict)[c.Table] = true
 		}
-		extractTables2(s.Segments, tables, dict)
+		extractTables2(s.Fragments, tables, dict)
 	}
 }

@@ -7,16 +7,16 @@ import (
 
 // Where add a condition.  e.g.:
 //
-//	b.Where(&sqls.Segment{
+//	b.Where(&sqls.Fragment{
 //		Raw: "#c1 = $1",
 //		Columns: t.Columns("id"),
 //		Args: []any{1},
 //	})
-func (b *QueryBuilder) Where(s *sqls.Segment) *QueryBuilder {
+func (b *QueryBuilder) Where(s *sqls.Fragment) *QueryBuilder {
 	if s == nil {
 		return b
 	}
-	b.conditions.AppendSegments(s)
+	b.conditions.AppendFragments(s)
 	return b
 }
 
@@ -26,13 +26,13 @@ func (b *QueryBuilder) Where(s *sqls.Segment) *QueryBuilder {
 //
 // it's  equivalent to:
 //
-//	b.Where(&sqls.Segment{
+//	b.Where(&sqls.Fragment{
 //		Raw: "#c1=$1",
 //		Columns: []Column{column},
 //		Args: []any{1},
 //	})
 func (b *QueryBuilder) Where2(column *sqls.TableColumn, op string, arg any) *QueryBuilder {
-	b.conditions.AppendSegments(&sqls.Segment{
+	b.conditions.AppendFragments(&sqls.Fragment{
 		Raw:     "#c1" + op + "$1",
 		Columns: []*sqls.TableColumn{column},
 		Args:    []any{arg},
@@ -42,7 +42,7 @@ func (b *QueryBuilder) Where2(column *sqls.TableColumn, op string, arg any) *Que
 
 // WhereIn adds a where IN condition like `t.id IN (1,2,3)`
 func (b *QueryBuilder) WhereIn(column *sqls.TableColumn, list any) *QueryBuilder {
-	return b.Where(&sqls.Segment{
+	return b.Where(&sqls.Fragment{
 		Raw:     "#c1 IN (#join('#$', ', '))",
 		Columns: []*sqls.TableColumn{column},
 		Args:    util.Args(list),
@@ -51,7 +51,7 @@ func (b *QueryBuilder) WhereIn(column *sqls.TableColumn, list any) *QueryBuilder
 
 // WhereNotIn adds a where NOT IN condition like `t.id NOT IN (1,2,3)`
 func (b *QueryBuilder) WhereNotIn(column *sqls.TableColumn, list any) *QueryBuilder {
-	return b.Where(&sqls.Segment{
+	return b.Where(&sqls.Fragment{
 		Raw:     "#c1 NOT IN (#join('#$', ', '))",
 		Columns: []*sqls.TableColumn{column},
 		Args:    util.Args(list),

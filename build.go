@@ -8,8 +8,8 @@ import (
 	"github.com/qjebbs/go-sqls/syntax"
 )
 
-// Build builds the segment.
-func (s *Segment) Build() (query string, args []any, err error) {
+// Build builds the fragment.
+func (s *Fragment) Build() (query string, args []any, err error) {
 	args = make([]any, 0)
 	query, err = s.BuildContext(NewContext(&args))
 	if err != nil {
@@ -18,8 +18,8 @@ func (s *Segment) Build() (query string, args []any, err error) {
 	return query, args, nil
 }
 
-// BuildContext builds the segment with context.
-func (s *Segment) BuildContext(ctx *Context) (string, error) {
+// BuildContext builds the fragment with context.
+func (s *Fragment) BuildContext(ctx *Context) (string, error) {
 	if s == nil {
 		return "", nil
 	}
@@ -29,17 +29,17 @@ func (s *Segment) BuildContext(ctx *Context) (string, error) {
 	if ctx.ArgStore == nil {
 		return "", fmt.Errorf("nil arg store (of *[]any)")
 	}
-	ctxCur := newSegmentContext(ctx, s)
+	ctxCur := newFragmentContext(ctx, s)
 	body, err := build(ctxCur)
 	if err != nil {
 		return "", err
 	}
 	if err := ctxCur.checkUsage(); err != nil {
-		return "", fmt.Errorf("build '%s': %w", ctxCur.Segment.Raw, err)
+		return "", fmt.Errorf("build '%s': %w", ctxCur.Fragment.Raw, err)
 	}
 	// TODO: check usage of global args
 	// check inside BuildContext() is not a good idea,
-	// because it's not called for every child segment/builder,
+	// because it's not called for every child fragment/builder,
 	// when the building is not complete yet.
 	// if err := ctx.checkUsage(); err != nil {
 	// 	return "", fmt.Errorf("context: %w", err)
@@ -58,15 +58,15 @@ func (s *Segment) BuildContext(ctx *Context) (string, error) {
 	return header + body + footer, nil
 }
 
-// build builds the segment
+// build builds the fragment
 func build(ctx *context) (string, error) {
-	clause, err := syntax.Parse(ctx.Segment.Raw)
+	clause, err := syntax.Parse(ctx.Fragment.Raw)
 	if err != nil {
-		return "", fmt.Errorf("parse '%s': %w", ctx.Segment.Raw, err)
+		return "", fmt.Errorf("parse '%s': %w", ctx.Fragment.Raw, err)
 	}
 	built, err := buildClause(ctx, clause)
 	if err != nil {
-		return "", fmt.Errorf("build '%s': %w", ctx.Segment.Raw, err)
+		return "", fmt.Errorf("build '%s': %w", ctx.Fragment.Raw, err)
 	}
 	return built, nil
 }
@@ -106,14 +106,14 @@ func buildClause(ctx *context, clause *syntax.Clause) (string, error) {
 
 // Arg renders the bindvar at index.
 func buildArg(ctx *context, index int) (string, error) {
-	if index > len(ctx.Segment.Args) {
-		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Args))
+	if index > len(ctx.Fragment.Args) {
+		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Fragment.Args))
 	}
 	i := index - 1
 	ctx.ArgsUsed[i] = true
 	built := ctx.ArgsBuilt[i]
 	if built == "" || ctx.global.BindVarStyle == syntax.Question {
-		*ctx.global.ArgStore = append(*ctx.global.ArgStore, ctx.Segment.Args[i])
+		*ctx.global.ArgStore = append(*ctx.global.ArgStore, ctx.Fragment.Args[i])
 		if ctx.global.BindVarStyle == syntax.Question {
 			built = "?"
 		} else {
@@ -126,12 +126,12 @@ func buildArg(ctx *context, index int) (string, error) {
 
 // Column renders the column at index.
 func buildColumn(ctx *context, index int) (string, error) {
-	if index > len(ctx.Segment.Columns) {
-		return "", fmt.Errorf("%w: column index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Columns))
+	if index > len(ctx.Fragment.Columns) {
+		return "", fmt.Errorf("%w: column index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Fragment.Columns))
 	}
 	i := index - 1
 	ctx.ColumnsUsed[i] = true
-	col := ctx.Segment.Columns[i]
+	col := ctx.Fragment.Columns[i]
 	built := ctx.ColumnsBuilt[i]
 	if built == "" || (ctx.global.BindVarStyle == syntax.Question && len(col.Args) > 0) {
 		b, err := buildColumn2(ctx, col)
@@ -148,12 +148,12 @@ func buildColumn2(ctx *context, c *TableColumn) (string, error) {
 	if c == nil || c.Raw == "" {
 		return "", nil
 	}
-	seg := &Segment{
+	seg := &Fragment{
 		Raw:    c.Raw,
 		Args:   c.Args,
 		Tables: []Table{c.Table},
 	}
-	ctx = newSegmentContext(ctx.global, seg)
+	ctx = newFragmentContext(ctx.global, seg)
 	built, err := build(ctx)
 	if err != nil {
 		return "", err
@@ -163,45 +163,45 @@ func buildColumn2(ctx *context, c *TableColumn) (string, error) {
 		ctx.TableUsed[i] = true
 	}
 	if err := ctx.checkUsage(); err != nil {
-		return "", fmt.Errorf("build '%s': %w", ctx.Segment.Raw, err)
+		return "", fmt.Errorf("build '%s': %w", ctx.Fragment.Raw, err)
 	}
 	return built, err
 }
 
 func buildTable(ctx *context, index int) (string, error) {
-	if index > len(ctx.Segment.Tables) {
-		return "", fmt.Errorf("%w: table index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Tables))
+	if index > len(ctx.Fragment.Tables) {
+		return "", fmt.Errorf("%w: table index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Fragment.Tables))
 	}
 	ctx.TableUsed[index-1] = true
-	return string(ctx.Segment.Tables[index-1]), nil
+	return string(ctx.Fragment.Tables[index-1]), nil
 }
 
-func buildSegment(ctx *context, index int) (string, error) {
-	if index > len(ctx.Segment.Segments) {
-		return "", fmt.Errorf("%w: segment index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Segments))
+func buildFragment(ctx *context, index int) (string, error) {
+	if index > len(ctx.Fragment.Fragments) {
+		return "", fmt.Errorf("%w: fragment index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Fragment.Fragments))
 	}
 	i := index - 1
-	ctx.SegmentsUsed[i] = true
-	seg := ctx.Segment.Segments[i]
-	built := ctx.SegmentsBuilt[i]
+	ctx.FragmentsUsed[i] = true
+	seg := ctx.Fragment.Fragments[i]
+	built := ctx.FragmentsBuilt[i]
 	if built == "" || (ctx.global.BindVarStyle == syntax.Question && len(seg.Args) > 0) {
 		b, err := seg.BuildContext(ctx.global)
 		if err != nil {
 			return "", err
 		}
-		ctx.SegmentsBuilt[i] = b
+		ctx.FragmentsBuilt[i] = b
 		built = b
 	}
 	return built, nil
 }
 
 func buildBuilder(ctx *context, index int) (string, error) {
-	if index > len(ctx.Segment.Builders) {
-		return "", fmt.Errorf("%w: builder index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Segment.Builders))
+	if index > len(ctx.Fragment.Builders) {
+		return "", fmt.Errorf("%w: builder index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Fragment.Builders))
 	}
 	i := index - 1
 	ctx.BuilderUsed[i] = true
-	builder := ctx.Segment.Builders[i]
+	builder := ctx.Fragment.Builders[i]
 	built := ctx.BuildersBuilt[i]
 	if built == "" || ctx.global.BindVarStyle == syntax.Question {
 		b, err := builder.BuildContext(ctx.global)

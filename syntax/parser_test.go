@@ -37,10 +37,10 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			raw: "$1'#c11#t111#s1111'",
+			raw: "$1'#c11#t111#f1111'",
 			want: []syntax.Expr{
 				&syntax.BindVarExpr{Type: syntax.Dollar, Index: 1},
-				&syntax.PlainExpr{Text: "'#c11#t111#s1111'"},
+				&syntax.PlainExpr{Text: "'#c11#t111#f1111'"},
 			},
 		},
 		{
@@ -53,11 +53,11 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			raw: "#c1#t1#s1",
+			raw: "#c1#t1#f1",
 			want: []syntax.Expr{
 				&syntax.FuncCallExpr{Name: "c", Args: []string{"1"}},
 				&syntax.FuncCallExpr{Name: "t", Args: []string{"1"}},
-				&syntax.FuncCallExpr{Name: "s", Args: []string{"1"}},
+				&syntax.FuncCallExpr{Name: "f", Args: []string{"1"}},
 			},
 		},
 	}

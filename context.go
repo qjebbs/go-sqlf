@@ -7,11 +7,11 @@ import (
 	"github.com/qjebbs/go-sqls/syntax"
 )
 
-// Context is the global context shared between all segments building.
+// Context is the global context shared between all fragments building.
 type Context struct {
 	// args store
 	ArgStore *[]any
-	// override  bindvar style of all segments
+	// override  bindvar style of all fragments
 	BindVarStyle syntax.BindVarStyle
 
 	args      []any    // args to be referenced by other builders, with Context.Arg(int)
@@ -66,39 +66,39 @@ func (c *Context) checkUsage() error {
 	return nil
 }
 
-// context is the context for current segment building.
+// context is the context for current fragment building.
 type context struct {
-	global  *Context // global context
-	Segment *Segment // current segment
+	global   *Context  // global context
+	Fragment *Fragment // current fragment
 
-	ArgsBuilt     []string // cache of built args
-	ColumnsBuilt  []string // cache of built columns
-	SegmentsBuilt []string // cache of built segments
-	BuildersBuilt []string // cache of built builders
+	ArgsBuilt      []string // cache of built args
+	ColumnsBuilt   []string // cache of built columns
+	FragmentsBuilt []string // cache of built fragments
+	BuildersBuilt  []string // cache of built builders
 
-	ArgsUsed     []bool // flags to indicate if an arg is used
-	ColumnsUsed  []bool // flags to indicate if a column is used
-	TableUsed    []bool // flag to indicate if a table is used
-	SegmentsUsed []bool // flags to indicate if a segment is used
-	BuilderUsed  []bool // flags to indicate if a builder is used
+	ArgsUsed      []bool // flags to indicate if an arg is used
+	ColumnsUsed   []bool // flags to indicate if a column is used
+	TableUsed     []bool // flag to indicate if a table is used
+	FragmentsUsed []bool // flags to indicate if a fragment is used
+	BuilderUsed   []bool // flags to indicate if a builder is used
 }
 
-func newSegmentContext(ctx *Context, s *Segment) *context {
+func newFragmentContext(ctx *Context, s *Fragment) *context {
 	if s == nil {
 		return nil
 	}
 	return &context{
-		global:        ctx,
-		Segment:       s,
-		ArgsBuilt:     make([]string, len(s.Args)),
-		ColumnsBuilt:  make([]string, len(s.Columns)),
-		TableUsed:     make([]bool, len(s.Tables)),
-		SegmentsBuilt: make([]string, len(s.Segments)),
-		BuildersBuilt: make([]string, len(s.Builders)),
-		ArgsUsed:      make([]bool, len(s.Args)),
-		ColumnsUsed:   make([]bool, len(s.Columns)),
-		SegmentsUsed:  make([]bool, len(s.Segments)),
-		BuilderUsed:   make([]bool, len(s.Builders)),
+		global:         ctx,
+		Fragment:       s,
+		ArgsBuilt:      make([]string, len(s.Args)),
+		ColumnsBuilt:   make([]string, len(s.Columns)),
+		TableUsed:      make([]bool, len(s.Tables)),
+		FragmentsBuilt: make([]string, len(s.Fragments)),
+		BuildersBuilt:  make([]string, len(s.Builders)),
+		ArgsUsed:       make([]bool, len(s.Args)),
+		ColumnsUsed:    make([]bool, len(s.Columns)),
+		FragmentsUsed:  make([]bool, len(s.Fragments)),
+		BuilderUsed:    make([]bool, len(s.Builders)),
 	}
 }
 
@@ -121,9 +121,9 @@ func (c *context) checkUsage() error {
 			return fmt.Errorf("table %d is not used", i+1)
 		}
 	}
-	for i, v := range c.SegmentsUsed {
+	for i, v := range c.FragmentsUsed {
 		if !v {
-			return fmt.Errorf("segment %d is not used", i+1)
+			return fmt.Errorf("fragment %d is not used", i+1)
 		}
 	}
 	for i, v := range c.BuilderUsed {

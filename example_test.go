@@ -7,19 +7,19 @@ import (
 )
 
 func Example_select() {
-	selects := &sqls.Segment{
+	selects := &sqls.Fragment{
 		Raw: "SELECT #join('#column', ', ')",
 	}
-	from := &sqls.Segment{
+	from := &sqls.Fragment{
 		Raw: "FROM #t1",
 	}
-	where := &sqls.Segment{
+	where := &sqls.Fragment{
 		Prefix: "WHERE",
-		Raw:    "#join('#segment', ' AND ')",
+		Raw:    "#join('#fragment', ' AND ')",
 	}
-	builder := &sqls.Segment{
-		Raw: "#join('#segment', ' ')",
-		Segments: []*sqls.Segment{
+	builder := &sqls.Fragment{
+		Raw: "#join('#fragment', ' ')",
+		Fragments: []*sqls.Fragment{
 			selects,
 			from,
 			where,
@@ -29,13 +29,13 @@ func Example_select() {
 	var users sqls.Table = "users"
 	selects.WithColumns(users.Expressions("id", "name", "email")...)
 	from.WithTables(users)
-	where.AppendSegments(&sqls.Segment{
+	where.AppendFragments(&sqls.Fragment{
 		// (#join('#?', ', ') is also supported
 		Raw:     "#c1 IN (#join('#$', ', '))",
 		Columns: users.Expressions("id"),
 		Args:    []any{1, 2, 3},
 	})
-	where.AppendSegments(&sqls.Segment{
+	where.AppendFragments(&sqls.Fragment{
 		Raw:     "#c1 = $1",
 		Columns: users.Expressions("active"),
 		Args:    []any{true},
@@ -53,19 +53,19 @@ func Example_select() {
 }
 
 func Example_update() {
-	update := &sqls.Segment{
+	update := &sqls.Fragment{
 		Prefix: "",
 		Raw:    "UPDATE #t1 SET #join('#c=#$', ', ')",
 	}
-	where := &sqls.Segment{
+	where := &sqls.Fragment{
 		Prefix: "WHERE",
-		Raw:    "#join('#segment', ' AND ')",
+		Raw:    "#join('#fragment', ' AND ')",
 	}
 	// consider wrapping it with your own builder
 	// to provide a more friendly APIs
-	builder := &sqls.Segment{
-		Raw: "#join('#segment', ' ')",
-		Segments: []*sqls.Segment{
+	builder := &sqls.Fragment{
+		Raw: "#join('#fragment', ' ')",
+		Fragments: []*sqls.Fragment{
 			update,
 			where,
 		},
@@ -75,7 +75,7 @@ func Example_update() {
 	update.WithTables(users)
 	update.WithColumns(users.Expressions("name", "email")...)
 	update.WithArgs("alice", "alice@example.org")
-	where.AppendSegments(&sqls.Segment{
+	where.AppendFragments(&sqls.Fragment{
 		Raw:     "#c1=$1",
 		Columns: users.Expressions("id"),
 		Args:    []any{1},

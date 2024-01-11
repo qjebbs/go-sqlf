@@ -17,21 +17,21 @@ func TestQueryBuilder(t *testing.T) {
 	)
 	q := sqlb.NewQueryBuilder().
 		BindVar(syntax.Dollar).Distinct().
-		With(users.Name, &sqls.Segment{
+		With(users.Name, &sqls.Fragment{
 			Raw:  "SELECT * FROM users WHERE type=$1",
 			Args: []any{"user"},
 		}).
-		With("xxx", &sqls.Segment{Raw: "SELECT 1 AS whatever"}) // should be ignored
+		With("xxx", &sqls.Fragment{Raw: "SELECT 1 AS whatever"}) // should be ignored
 	q.Select(foo.Columns("id", "name")...).
 		From(users).
-		LeftJoinOptional(foo, &sqls.Segment{
+		LeftJoinOptional(foo, &sqls.Fragment{
 			Raw: "#c1=#c2",
 			Columns: []*sqls.TableColumn{
 				foo.Column("user_id"),
 				users.Column("id"),
 			},
 		}).
-		LeftJoinOptional(bar, &sqls.Segment{ // not referenced, should be ignored
+		LeftJoinOptional(bar, &sqls.Fragment{ // not referenced, should be ignored
 			Raw: "#c1=#c2",
 			Columns: []*sqls.TableColumn{
 				bar.Column("user_id"),
@@ -44,7 +44,7 @@ func TestQueryBuilder(t *testing.T) {
 				BindVar(syntax.Dollar).
 				Select(foo.Columns("id", "name")...).
 				From(foo).
-				Where(&sqls.Segment{
+				Where(&sqls.Fragment{
 					Raw:     "#c1>$1 AND #c1<$2",
 					Columns: foo.Columns("id"),
 					Args:    []any{10, 20},

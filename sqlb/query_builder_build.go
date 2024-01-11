@@ -173,9 +173,9 @@ func (b *QueryBuilder) buildFrom(ctx *sqls.Context, dep map[Table]bool) (string,
 			continue
 		}
 		from := b.froms[t]
-		c, err := from.Segment.BuildContext(ctx)
+		c, err := from.Fragment.BuildContext(ctx)
 		if err != nil {
-			return "", fmt.Errorf("build FROM '%s': %w", from.Segment.Raw, err)
+			return "", fmt.Errorf("build FROM '%s': %w", from.Fragment.Raw, err)
 		}
 		tables = append(tables, c)
 	}

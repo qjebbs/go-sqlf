@@ -1,22 +1,22 @@
 Package sqls focuses only on building SQL queries by free combination
-of segments. Thus, it works naturally with all sql dialects without
+of fragments. Thus, it works naturally with all sql dialects without
 having to deal with the differences between them. Unlike any other
-sql builder or ORMs, Segment is the only concept you need to learn.
+sql builder or ORMs, Fragment is the only concept you need to learn.
 
-## Segment
+## Fragment
 
-Segment is the builder for a part of or even the full query, it allows you
-to write and combine segments with freedom.
+Fragment is the builder for a part of or even the full query, it allows you
+to write and combine fragments with freedom.
 
-With the help of Segment, we pay attention only to the reference relationships
-inside the segment, for example, use "$1" to refer the first element of s.Args.
+With the help of Fragment, we pay attention only to the reference relationships
+inside the fragment, for example, use "$1" to refer the first element of s.Args.
 
-The syntax of the segment is exactly the same as the syntax of the "database/sql",
+The syntax of the fragment is exactly the same as the syntax of the "database/sql",
 plus preprocessing functions support:
 
-	SELECT * FROM foo WHERE id IN ($1, $2, $3) AND #segment(1)
-	SELECT * FROM foo WHERE id IN (?, ?, ?) AND #segment(1)
-	SELECT * FROM foo WHERE #join('#segment', ' AND ')
+	SELECT * FROM foo WHERE id IN ($1, $2, $3) AND #fragment(1)
+	SELECT * FROM foo WHERE id IN (?, ?, ?) AND #fragment(1)
+	SELECT * FROM foo WHERE #join('#fragment', ' AND ')
 
 ## Preprocessing Functions
 
@@ -24,9 +24,9 @@ plus preprocessing functions support:
 | --------------- | ---------------------------------- | -------------------------- |
 | c, col, column  | Column by index                    | #c1, #c(1)                 |
 | t, table        | Table name / alias by index        | #t1, #t(1)                 |
-| s, seg, segment | Segment by index                   | #s1, #s(1)                 |
+| s, seg, fragment | Fragment by index                   | #f1, #f(1)                 |
 | b, builder      | Builder by index                   | #b1, #b(1)                 |
-| join            | Join the template by the separator | #join('#segment', ' AND ') |
+| join            | Join the template by the separator | #join('#fragment', ' AND ') |
 | join            | Join from index 3 to end           | #join('#?', ',', 3)        |
 | join            | Join from index 3 to 6             | #join('#?', ',', 3, 6)     |
 | $               | Bindvar, usually used in #join()   | #join('#$', ', ')          |
@@ -48,19 +48,19 @@ In most cases, it's easy and flexible to create your own builder  for simple que
 
 ```go
 func Example_update() {
-	update := &sqls.Segment{
+	update := &sqls.Fragment{
 		Prefix: "",
 		Raw:    "UPDATE #t1 SET #join('#c=#$', ', ')",
 	}
-	where := &sqls.Segment{
+	where := &sqls.Fragment{
 		Prefix: "WHERE",
-		Raw:    "#join('#segment', ' AND ')",
+		Raw:    "#join('#fragment', ' AND ')",
 	}
 	// consider wrapping it with your own builder 
 	// to provide a more friendly APIs
-	builder := &sqls.Segment{
-		Raw: "#join('#segment', ' ')",
-		Segments: []*sqls.Segment{
+	builder := &sqls.Fragment{
+		Raw: "#join('#fragment', ' ')",
+		Fragments: []*sqls.Fragment{
 			update,
 			where,
 		},
@@ -71,7 +71,7 @@ func Example_update() {
 	update.WithColumns(users.Expressions("name", "email")...)
 	update.WithArgs("jebbs", "qjebbs@gmail.com")
 	// append as many conditions as you want
-	where.AppendSegments(&sqls.Segment{
+	where.AppendFragments(&sqls.Fragment{
 		Raw:     "#c1=$1",
 		Columns: users.Expressions("id"),
 		Args:    []any{1},
@@ -103,14 +103,14 @@ func ExampleQueryBuilder_Build() {
 	b := sqlb.NewQueryBuilder().
 		Select(foo.Column("*")).
 		From(foo).
-		InnerJoin(bar, &sqls.Segment{
+		InnerJoin(bar, &sqls.Fragment{
 			Raw: "#c1=#c2",
 			Columns: []*sqls.TableColumn{
 				bar.Column("foo_id"),
 				foo.Column("id"),
 			},
 		}).
-		Where(&sqls.Segment{
+		Where(&sqls.Fragment{
 			Raw:     "(#c1=$1 OR #c2=$1)",
 			Columns: foo.Columns("a", "b"),
 			Args:    []any{1},

@@ -7,26 +7,26 @@ import (
 	"github.com/qjebbs/go-sqls"
 )
 
-func TestBuildSegment(t *testing.T) {
+func TestBuildFragment(t *testing.T) {
 	t.Parallel()
 	var table, alias sqls.Table = "table", "t"
 	testCases := []struct {
 		name       string
-		segment    *sqls.Segment
+		fragment   *sqls.Fragment
 		globalArgs []any
 		want       string
 		wantArgs   []any
 		wantErr    bool
 	}{
 		{
-			name:     "build nil segment",
-			segment:  nil,
+			name:     "build nil fragment",
+			fragment: nil,
 			want:     "",
 			wantArgs: []any{},
 		},
 		{
 			name: "#join",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:  "#join('#?',','),#?(1),#?(2)",
 				Args: []any{1, 2},
 			},
@@ -35,7 +35,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "#join range",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:  "$1,#join('#$',',', 2)",
 				Args: []any{1, 2, 3, 4},
 			},
@@ -44,26 +44,26 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "#join mixed function and call",
-			segment: &sqls.Segment{
-				Raw:      "#join('#s1#?',',')",
-				Args:     []any{1, 2},
-				Segments: []*sqls.Segment{{Raw: "s1"}},
+			fragment: &sqls.Fragment{
+				Raw:       "#join('#f1#?',',')",
+				Args:      []any{1, 2},
+				Fragments: []*sqls.Fragment{{Raw: "s1"}},
 			},
 			want:     "s1?,s1?",
 			wantArgs: []any{1, 2},
 		},
 		{
-			name: "#segment",
-			segment: &sqls.Segment{
-				Raw:      "WHERE 1=1 #s1",
-				Segments: []*sqls.Segment{nil},
+			name: "#fragment",
+			fragment: &sqls.Fragment{
+				Raw:       "WHERE 1=1 #f1",
+				Fragments: []*sqls.Fragment{nil},
 			},
 			want:     "WHERE 1=1",
 			wantArgs: []any{},
 		},
 		{
 			name: "#column and args",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:     "WHERE #c1=?",
 				Columns: alias.Columns("id"),
 				Args:    []any{nil},
@@ -73,7 +73,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build nil column",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:     "WHERE #c1=$1",
 				Columns: []*sqls.TableColumn{nil},
 				Args:    []any{nil},
@@ -83,7 +83,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build column without args",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:     "#c1>1",
 				Columns: alias.Columns("id"),
 				Args:    nil,
@@ -93,7 +93,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build column with args",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:     "#c2 IS NULL AND #c1>$1",
 				Columns: alias.Columns("id", "deleted"),
 				Args:    []any{1},
@@ -103,7 +103,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build column with args 2",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:     "#c1>$1",
 				Columns: alias.Columns("id"),
 				Args:    []any{1},
@@ -113,7 +113,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build column with unusual args order",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:     "#c1 IN ($2,$1)",
 				Columns: alias.Columns("id"),
 				Args:    []any{1, 2},
@@ -123,7 +123,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build column expression with args",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw: "#c1",
 				Columns: []*sqls.TableColumn{
 					alias.Expression("#t1.id=$1", 1),
@@ -134,7 +134,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build column expression with args, and args",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw: "#c1 > $1",
 				Columns: []*sqls.TableColumn{
 					alias.Expression("#t1.id - $1", 1),
@@ -145,10 +145,10 @@ func TestBuildSegment(t *testing.T) {
 			wantArgs: []any{1, 2},
 		},
 		{
-			name: "build complex segment",
-			segment: &sqls.Segment{
-				Raw: "WITH t AS (#s1) SELECT #c1,#c2,$1 FROM #t1 AS #t2 ",
-				Segments: []*sqls.Segment{
+			name: "build complex fragment",
+			fragment: &sqls.Fragment{
+				Raw: "WITH t AS (#f1) SELECT #c1,#c2,$1 FROM #t1 AS #t2 ",
+				Fragments: []*sqls.Fragment{
 					{
 						Raw:     "SELECT * FROM #t1 AS #t2 WHERE #c1 > $1",
 						Columns: alias.Columns("id"),
@@ -167,8 +167,8 @@ func TestBuildSegment(t *testing.T) {
 			wantArgs: []any{1, 2, "foo"},
 		},
 		{
-			name: "build complex segment 2",
-			segment: &sqls.Segment{
+			name: "build complex fragment 2",
+			fragment: &sqls.Fragment{
 				Raw: "SELECT #join('#c', ', ') FROM #t1 AS #t2 ",
 				Columns: []*sqls.TableColumn{
 					alias.Column("id"),
@@ -182,20 +182,20 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "prefix and suffix",
-			segment: &sqls.Segment{
-				Raw:      "#s1",
-				Segments: []*sqls.Segment{nil},
-				Prefix:   "WHERE",
-				Suffix:   "FOR UPDATE",
+			fragment: &sqls.Fragment{
+				Raw:       "#f1",
+				Fragments: []*sqls.Fragment{nil},
+				Prefix:    "WHERE",
+				Suffix:    "FOR UPDATE",
 			},
 			want:     "",
 			wantArgs: []any{},
 		},
 		{
 			name: "prefix and suffix deep",
-			segment: &sqls.Segment{
-				Raw: "#s1",
-				Segments: []*sqls.Segment{
+			fragment: &sqls.Fragment{
+				Raw: "#f1",
+				Fragments: []*sqls.Fragment{
 					{
 						Raw:     "#c1=$1",
 						Columns: alias.Columns("id"),
@@ -209,10 +209,10 @@ func TestBuildSegment(t *testing.T) {
 			wantArgs: []any{1},
 		},
 		{
-			name: "ref segment twice",
-			segment: &sqls.Segment{
-				Raw: "#s1, #s1",
-				Segments: []*sqls.Segment{{
+			name: "ref fragment twice",
+			fragment: &sqls.Fragment{
+				Raw: "#f1, #f1",
+				Fragments: []*sqls.Fragment{{
 					Raw:  "#join('#?', ', '), ?",
 					Args: []any{1, 2},
 				}},
@@ -221,10 +221,10 @@ func TestBuildSegment(t *testing.T) {
 			wantArgs: []any{1, 2, 1, 1, 2, 1},
 		},
 		{
-			name: "arg and segment",
-			segment: &sqls.Segment{
-				Raw: "? #s1",
-				Segments: []*sqls.Segment{{
+			name: "arg and fragment",
+			fragment: &sqls.Fragment{
+				Raw: "? #f1",
+				Fragments: []*sqls.Fragment{{
 					Raw:  "$1",
 					Args: []any{2},
 				}},
@@ -235,7 +235,7 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "mixed bindvar style",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw:  "?, $1",
 				Args: []any{nil},
 			},
@@ -243,10 +243,10 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build builder",
-			segment: &sqls.Segment{
+			fragment: &sqls.Fragment{
 				Raw: "id IN (#b1)",
 				Builders: []sqls.Builder{
-					&sqls.Segment{
+					&sqls.Fragment{
 						Raw:     "SELECT id FROM #t1 WHERE #c1 > $1",
 						Tables:  []sqls.Table{table},
 						Columns: alias.Expressions("id"),
@@ -259,9 +259,9 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build with global args $",
-			segment: &sqls.Segment{
-				Raw: "#join('#segment',' ')",
-				Segments: []*sqls.Segment{
+			fragment: &sqls.Fragment{
+				Raw: "#join('#fragment',' ')",
+				Fragments: []*sqls.Fragment{
 					{Raw: "#global$1"},
 					{Raw: "#global$2"},
 					{Raw: "#global$2"},
@@ -273,9 +273,9 @@ func TestBuildSegment(t *testing.T) {
 		},
 		{
 			name: "build with global args ?",
-			segment: &sqls.Segment{
-				Raw: "#join('#segment',' ')",
-				Segments: []*sqls.Segment{
+			fragment: &sqls.Fragment{
+				Raw: "#join('#fragment',' ')",
+				Fragments: []*sqls.Fragment{
 					{Raw: "#global?1"},
 					{Raw: "#global?2"},
 					{Raw: "#global?2"},
@@ -291,7 +291,7 @@ func TestBuildSegment(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			args := make([]any, 0)
-			got, err := tc.segment.BuildContext(sqls.NewContext(&args).WithArgs(tc.globalArgs))
+			got, err := tc.fragment.BuildContext(sqls.NewContext(&args).WithArgs(tc.globalArgs))
 			if err != nil {
 				if tc.wantErr {
 					return
