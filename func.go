@@ -16,20 +16,17 @@ var builtInFuncs map[string]preprocessor
 
 func init() {
 	builtInFuncs = map[string]preprocessor{
-		"join":           funcJoin,
+		"c":              funcColumn,
+		"column":         funcColumn,
+		"t":              funcTable,
+		"table":          funcTable,
+		"fragment":       funcFragment,
+		"builder":        funcBuilder,
 		"argDollar":      funcArgDollar,
 		"argQuestion":    funcArgQuestion,
 		"ctxArgDollar":   funcCtxArgDollar,
 		"ctxArgQuestion": funcCtxArgQuestion,
-		"c":              funcColumn,
-		"col":            funcColumn,
-		"column":         funcColumn,
-		"t":              funcTable,
-		"table":          funcTable,
-		"f":              funcFragment,
-		"fragment":       funcFragment,
-		"b":              funcBuilder,
-		"builder":        funcBuilder,
+		"join":           funcJoin,
 	}
 }
 
@@ -73,7 +70,7 @@ func funcJoin(ctx *context, args ...string) (string, error) {
 		calls = append(calls, call)
 	}
 	if len(calls) == 0 {
-		return "", fmt.Errorf("no function in join template '%s' (e.g.: #col, not #col1)", tmpl)
+		return "", fmt.Errorf("no function in join template '%s' (e.g.: #c, not #c1)", tmpl)
 	}
 	start := from
 	if start <= 0 {

@@ -45,7 +45,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "#join mixed function and call",
 			fragment: &sqlf.Fragment{
-				Raw:       "#join('#f1#argQuestion',',')",
+				Raw:       "#join('#fragment1#argQuestion',',')",
 				Args:      []any{1, 2},
 				Fragments: []*sqlf.Fragment{{Raw: "s1"}},
 			},
@@ -55,7 +55,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "#fragment",
 			fragment: &sqlf.Fragment{
-				Raw:       "WHERE 1=1 #f1",
+				Raw:       "WHERE 1=1 #fragment1",
 				Fragments: []*sqlf.Fragment{nil},
 			},
 			want:     "WHERE 1=1",
@@ -147,7 +147,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "build complex fragment",
 			fragment: &sqlf.Fragment{
-				Raw: "WITH t AS (#f1) SELECT #c1,#c2,$1 FROM #t1 AS #t2 ",
+				Raw: "WITH t AS (#fragment1) SELECT #c1,#c2,$1 FROM #t1 AS #t2 ",
 				Fragments: []*sqlf.Fragment{
 					{
 						Raw:     "SELECT * FROM #t1 AS #t2 WHERE #c1 > $1",
@@ -183,7 +183,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "prefix and suffix",
 			fragment: &sqlf.Fragment{
-				Raw:       "#f1",
+				Raw:       "#fragment1",
 				Fragments: []*sqlf.Fragment{nil},
 				Prefix:    "WHERE",
 				Suffix:    "FOR UPDATE",
@@ -194,7 +194,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "prefix and suffix deep",
 			fragment: &sqlf.Fragment{
-				Raw: "#f1",
+				Raw: "#fragment1",
 				Fragments: []*sqlf.Fragment{
 					{
 						Raw:     "#c1=$1",
@@ -211,7 +211,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "ref fragment twice",
 			fragment: &sqlf.Fragment{
-				Raw: "#f1, #f1",
+				Raw: "#fragment1, #fragment1",
 				Fragments: []*sqlf.Fragment{{
 					Raw:  "#join('#argQuestion', ', '), ?",
 					Args: []any{1, 2},
@@ -223,7 +223,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "arg and fragment",
 			fragment: &sqlf.Fragment{
-				Raw: "? #f1",
+				Raw: "? #fragment1",
 				Fragments: []*sqlf.Fragment{{
 					Raw:  "$1",
 					Args: []any{2},
@@ -244,7 +244,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "build builder",
 			fragment: &sqlf.Fragment{
-				Raw: "id IN (#b1)",
+				Raw: "id IN (#builder1)",
 				Builders: []sqlf.Builder{
 					&sqlf.Fragment{
 						Raw:     "SELECT id FROM #t1 WHERE #c1 > $1",

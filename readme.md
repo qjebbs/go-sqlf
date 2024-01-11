@@ -18,25 +18,31 @@ plus preprocessing functions support:
 	SELECT * FROM foo WHERE id IN (?, ?, ?) AND #fragment(1)
 	SELECT * FROM foo WHERE #join('#fragment', ' AND ')
 
+Explanation:
+
+- `$1`, `$2`, `$3` means the first, second, third argument of the `Fragment.Args`.
+- `?` means the argument of the `Fragment.Args` in order.
+- `#fragment` is a preprocessing function, which will be explained later.
+
 ## Preprocessing Functions
 
-| name           | description                          | example                        |
-| -------------- | ------------------------------------ | ------------------------------ |
-| c, col, column | Column by index                      | #c1, #c(1)                     |
-| t, table       | Table name / alias by index          | #t1, #t(1)                     |
-| f, fragment    | Fragment by index                    | #f1, #f(1)                     |
-| b, builder     | Builder by index                     | #b1, #b(1)                     |
-| argDollar      | arg at index with style $            | #join('#argDollar', ', ')      |
-| argQuestion    | arg at index with style ?            | #join('#argQuestion', ', ')    |
-| ctxArgDollar   | arg from global context with style $ | #ctxArgDollar1                 |
-| ctxArgQuestion | arg from global context with style ? | #ctxArgQuestion1               |
-| join           | Join the template by the separator   | #join('#fragment', ' AND ')    |
-|                | Join from index 3 to end             | #join('#argDollar', ',', 3)    |
-|                | Join from index 3 to 6               | #join('#argDollar', ',', 3, 6) |
+| name           | description                           | example                        |
+| -------------- | ------------------------------------- | ------------------------------ |
+| c, column      | `Fragment.Columns` at index           | #c1                            |
+| t, table       | `Fragment.Tables` at index            | #t1                            |
+| fragment       | `Fragment.Fragments` at index         | #fragment1                     |
+| builder        | `Fragment.Builders` at index          | #builder1                      |
+| argDollar      | `Fragment.Args` at index with style $ | #join('#argDollar', ', ')      |
+| argQuestion    | `Fragment.Args` at index with style ? | #join('#argQuestion', ', ')    |
+| ctxArgDollar   | Arg from global context with style $  | #ctxArgDollar1                 |
+| ctxArgQuestion | Arg from global context with style ?  | #ctxArgQuestion1               |
+| join           | Join the template with separator      | #join('#fragment', ' AND ')    |
+|                | Join from index 3 to end              | #join('#argDollar', ',', 3)    |
+|                | Join from index 3 to 6                | #join('#argDollar', ',', 3, 6) |
 
 Note:
-  - References in the #join template are functions, not function calls.
   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when a number is the only argument.
+  - Expressions in the #join template are functions, not function calls.
 
 ## Examples
 

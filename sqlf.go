@@ -18,21 +18,26 @@
 //	SELECT * FROM foo WHERE id IN (?, ?, ?) AND #fragment(1)
 //	SELECT * FROM foo WHERE #join('#fragment', ' AND ')
 //
+// Explanation:
+//   - $1, $2, $3 means the first, second, third argument of the Fragment.Args.
+//   - ? means the argument of the Fragment.Args in order.
+//   - #fragment is a preprocessing function, which will be explained later.
+//
 // # Preprocessing Functions
 //
-//   - c, col, column: Column at index, e.g. #c1, #c(1)
-//   - t, table				: Table name / alias at index, e.g. #t1, #t(1)
-//   - f, fragment		    : Fragment at index, e.g. #f1, #f(1)
-//   - b, builder		    : Builder at index, e.g. #b1, #b(1)
-//   - argDollar			: arg at index with style $x, usually used in #join().
-//   - argQuestion			: arg at index with style ?, usually used in #join().
-//   - ctxArgDollar 		: arg from global context with style $x, e.g.: #ctxArgDollar1, #ctxArgDollar(1)
-//   - ctxArgQuestion 		: arg from global context with style ?, e.g.: #ctxArgQuestion1, #ctxArgQuestion(1)
-//   - join 				: Join the template by the separator, e.g. #join('#column', ', '), #join('#argDollar', ',', 3), #join('#argDollar', ',', 3, 6)
+//   - c, column		: Fragment.Columns at index, e.g. #c1
+//   - t, table			: Fragment.Tables at index, e.g. #t1
+//   - fragment		   	: Fragment.Fragments at index, e.g. #fragment1
+//   - builder		   	: Fragment.Builders at index, e.g. #builder1
+//   - argDollar		: Fragment.Args at index with style $, usually used in #join().
+//   - argQuestion		: Fragment.Args at index with style ?, usually used in #join().
+//   - ctxArgDollar 	: Arg from global context with style $, e.g.: #ctxArgDollar1
+//   - ctxArgQuestion 	: Arg from global context with style ?, e.g.: #ctxArgQuestion1
+//   - join 			: Join the template with separator, e.g. #join('#column', ', '), #join('#argDollar', ',', 3), #join('#argDollar', ',', 3, 6)
 //
 // Note:
-//   - References in the #join template are functions, not function calls.
 //   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when a number is the only argument.
+//   - Expressions in the #join template are functions, not function calls.
 package sqlf
 
 // Builder is the interface for sql builders.
