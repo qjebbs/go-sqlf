@@ -9,7 +9,7 @@ import (
 
 // Context is the global context shared between all fragments building.
 type Context struct {
-	// args store
+	// ArgStore is the storage for built args.
 	ArgStore *[]any
 
 	bindVarStyle syntax.BindVarStyle
@@ -26,7 +26,9 @@ func NewContext(argStore *[]any) *Context {
 	}
 }
 
-// WithArgs set the args to the context.
+// WithArgs set the args to the context, which can be referenced by #globalArgDollar and #globalArgQuestion.
+//
+// Note: it has nothing to do with the c.ArgStore.
 func (c *Context) WithArgs(args []any) *Context {
 	c.args = args
 	c.argsBuilt = make([]string, len(args))
@@ -95,22 +97,22 @@ type context struct {
 	BuilderUsed   []bool // flags to indicate if a builder is used
 }
 
-func newFragmentContext(ctx *Context, s *Fragment) *context {
-	if s == nil {
+func newFragmentContext(ctx *Context, f *Fragment) *context {
+	if f == nil {
 		return nil
 	}
 	return &context{
 		global:         ctx,
-		Fragment:       s,
-		ArgsBuilt:      make([]string, len(s.Args)),
-		ColumnsBuilt:   make([]string, len(s.Columns)),
-		TableUsed:      make([]bool, len(s.Tables)),
-		FragmentsBuilt: make([]string, len(s.Fragments)),
-		BuildersBuilt:  make([]string, len(s.Builders)),
-		ArgsUsed:       make([]bool, len(s.Args)),
-		ColumnsUsed:    make([]bool, len(s.Columns)),
-		FragmentsUsed:  make([]bool, len(s.Fragments)),
-		BuilderUsed:    make([]bool, len(s.Builders)),
+		Fragment:       f,
+		ArgsBuilt:      make([]string, len(f.Args)),
+		ColumnsBuilt:   make([]string, len(f.Columns)),
+		TableUsed:      make([]bool, len(f.Tables)),
+		FragmentsBuilt: make([]string, len(f.Fragments)),
+		BuildersBuilt:  make([]string, len(f.Builders)),
+		ArgsUsed:       make([]bool, len(f.Args)),
+		ColumnsUsed:    make([]bool, len(f.Columns)),
+		FragmentsUsed:  make([]bool, len(f.Fragments)),
+		BuilderUsed:    make([]bool, len(f.Builders)),
 	}
 }
 

@@ -1,8 +1,8 @@
 package sqlf
 
-import "fmt"
+import "errors"
 
 var (
 	// ErrInvalidIndex is returned when the reference index is invalid.
-	ErrInvalidIndex = fmt.Errorf("invalid index")
+	ErrInvalidIndex = errors.New("invalid index")
 )

@@ -9,9 +9,9 @@ import (
 )
 
 // Build builds the fragment.
-func (s *Fragment) Build() (query string, args []any, err error) {
+func (f *Fragment) Build() (query string, args []any, err error) {
 	args = make([]any, 0)
-	query, err = s.BuildContext(NewContext(&args))
+	query, err = f.BuildContext(NewContext(&args))
 	if err != nil {
 		return "", nil, err
 	}
@@ -19,8 +19,8 @@ func (s *Fragment) Build() (query string, args []any, err error) {
 }
 
 // BuildContext builds the fragment with context.
-func (s *Fragment) BuildContext(ctx *Context) (string, error) {
-	if s == nil {
+func (f *Fragment) BuildContext(ctx *Context) (string, error) {
+	if f == nil {
 		return "", nil
 	}
 	if ctx == nil {
@@ -29,7 +29,7 @@ func (s *Fragment) BuildContext(ctx *Context) (string, error) {
 	if ctx.ArgStore == nil {
 		return "", fmt.Errorf("nil arg store (of *[]any)")
 	}
-	ctxCur := newFragmentContext(ctx, s)
+	ctxCur := newFragmentContext(ctx, f)
 	body, err := build(ctxCur)
 	if err != nil {
 		return "", err
@@ -49,11 +49,11 @@ func (s *Fragment) BuildContext(ctx *Context) (string, error) {
 		return "", nil
 	}
 	header, footer := "", ""
-	if s.Prefix != "" {
-		header = s.Prefix + " "
+	if f.Prefix != "" {
+		header = f.Prefix + " "
 	}
-	if s.Suffix != "" {
-		footer = " " + s.Suffix
+	if f.Suffix != "" {
+		footer = " " + f.Suffix
 	}
 	return header + body + footer, nil
 }

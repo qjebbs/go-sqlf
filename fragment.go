@@ -15,41 +15,41 @@ type Fragment struct {
 }
 
 // AppendTables appends tables to the fragment.
-func (s *Fragment) AppendTables(tables ...Table) {
-	s.Tables = append(s.Tables, tables...)
+func (f *Fragment) AppendTables(tables ...Table) {
+	f.Tables = append(f.Tables, tables...)
 }
 
 // AppendColumns appends columns to the fragment.
-func (s *Fragment) AppendColumns(columns ...*TableColumn) {
-	s.Columns = append(s.Columns, columns...)
+func (f *Fragment) AppendColumns(columns ...*TableColumn) {
+	f.Columns = append(f.Columns, columns...)
 }
 
-// AppendFragments appends fragments to the s.Fragments.
-func (s *Fragment) AppendFragments(fragments ...*Fragment) {
-	s.Fragments = append(s.Fragments, fragments...)
+// AppendFragments appends fragments to the fragment.
+func (f *Fragment) AppendFragments(fragments ...*Fragment) {
+	f.Fragments = append(f.Fragments, fragments...)
 }
 
-// AppendArgs appends args to the s.Args.
-func (s *Fragment) AppendArgs(args ...any) {
-	s.Args = append(s.Args, args...)
+// AppendArgs appends args to the fragment.
+func (f *Fragment) AppendArgs(args ...any) {
+	f.Args = append(f.Args, args...)
 }
 
-// WithTables replace s.Tables with the tables
-func (s *Fragment) WithTables(tables ...Table) {
-	s.Tables = tables
+// WithTables replace f.Tables with the tables
+func (f *Fragment) WithTables(tables ...Table) {
+	f.Tables = tables
 }
 
-// WithColumns replace s.Columns with the columns
-func (s *Fragment) WithColumns(columns ...*TableColumn) {
-	s.Columns = columns
+// WithColumns replace f.Columns with the columns
+func (f *Fragment) WithColumns(columns ...*TableColumn) {
+	f.Columns = columns
 }
 
-// WithFragments replace s.Fragments with the fragments
-func (s *Fragment) WithFragments(fragments ...*Fragment) {
-	s.Fragments = fragments
+// WithFragments replace f.Fragments with the fragments
+func (f *Fragment) WithFragments(fragments ...*Fragment) {
+	f.Fragments = fragments
 }
 
-// WithArgs replace s.Args with the args
-func (s *Fragment) WithArgs(args ...any) {
-	s.Args = args
+// WithArgs replace f.Args with the args
+func (f *Fragment) WithArgs(args ...any) {
+	f.Args = args
 }

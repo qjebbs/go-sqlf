@@ -9,7 +9,7 @@ Fragment is the builder for a part of or even the full query, it allows you
 to write and combine fragments with freedom.
 
 With the help of Fragment, we pay attention only to the reference relationships
-inside the fragment, for example, use "$1" to refer the first element of s.Args.
+inside the fragment, for example, use `$1` to refer `Fragment.Args[0]`.
 
 The syntax of the fragment is exactly the same as the syntax of the "database/sql",
 plus preprocessing functions support:

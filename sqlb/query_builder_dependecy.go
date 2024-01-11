@@ -72,30 +72,30 @@ func extractTables(fragments ...*sqlf.Fragment) []*tableWithSouce {
 }
 
 func extractTables2(fragments []*sqlf.Fragment, tables *[]*tableWithSouce, dict *map[sqlf.Table]bool) {
-	for _, s := range fragments {
-		if s == nil {
+	for _, f := range fragments {
+		if f == nil {
 			continue
 		}
-		for i, t := range s.Tables {
+		for i, t := range f.Tables {
 			if (*dict)[t] {
 				continue
 			}
 			*tables = append(*tables, &tableWithSouce{
 				Table:  t,
-				Source: fmt.Sprintf("#tables%d of '%s'", i+1, s.Raw),
+				Source: fmt.Sprintf("#tables%d of '%s'", i+1, f.Raw),
 			})
 			(*dict)[t] = true
 		}
-		for i, c := range s.Columns {
+		for i, c := range f.Columns {
 			if c == nil || (*dict)[c.Table] {
 				continue
 			}
 			*tables = append(*tables, &tableWithSouce{
 				Table:  c.Table,
-				Source: fmt.Sprintf("#column%d '%s' of '%s'", i+1, c.Raw, s.Raw),
+				Source: fmt.Sprintf("#column%d '%s' of '%s'", i+1, c.Raw, f.Raw),
 			})
 			(*dict)[c.Table] = true
 		}
-		extractTables2(s.Fragments, tables, dict)
+		extractTables2(f.Fragments, tables, dict)
 	}
 }
