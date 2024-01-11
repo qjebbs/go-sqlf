@@ -1,18 +1,18 @@
-package sqls_test
+package sqlf_test
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/qjebbs/go-sqls"
+	"github.com/qjebbs/go-sqlf"
 )
 
 func TestBuildFragment(t *testing.T) {
 	t.Parallel()
-	var table, alias sqls.Table = "table", "t"
+	var table, alias sqlf.Table = "table", "t"
 	testCases := []struct {
 		name       string
-		fragment   *sqls.Fragment
+		fragment   *sqlf.Fragment
 		globalArgs []any
 		want       string
 		wantArgs   []any
@@ -26,7 +26,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "#join",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:  "#join('#?',','),#?(1),#?(2)",
 				Args: []any{1, 2},
 			},
@@ -35,7 +35,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "#join range",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:  "$1,#join('#$',',', 2)",
 				Args: []any{1, 2, 3, 4},
 			},
@@ -44,26 +44,26 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "#join mixed function and call",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:       "#join('#f1#?',',')",
 				Args:      []any{1, 2},
-				Fragments: []*sqls.Fragment{{Raw: "s1"}},
+				Fragments: []*sqlf.Fragment{{Raw: "s1"}},
 			},
 			want:     "s1?,s1?",
 			wantArgs: []any{1, 2},
 		},
 		{
 			name: "#fragment",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:       "WHERE 1=1 #f1",
-				Fragments: []*sqls.Fragment{nil},
+				Fragments: []*sqlf.Fragment{nil},
 			},
 			want:     "WHERE 1=1",
 			wantArgs: []any{},
 		},
 		{
 			name: "#column and args",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:     "WHERE #c1=?",
 				Columns: alias.Columns("id"),
 				Args:    []any{nil},
@@ -73,9 +73,9 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build nil column",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:     "WHERE #c1=$1",
-				Columns: []*sqls.TableColumn{nil},
+				Columns: []*sqlf.TableColumn{nil},
 				Args:    []any{nil},
 			},
 			want:     "WHERE =$1",
@@ -83,7 +83,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build column without args",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:     "#c1>1",
 				Columns: alias.Columns("id"),
 				Args:    nil,
@@ -93,7 +93,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build column with args",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:     "#c2 IS NULL AND #c1>$1",
 				Columns: alias.Columns("id", "deleted"),
 				Args:    []any{1},
@@ -103,7 +103,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build column with args 2",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:     "#c1>$1",
 				Columns: alias.Columns("id"),
 				Args:    []any{1},
@@ -113,7 +113,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build column with unusual args order",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:     "#c1 IN ($2,$1)",
 				Columns: alias.Columns("id"),
 				Args:    []any{1, 2},
@@ -123,9 +123,9 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build column expression with args",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "#c1",
-				Columns: []*sqls.TableColumn{
+				Columns: []*sqlf.TableColumn{
 					alias.Expression("#t1.id=$1", 1),
 				},
 			},
@@ -134,9 +134,9 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build column expression with args, and args",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "#c1 > $1",
-				Columns: []*sqls.TableColumn{
+				Columns: []*sqlf.TableColumn{
 					alias.Expression("#t1.id - $1", 1),
 				},
 				Args: []any{2},
@@ -146,21 +146,21 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build complex fragment",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "WITH t AS (#f1) SELECT #c1,#c2,$1 FROM #t1 AS #t2 ",
-				Fragments: []*sqls.Fragment{
+				Fragments: []*sqlf.Fragment{
 					{
 						Raw:     "SELECT * FROM #t1 AS #t2 WHERE #c1 > $1",
 						Columns: alias.Columns("id"),
-						Tables:  []sqls.Table{table, alias},
+						Tables:  []sqlf.Table{table, alias},
 						Args:    []any{1},
 					},
 				},
-				Columns: []*sqls.TableColumn{
+				Columns: []*sqlf.TableColumn{
 					alias.Column("id"),
 					alias.Expression("#t1.id=$1", 2),
 				},
-				Tables: []sqls.Table{table, alias},
+				Tables: []sqlf.Table{table, alias},
 				Args:   []any{"foo"},
 			},
 			want:     "WITH t AS (SELECT * FROM table AS t WHERE t.id > $1) SELECT t.id,t.id=$2,$3 FROM table AS t",
@@ -168,23 +168,23 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build complex fragment 2",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "SELECT #join('#c', ', ') FROM #t1 AS #t2 ",
-				Columns: []*sqls.TableColumn{
+				Columns: []*sqlf.TableColumn{
 					alias.Column("id"),
 					alias.Expression("#t1.id=$1", 1),
 					alias.Column("name"),
 				},
-				Tables: []sqls.Table{table, alias},
+				Tables: []sqlf.Table{table, alias},
 			},
 			want:     "SELECT t.id, t.id=$1, t.name FROM table AS t",
 			wantArgs: []any{1},
 		},
 		{
 			name: "prefix and suffix",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:       "#f1",
-				Fragments: []*sqls.Fragment{nil},
+				Fragments: []*sqlf.Fragment{nil},
 				Prefix:    "WHERE",
 				Suffix:    "FOR UPDATE",
 			},
@@ -193,9 +193,9 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "prefix and suffix deep",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "#f1",
-				Fragments: []*sqls.Fragment{
+				Fragments: []*sqlf.Fragment{
 					{
 						Raw:     "#c1=$1",
 						Columns: alias.Columns("id"),
@@ -210,9 +210,9 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "ref fragment twice",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "#f1, #f1",
-				Fragments: []*sqls.Fragment{{
+				Fragments: []*sqlf.Fragment{{
 					Raw:  "#join('#?', ', '), ?",
 					Args: []any{1, 2},
 				}},
@@ -222,9 +222,9 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "arg and fragment",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "? #f1",
-				Fragments: []*sqls.Fragment{{
+				Fragments: []*sqlf.Fragment{{
 					Raw:  "$1",
 					Args: []any{2},
 				}},
@@ -235,7 +235,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "mixed bindvar style",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw:  "?, $1",
 				Args: []any{nil},
 			},
@@ -243,12 +243,12 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build builder",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "id IN (#b1)",
-				Builders: []sqls.Builder{
-					&sqls.Fragment{
+				Builders: []sqlf.Builder{
+					&sqlf.Fragment{
 						Raw:     "SELECT id FROM #t1 WHERE #c1 > $1",
-						Tables:  []sqls.Table{table},
+						Tables:  []sqlf.Table{table},
 						Columns: alias.Expressions("id"),
 						Args:    []any{1},
 					},
@@ -259,9 +259,9 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build with global args $",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "#join('#fragment',' ')",
-				Fragments: []*sqls.Fragment{
+				Fragments: []*sqlf.Fragment{
 					{Raw: "#global$1"},
 					{Raw: "#global$2"},
 					{Raw: "#global$2"},
@@ -273,9 +273,9 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name: "build with global args ?",
-			fragment: &sqls.Fragment{
+			fragment: &sqlf.Fragment{
 				Raw: "#join('#fragment',' ')",
-				Fragments: []*sqls.Fragment{
+				Fragments: []*sqlf.Fragment{
 					{Raw: "#global?1"},
 					{Raw: "#global?2"},
 					{Raw: "#global?2"},
@@ -291,7 +291,7 @@ func TestBuildFragment(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			args := make([]any, 0)
-			got, err := tc.fragment.BuildContext(sqls.NewContext(&args).WithArgs(tc.globalArgs))
+			got, err := tc.fragment.BuildContext(sqlf.NewContext(&args).WithArgs(tc.globalArgs))
 			if err != nil {
 				if tc.wantErr {
 					return

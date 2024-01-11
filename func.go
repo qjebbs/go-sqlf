@@ -1,4 +1,4 @@
-package sqls
+package sqlf
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/qjebbs/go-sqls/syntax"
+	"github.com/qjebbs/go-sqlf/syntax"
 )
 
 // preprocessor is the type of preprocessing functions.

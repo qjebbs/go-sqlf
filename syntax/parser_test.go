@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/qjebbs/go-sqls/syntax"
+	"github.com/qjebbs/go-sqlf/syntax"
 )
 
 func TestParser(t *testing.T) {

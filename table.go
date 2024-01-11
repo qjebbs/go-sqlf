@@ -1,4 +1,4 @@
-package sqls
+package sqlf
 
 // Table is a table identifier, it can a table name or an alias.
 type Table string

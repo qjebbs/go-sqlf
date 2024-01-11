@@ -1,9 +1,9 @@
 package sqlb
 
-import "github.com/qjebbs/go-sqls"
+import "github.com/qjebbs/go-sqlf"
 
 // With adds a fragment as common table expression, the built query of s should be a subquery.
-func (b *QueryBuilder) With(name sqls.Table, builder sqls.Builder) *QueryBuilder {
+func (b *QueryBuilder) With(name sqlf.Table, builder sqlf.Builder) *QueryBuilder {
 	b.ctes = append(b.ctes, &cte{
 		table:   NewTable(name, ""),
 		Builder: builder,
@@ -13,5 +13,5 @@ func (b *QueryBuilder) With(name sqls.Table, builder sqls.Builder) *QueryBuilder
 
 type cte struct {
 	table Table
-	sqls.Builder
+	sqlf.Builder
 }

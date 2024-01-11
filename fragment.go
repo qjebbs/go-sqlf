@@ -1,4 +1,4 @@
-package sqls
+package sqlf
 
 // Fragment is the builder for a part of or even the full query, it allows you
 // to write and combine fragments with freedom.

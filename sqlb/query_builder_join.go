@@ -3,7 +3,7 @@ package sqlb
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqls"
+	"github.com/qjebbs/go-sqlf"
 )
 
 // From set the from table.
@@ -23,7 +23,7 @@ func (b *QueryBuilder) From(t Table) *QueryBuilder {
 	}
 	b.appliedNames[t.AppliedName()] = t
 	b.froms[t] = &fromTable{
-		Fragment: &sqls.Fragment{
+		Fragment: &sqlf.Fragment{
 			Raw: tableAndAlias,
 		},
 		Optional: false,
@@ -32,12 +32,12 @@ func (b *QueryBuilder) From(t Table) *QueryBuilder {
 }
 
 // InnerJoin append a inner join table.
-func (b *QueryBuilder) InnerJoin(t Table, on *sqls.Fragment) *QueryBuilder {
+func (b *QueryBuilder) InnerJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("INNER JOIN", t, on, false)
 }
 
 // LeftJoin append / replace a left join table.
-func (b *QueryBuilder) LeftJoin(t Table, on *sqls.Fragment) *QueryBuilder {
+func (b *QueryBuilder) LeftJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("LEFT JOIN", t, on, false)
 }
 
@@ -46,7 +46,7 @@ func (b *QueryBuilder) LeftJoin(t Table, on *sqls.Fragment) *QueryBuilder {
 // CAUSION:
 //
 //   - Make sure all columns referenced in the query are reflected in
-//     *sqls.Fragment.Columns, so that the *QueryBuilder can calculate the dependency
+//     *sqlf.Fragment.Columns, so that the *QueryBuilder can calculate the dependency
 //     correctly.
 //   - Make sure it's used with the SELECT DISTINCT statement, otherwise it works
 //     exactly the same as LeftJoin().
@@ -59,17 +59,17 @@ func (b *QueryBuilder) LeftJoin(t Table, on *sqls.Fragment) *QueryBuilder {
 // They return the same result, but the second query more efficient.
 // If the join to "bar" is declared with LeftJoinOptional(), *QueryBuilder
 // will trim it if no relative columns referenced in the query, aka Join Elimination.
-func (b *QueryBuilder) LeftJoinOptional(t Table, on *sqls.Fragment) *QueryBuilder {
+func (b *QueryBuilder) LeftJoinOptional(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("LEFT JOIN", t, on, true)
 }
 
 // RightJoin append / replace a right join table.
-func (b *QueryBuilder) RightJoin(t Table, on *sqls.Fragment) *QueryBuilder {
+func (b *QueryBuilder) RightJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("RIGHT JOIN", t, on, false)
 }
 
 // FullJoin append / replace a full join table.
-func (b *QueryBuilder) FullJoin(t Table, on *sqls.Fragment) *QueryBuilder {
+func (b *QueryBuilder) FullJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("FULL JOIN", t, on, false)
 }
 
@@ -79,7 +79,7 @@ func (b *QueryBuilder) CrossJoin(t Table) *QueryBuilder {
 }
 
 // From append or replace a from table.
-func (b *QueryBuilder) join(joinStr string, t Table, on *sqls.Fragment, optional bool) *QueryBuilder {
+func (b *QueryBuilder) join(joinStr string, t Table, on *sqlf.Fragment, optional bool) *QueryBuilder {
 	if t.Name == "" {
 		b.pushError(fmt.Errorf("join table name is empty"))
 		return b
@@ -104,7 +104,7 @@ func (b *QueryBuilder) join(joinStr string, t Table, on *sqls.Fragment, optional
 	}
 	if on == nil || on.Raw == "" {
 		b.froms[t] = &fromTable{
-			Fragment: &sqls.Fragment{
+			Fragment: &sqlf.Fragment{
 				Raw: fmt.Sprintf("%s %s", joinStr, tableAndAlias),
 			},
 			Optional: optional,
@@ -112,7 +112,7 @@ func (b *QueryBuilder) join(joinStr string, t Table, on *sqls.Fragment, optional
 		return b
 	}
 	b.froms[t] = &fromTable{
-		Fragment: &sqls.Fragment{
+		Fragment: &sqlf.Fragment{
 			Raw:       fmt.Sprintf("%s %s ON %s", joinStr, tableAndAlias, on.Raw),
 			Fragments: on.Fragments,
 			Columns:   on.Columns,

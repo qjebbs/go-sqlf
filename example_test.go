@@ -1,41 +1,41 @@
-package sqls_test
+package sqlf_test
 
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqls"
+	"github.com/qjebbs/go-sqlf"
 )
 
 func Example_select() {
-	selects := &sqls.Fragment{
+	selects := &sqlf.Fragment{
 		Raw: "SELECT #join('#column', ', ')",
 	}
-	from := &sqls.Fragment{
+	from := &sqlf.Fragment{
 		Raw: "FROM #t1",
 	}
-	where := &sqls.Fragment{
+	where := &sqlf.Fragment{
 		Prefix: "WHERE",
 		Raw:    "#join('#fragment', ' AND ')",
 	}
-	builder := &sqls.Fragment{
+	builder := &sqlf.Fragment{
 		Raw: "#join('#fragment', ' ')",
-		Fragments: []*sqls.Fragment{
+		Fragments: []*sqlf.Fragment{
 			selects,
 			from,
 			where,
 		},
 	}
 
-	var users sqls.Table = "users"
+	var users sqlf.Table = "users"
 	selects.WithColumns(users.Expressions("id", "name", "email")...)
 	from.WithTables(users)
-	where.AppendFragments(&sqls.Fragment{
+	where.AppendFragments(&sqlf.Fragment{
 		// (#join('#?', ', ') is also supported
 		Raw:     "#c1 IN (#join('#$', ', '))",
 		Columns: users.Expressions("id"),
 		Args:    []any{1, 2, 3},
 	})
-	where.AppendFragments(&sqls.Fragment{
+	where.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1 = $1",
 		Columns: users.Expressions("active"),
 		Args:    []any{true},
@@ -53,29 +53,29 @@ func Example_select() {
 }
 
 func Example_update() {
-	update := &sqls.Fragment{
+	update := &sqlf.Fragment{
 		Prefix: "",
 		Raw:    "UPDATE #t1 SET #join('#c=#$', ', ')",
 	}
-	where := &sqls.Fragment{
+	where := &sqlf.Fragment{
 		Prefix: "WHERE",
 		Raw:    "#join('#fragment', ' AND ')",
 	}
 	// consider wrapping it with your own builder
 	// to provide a more friendly APIs
-	builder := &sqls.Fragment{
+	builder := &sqlf.Fragment{
 		Raw: "#join('#fragment', ' ')",
-		Fragments: []*sqls.Fragment{
+		Fragments: []*sqlf.Fragment{
 			update,
 			where,
 		},
 	}
 
-	var users sqls.Table = "users"
+	var users sqlf.Table = "users"
 	update.WithTables(users)
 	update.WithColumns(users.Expressions("name", "email")...)
 	update.WithArgs("alice", "alice@example.org")
-	where.AppendFragments(&sqls.Fragment{
+	where.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1=$1",
 		Columns: users.Expressions("id"),
 		Args:    []any{1},

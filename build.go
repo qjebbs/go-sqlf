@@ -1,11 +1,11 @@
-package sqls
+package sqlf
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/qjebbs/go-sqls/syntax"
+	"github.com/qjebbs/go-sqlf/syntax"
 )
 
 // Build builds the fragment.

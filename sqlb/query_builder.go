@@ -3,11 +3,11 @@ package sqlb
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqls"
-	"github.com/qjebbs/go-sqls/syntax"
+	"github.com/qjebbs/go-sqlf"
+	"github.com/qjebbs/go-sqlf/syntax"
 )
 
-var _ sqls.Builder = (*QueryBuilder)(nil)
+var _ sqlf.Builder = (*QueryBuilder)(nil)
 
 // QueryBuilder is the SQL query builder.
 // It's recommended to wrap it with your struct to provide a
@@ -18,17 +18,17 @@ type QueryBuilder struct {
 	ctes         []*cte               // common table expressions
 	froms        map[Table]*fromTable // the from tables by alias
 	tables       []Table              // the tables in order
-	appliedNames map[sqls.Table]Table // applied table name mapping, the name is alias, or name if alias is empty
+	appliedNames map[sqlf.Table]Table // applied table name mapping, the name is alias, or name if alias is empty
 
-	selects    *sqls.Fragment // select columns and keep values in scanning.
-	touches    *sqls.Fragment // select columns but drop values in scanning.
-	conditions *sqls.Fragment // where conditions, joined with AND.
-	orders     *sqls.Fragment // order by columns, joined with comma.
-	groupbys   *sqls.Fragment // group by columns, joined with comma.
+	selects    *sqlf.Fragment // select columns and keep values in scanning.
+	touches    *sqlf.Fragment // select columns but drop values in scanning.
+	conditions *sqlf.Fragment // where conditions, joined with AND.
+	orders     *sqlf.Fragment // order by columns, joined with comma.
+	groupbys   *sqlf.Fragment // group by columns, joined with comma.
 	distinct   bool           // select distinct
 	limit      int64          // limit count
 	offset     int64          // offset count
-	unions     []sqls.Builder // union queries
+	unions     []sqlf.Builder // union queries
 
 	errors []error // errors during building
 
@@ -36,7 +36,7 @@ type QueryBuilder struct {
 }
 
 type fromTable struct {
-	Fragment *sqls.Fragment
+	Fragment *sqlf.Fragment
 	Optional bool
 }
 
@@ -44,24 +44,24 @@ type fromTable struct {
 func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{
 		froms:        map[Table]*fromTable{},
-		appliedNames: make(map[sqls.Table]Table),
-		selects: &sqls.Fragment{
+		appliedNames: make(map[sqlf.Table]Table),
+		selects: &sqlf.Fragment{
 			Prefix: "SELECT",
 			Raw:    "#join('#column', ', ')",
 		},
-		touches: &sqls.Fragment{
+		touches: &sqlf.Fragment{
 			Prefix: "",
 			Raw:    "#join('#fragment', ', ')",
 		},
-		conditions: &sqls.Fragment{
+		conditions: &sqlf.Fragment{
 			Prefix: "WHERE",
 			Raw:    "#join('#fragment', ' AND ')",
 		},
-		orders: &sqls.Fragment{
+		orders: &sqlf.Fragment{
 			Prefix: "ORDER BY",
 			Raw:    "#join('#fragment', ', ')",
 		},
-		groupbys: &sqls.Fragment{
+		groupbys: &sqlf.Fragment{
 			Prefix: "GROUP BY",
 			Raw:    "#join('#fragment', ', ')",
 		},
@@ -75,7 +75,7 @@ func (b *QueryBuilder) Distinct() *QueryBuilder {
 }
 
 // Select replace the SELECT clause with the columns.
-func (b *QueryBuilder) Select(columns ...*sqls.TableColumn) *QueryBuilder {
+func (b *QueryBuilder) Select(columns ...*sqlf.TableColumn) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
 	}
@@ -106,7 +106,7 @@ var orders = []string{
 }
 
 // OrderBy set the sorting order. the order can be "ASC", "DESC", "ASC NULLS FIRST" or "DESC NULLS LAST"
-func (b *QueryBuilder) OrderBy(column *sqls.TableColumn, order Order) *QueryBuilder {
+func (b *QueryBuilder) OrderBy(column *sqlf.TableColumn, order Order) *QueryBuilder {
 	idx := len(b.orders.Fragments) + 1
 	alias := fmt.Sprintf("_order_%d", idx)
 
@@ -115,11 +115,11 @@ func (b *QueryBuilder) OrderBy(column *sqls.TableColumn, order Order) *QueryBuil
 	}
 	orderStr := orders[order]
 	// pq: for SELECT DISTINCT, ORDER BY expressions must appear in select list
-	b.touches.AppendFragments(&sqls.Fragment{
+	b.touches.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1 AS " + alias,
-		Columns: []*sqls.TableColumn{column},
+		Columns: []*sqlf.TableColumn{column},
 	})
-	b.orders.AppendFragments(&sqls.Fragment{
+	b.orders.AppendFragments(&sqlf.Fragment{
 		Raw:     fmt.Sprintf("%s %s", alias, orderStr),
 		Columns: nil,
 		Args:    nil,
@@ -144,10 +144,10 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 }
 
 // GroupBy set the sorting order.
-func (b *QueryBuilder) GroupBy(column *sqls.TableColumn, args ...any) *QueryBuilder {
-	b.groupbys.AppendFragments(&sqls.Fragment{
+func (b *QueryBuilder) GroupBy(column *sqlf.TableColumn, args ...any) *QueryBuilder {
+	b.groupbys.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1",
-		Columns: []*sqls.TableColumn{column},
+		Columns: []*sqlf.TableColumn{column},
 		Args:    args,
 	})
 	return b
@@ -156,7 +156,7 @@ func (b *QueryBuilder) GroupBy(column *sqls.TableColumn, args ...any) *QueryBuil
 // Union unions other query builders, the type of query builders can be
 // *QueryBuilder or any other extended *QueryBuilder types (structs with
 // *QueryBuilder embedded.)
-func (b *QueryBuilder) Union(builders ...sqls.Builder) *QueryBuilder {
+func (b *QueryBuilder) Union(builders ...sqlf.Builder) *QueryBuilder {
 	b.unions = append(b.unions, builders...)
 	return b
 }

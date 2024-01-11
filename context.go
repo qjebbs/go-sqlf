@@ -1,10 +1,10 @@
-package sqls
+package sqlf
 
 import (
 	"fmt"
 	"strconv"
 
-	"github.com/qjebbs/go-sqls/syntax"
+	"github.com/qjebbs/go-sqlf/syntax"
 )
 
 // Context is the global context shared between all fragments building.

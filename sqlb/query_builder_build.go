@@ -5,14 +5,14 @@ import (
 	"log"
 	"strings"
 
-	"github.com/qjebbs/go-sqls"
-	"github.com/qjebbs/go-sqls/util"
+	"github.com/qjebbs/go-sqlf"
+	"github.com/qjebbs/go-sqlf/util"
 )
 
 // Build builds the query.
 func (b *QueryBuilder) Build() (query string, args []any, err error) {
 	args = make([]any, 0)
-	ctx := sqls.NewContext(&args)
+	ctx := sqlf.NewContext(&args)
 	ctx.BindVarStyle = b.bindVarStyle
 	query, err = b.buildInternal(ctx)
 	if err != nil {
@@ -22,7 +22,7 @@ func (b *QueryBuilder) Build() (query string, args []any, err error) {
 }
 
 // BuildContext builds the query with the context.
-func (b *QueryBuilder) BuildContext(ctx *sqls.Context) (query string, err error) {
+func (b *QueryBuilder) BuildContext(ctx *sqlf.Context) (query string, err error) {
 	return b.buildInternal(ctx)
 }
 
@@ -32,7 +32,7 @@ func (b *QueryBuilder) Debug() {
 }
 
 // buildInternal builds the query with the selects.
-func (b *QueryBuilder) buildInternal(ctx *sqls.Context) (string, error) {
+func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	if b == nil {
 		return "", nil
 	}
@@ -111,7 +111,7 @@ func (b *QueryBuilder) buildInternal(ctx *sqls.Context) (string, error) {
 	return query, nil
 }
 
-func (b *QueryBuilder) buildCTEs(ctx *sqls.Context, dep map[Table]bool) (string, error) {
+func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[Table]bool) (string, error) {
 	if len(b.ctes) == 0 {
 		return "", nil
 	}
@@ -138,7 +138,7 @@ func (b *QueryBuilder) buildCTEs(ctx *sqls.Context, dep map[Table]bool) (string,
 	return "With " + strings.Join(clauses, ", "), nil
 }
 
-func (b *QueryBuilder) buildSelects(ctx *sqls.Context) (string, error) {
+func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
 	if b.distinct {
 		b.selects.Prefix = "SELECT DISTINCT"
 	} else {
@@ -161,7 +161,7 @@ func (b *QueryBuilder) buildSelects(ctx *sqls.Context) (string, error) {
 	return sel + ", " + touches, nil
 }
 
-func (b *QueryBuilder) buildFrom(ctx *sqls.Context, dep map[Table]bool) (string, error) {
+func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[Table]bool) (string, error) {
 	tables := make([]string, 0, len(b.tables))
 	for _, t := range b.tables {
 		ft, ok := b.froms[t]
@@ -182,7 +182,7 @@ func (b *QueryBuilder) buildFrom(ctx *sqls.Context, dep map[Table]bool) (string,
 	return "FROM " + strings.Join(tables, " "), nil
 }
 
-func (b *QueryBuilder) buildUnion(ctx *sqls.Context) (string, error) {
+func (b *QueryBuilder) buildUnion(ctx *sqlf.Context) (string, error) {
 	clauses := make([]string, 0, len(b.unions))
 	for _, union := range b.unions {
 		query, err := union.BuildContext(ctx)

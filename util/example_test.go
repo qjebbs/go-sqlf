@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/qjebbs/go-sqls/util"
+	"github.com/qjebbs/go-sqlf/util"
 )
 
 func ExampleInterpolate() {

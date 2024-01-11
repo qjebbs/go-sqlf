@@ -3,7 +3,7 @@ package sqlb
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqls"
+	"github.com/qjebbs/go-sqlf"
 )
 
 func (b *QueryBuilder) calcDependency() (map[Table]bool, error) {
@@ -34,7 +34,7 @@ func (b *QueryBuilder) calcDependency() (map[Table]bool, error) {
 	return m, nil
 }
 
-func (b *QueryBuilder) markDependencies(dep map[Table]bool, t sqls.Table) error {
+func (b *QueryBuilder) markDependencies(dep map[Table]bool, t sqlf.Table) error {
 	ta, ok := b.appliedNames[t]
 	if !ok {
 		return fmt.Errorf("table not found: '%s'", t)
@@ -60,18 +60,18 @@ func (b *QueryBuilder) markDependencies(dep map[Table]bool, t sqls.Table) error 
 }
 
 type tableWithSouce struct {
-	Table  sqls.Table
+	Table  sqlf.Table
 	Source string
 }
 
-func extractTables(fragments ...*sqls.Fragment) []*tableWithSouce {
+func extractTables(fragments ...*sqlf.Fragment) []*tableWithSouce {
 	tables := []*tableWithSouce{}
-	dict := map[sqls.Table]bool{}
+	dict := map[sqlf.Table]bool{}
 	extractTables2(fragments, &tables, &dict)
 	return tables
 }
 
-func extractTables2(fragments []*sqls.Fragment, tables *[]*tableWithSouce, dict *map[sqls.Table]bool) {
+func extractTables2(fragments []*sqlf.Fragment, tables *[]*tableWithSouce, dict *map[sqlf.Table]bool) {
 	for _, s := range fragments {
 		if s == nil {
 			continue

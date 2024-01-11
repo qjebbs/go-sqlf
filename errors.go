@@ -1,4 +1,4 @@
-package sqls
+package sqlf
 
 import "fmt"
 

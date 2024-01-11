@@ -3,9 +3,9 @@ package sqlb_test
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqls"
-	"github.com/qjebbs/go-sqls/sqlb"
-	"github.com/qjebbs/go-sqls/syntax"
+	"github.com/qjebbs/go-sqlf"
+	"github.com/qjebbs/go-sqlf/sqlb"
+	"github.com/qjebbs/go-sqlf/syntax"
 )
 
 func ExampleQueryBuilder_Build() {
@@ -16,14 +16,14 @@ func ExampleQueryBuilder_Build() {
 	b := sqlb.NewQueryBuilder().
 		Select(foo.Column("*")).
 		From(foo).
-		InnerJoin(bar, &sqls.Fragment{
+		InnerJoin(bar, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqls.TableColumn{
+			Columns: []*sqlf.TableColumn{
 				bar.Column("foo_id"),
 				foo.Column("id"),
 			},
 		}).
-		Where(&sqls.Fragment{
+		Where(&sqlf.Fragment{
 			Raw:     "(#c1=$1 OR #c2=$1)",
 			Columns: foo.Columns("a", "b"),
 			Args:    []any{1},
@@ -60,9 +60,9 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		Select(foo.Column("*")).
 		From(foo).
 		// declare an optional LEFT JOIN
-		LeftJoinOptional(bar, &sqls.Fragment{
+		LeftJoinOptional(bar, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqls.TableColumn{
+			Columns: []*sqlf.TableColumn{
 				bar.Column("foo_id"),
 				foo.Column("id"),
 			},
@@ -88,7 +88,7 @@ func ExampleQueryBuilder_With() {
 	)
 	query, args, err := sqlb.NewQueryBuilder().
 		BindVar(syntax.Dollar).
-		With(cte.Name, &sqls.Fragment{
+		With(cte.Name, &sqlf.Fragment{
 			Raw:     "SELECT * FROM #t1 AS #t2 WHERE #c1=$1",
 			Columns: bar.Columns("type"),
 			Args:    []any{1},
@@ -99,9 +99,9 @@ func ExampleQueryBuilder_With() {
 			cte.Column("*"),
 		).
 		From(foo).
-		LeftJoinOptional(cte, &sqls.Fragment{
+		LeftJoinOptional(cte, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqls.TableColumn{
+			Columns: []*sqlf.TableColumn{
 				cte.Column("foo_id"),
 				foo.Column("id"),
 			},

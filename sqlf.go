@@ -30,7 +30,7 @@
 // Note:
 //   - References in the #join template are functions, not function calls.
 //   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when a number is the only argument.
-package sqls
+package sqlf
 
 // Builder is the interface for sql builders.
 //

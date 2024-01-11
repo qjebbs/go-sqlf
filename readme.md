@@ -48,30 +48,30 @@ In most cases, it's easy and flexible to create your own builder  for simple que
 
 ```go
 func Example_update() {
-	update := &sqls.Fragment{
+	update := &sqlf.Fragment{
 		Prefix: "",
 		Raw:    "UPDATE #t1 SET #join('#c=#$', ', ')",
 	}
-	where := &sqls.Fragment{
+	where := &sqlf.Fragment{
 		Prefix: "WHERE",
 		Raw:    "#join('#fragment', ' AND ')",
 	}
 	// consider wrapping it with your own builder 
 	// to provide a more friendly APIs
-	builder := &sqls.Fragment{
+	builder := &sqlf.Fragment{
 		Raw: "#join('#fragment', ' ')",
-		Fragments: []*sqls.Fragment{
+		Fragments: []*sqlf.Fragment{
 			update,
 			where,
 		},
 	}
 
-	var users sqls.Table = "users"
+	var users sqlf.Table = "users"
 	update.WithTables(users)
 	update.WithColumns(users.Expressions("name", "email")...)
 	update.WithArgs("jebbs", "qjebbs@gmail.com")
 	// append as many conditions as you want
-	where.AppendFragments(&sqls.Fragment{
+	where.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1=$1",
 		Columns: users.Expressions("id"),
 		Args:    []any{1},
@@ -103,14 +103,14 @@ func ExampleQueryBuilder_Build() {
 	b := sqlb.NewQueryBuilder().
 		Select(foo.Column("*")).
 		From(foo).
-		InnerJoin(bar, &sqls.Fragment{
+		InnerJoin(bar, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqls.TableColumn{
+			Columns: []*sqlf.TableColumn{
 				bar.Column("foo_id"),
 				foo.Column("id"),
 			},
 		}).
-		Where(&sqls.Fragment{
+		Where(&sqlf.Fragment{
 			Raw:     "(#c1=$1 OR #c2=$1)",
 			Columns: foo.Columns("a", "b"),
 			Args:    []any{1},

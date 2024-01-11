@@ -1,9 +1,9 @@
 package sqlb_test
 
 import (
-	"github.com/qjebbs/go-sqls/sqlb"
-	"github.com/qjebbs/go-sqls/syntax"
-	"github.com/qjebbs/go-sqls/util"
+	"github.com/qjebbs/go-sqlf/sqlb"
+	"github.com/qjebbs/go-sqlf/syntax"
+	"github.com/qjebbs/go-sqlf/util"
 )
 
 func Example() {

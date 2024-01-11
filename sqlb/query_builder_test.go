@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/qjebbs/go-sqls"
-	"github.com/qjebbs/go-sqls/sqlb"
-	"github.com/qjebbs/go-sqls/syntax"
+	"github.com/qjebbs/go-sqlf"
+	"github.com/qjebbs/go-sqlf/sqlb"
+	"github.com/qjebbs/go-sqlf/syntax"
 )
 
 func TestQueryBuilder(t *testing.T) {
@@ -17,23 +17,23 @@ func TestQueryBuilder(t *testing.T) {
 	)
 	q := sqlb.NewQueryBuilder().
 		BindVar(syntax.Dollar).Distinct().
-		With(users.Name, &sqls.Fragment{
+		With(users.Name, &sqlf.Fragment{
 			Raw:  "SELECT * FROM users WHERE type=$1",
 			Args: []any{"user"},
 		}).
-		With("xxx", &sqls.Fragment{Raw: "SELECT 1 AS whatever"}) // should be ignored
+		With("xxx", &sqlf.Fragment{Raw: "SELECT 1 AS whatever"}) // should be ignored
 	q.Select(foo.Columns("id", "name")...).
 		From(users).
-		LeftJoinOptional(foo, &sqls.Fragment{
+		LeftJoinOptional(foo, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqls.TableColumn{
+			Columns: []*sqlf.TableColumn{
 				foo.Column("user_id"),
 				users.Column("id"),
 			},
 		}).
-		LeftJoinOptional(bar, &sqls.Fragment{ // not referenced, should be ignored
+		LeftJoinOptional(bar, &sqlf.Fragment{ // not referenced, should be ignored
 			Raw: "#c1=#c2",
-			Columns: []*sqls.TableColumn{
+			Columns: []*sqlf.TableColumn{
 				bar.Column("user_id"),
 				users.Column("id"),
 			},
@@ -44,7 +44,7 @@ func TestQueryBuilder(t *testing.T) {
 				BindVar(syntax.Dollar).
 				Select(foo.Columns("id", "name")...).
 				From(foo).
-				Where(&sqls.Fragment{
+				Where(&sqlf.Fragment{
 					Raw:     "#c1>$1 AND #c1<$2",
 					Columns: foo.Columns("id"),
 					Args:    []any{10, 20},
