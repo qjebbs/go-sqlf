@@ -13,7 +13,7 @@ import (
 func (b *QueryBuilder) Build() (query string, args []any, err error) {
 	args = make([]any, 0)
 	ctx := sqlf.NewContext(&args)
-	ctx.BindVarStyle = b.bindVarStyle
+	ctx.WithBindVarStyle(b.bindVarStyle)
 	query, err = b.buildInternal(ctx)
 	if err != nil {
 		return "", nil, err

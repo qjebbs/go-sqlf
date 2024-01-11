@@ -11,8 +11,8 @@ import (
 type Context struct {
 	// args store
 	ArgStore *[]any
-	// override  bindvar style of all fragments
-	BindVarStyle syntax.BindVarStyle
+
+	bindVarStyle syntax.BindVarStyle
 
 	args      []any    // args to be referenced by other builders, with Context.Arg(int)
 	argsUsed  []bool   // flags to indicate if an arg is used
@@ -34,20 +34,26 @@ func (c *Context) WithArgs(args []any) *Context {
 	return c
 }
 
-// Arg returns the built arg in the context at index.
-func (c *Context) Arg(index int) (string, error) {
+// WithBindVarStyle set the bindvar style to the context, which
+// overrides bindvar style of all fragments.
+// if not, the first bindvar style encountered when building is applied.
+func (c *Context) WithBindVarStyle(style syntax.BindVarStyle) *Context {
+	c.bindVarStyle = style
+	return c
+}
+
+// buildArg returns the built buildArg in the context at index.
+func (c *Context) buildArg(index int, style syntax.BindVarStyle) (string, error) {
 	if index > len(c.args) {
 		return "", fmt.Errorf("%w: global bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.args))
 	}
-	if c.BindVarStyle == 0 {
-		c.BindVarStyle = syntax.Dollar
-	}
+	c.onBindArg(style)
 	i := index - 1
 	c.argsUsed[i] = true
 	built := c.argsBuilt[i]
-	if built == "" || c.BindVarStyle == syntax.Question {
+	if built == "" || c.bindVarStyle == syntax.Question {
 		*c.ArgStore = append(*c.ArgStore, c.args[i])
-		if c.BindVarStyle == syntax.Question {
+		if c.bindVarStyle == syntax.Question {
 			built = "?"
 		} else {
 			built = "$" + strconv.Itoa(len(*c.ArgStore))
@@ -55,6 +61,12 @@ func (c *Context) Arg(index int) (string, error) {
 		c.argsBuilt[i] = built
 	}
 	return built, nil
+}
+
+func (c *Context) onBindArg(style syntax.BindVarStyle) {
+	if c.bindVarStyle == 0 {
+		c.bindVarStyle = style
+	}
 }
 
 func (c *Context) checkUsage() error {

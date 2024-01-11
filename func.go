@@ -16,20 +16,20 @@ var builtInFuncs map[string]preprocessor
 
 func init() {
 	builtInFuncs = map[string]preprocessor{
-		"join":     funcJoin,
-		"$":        funcArgDollar,
-		"?":        funcArgQuestion,
-		"global$":  funcGlobalArgDollar,
-		"global?":  funcGlobalArgQuestion,
-		"c":        funcColumn,
-		"col":      funcColumn,
-		"column":   funcColumn,
-		"t":        funcTable,
-		"table":    funcTable,
-		"f":        funcFragment,
-		"fragment": funcFragment,
-		"b":        funcBuilder,
-		"builder":  funcBuilder,
+		"join":           funcJoin,
+		"argDollar":      funcArgDollar,
+		"argQuestion":    funcArgQuestion,
+		"ctxArgDollar":   funcCtxArgDollar,
+		"ctxArgQuestion": funcCtxArgQuestion,
+		"c":              funcColumn,
+		"col":            funcColumn,
+		"column":         funcColumn,
+		"t":              funcTable,
+		"table":          funcTable,
+		"f":              funcFragment,
+		"fragment":       funcFragment,
+		"b":              funcBuilder,
+		"builder":        funcBuilder,
 	}
 }
 
@@ -109,44 +109,41 @@ func funcJoin(ctx *context, args ...string) (string, error) {
 
 func funcArgDollar(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
-		return "", argError("$(i int)", args)
+		return "", argError("argDollar(i int)", args)
 	}
-	return arg(ctx, syntax.Dollar, false, args[0])
+	return arg(ctx, false, syntax.Dollar, args[0])
 }
 
 func funcArgQuestion(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
-		return "", argError("?(i int)", args)
+		return "", argError("argQuestion(i int)", args)
 	}
-	return arg(ctx, syntax.Question, false, args[0])
+	return arg(ctx, false, syntax.Question, args[0])
 }
 
-func funcGlobalArgDollar(ctx *context, args ...string) (string, error) {
+func funcCtxArgDollar(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
-		return "", argError("global$(i int)", args)
+		return "", argError("ctxArgDollar$(i int)", args)
 	}
-	return arg(ctx, syntax.Dollar, true, args[0])
+	return arg(ctx, true, syntax.Dollar, args[0])
 }
 
-func funcGlobalArgQuestion(ctx *context, args ...string) (string, error) {
+func funcCtxArgQuestion(ctx *context, args ...string) (string, error) {
 	if len(args) != 1 {
-		return "", argError("global?(i int)", args)
+		return "", argError("ctxArgQuestion$(i int)", args)
 	}
-	return arg(ctx, syntax.Question, true, args[0])
+	return arg(ctx, true, syntax.Question, args[0])
 }
 
-func arg(ctx *context, typ syntax.BindVarStyle, global bool, arg string) (string, error) {
-	if ctx.global.BindVarStyle == 0 {
-		ctx.global.BindVarStyle = typ
-	}
+func arg(ctx *context, global bool, style syntax.BindVarStyle, arg string) (string, error) {
 	i, err := strconv.Atoi(arg)
 	if err != nil {
 		return "", fmt.Errorf("invalid arg index '%s': %w", arg, err)
 	}
 	if global {
-		return ctx.global.Arg(i)
+		return ctx.global.buildArg(i, style)
 	}
-	return buildArg(ctx, i)
+	return buildArg(ctx, i, style)
 }
 
 func funcColumn(ctx *context, args ...string) (string, error) {

@@ -1,4 +1,4 @@
-Package sqls focuses only on building SQL queries by free combination
+Package sqlf focuses only on building SQL queries by free combination
 of fragments. Thus, it works naturally with all sql dialects without
 having to deal with the differences between them. Unlike any other
 sql builder or ORMs, Fragment is the only concept you need to learn.
@@ -20,19 +20,19 @@ plus preprocessing functions support:
 
 ## Preprocessing Functions
 
-| name           | description                        | example                     |
-| -------------- | ---------------------------------- | --------------------------- |
-| c, col, column | Column by index                    | #c1, #c(1)                  |
-| t, table       | Table name / alias by index        | #t1, #t(1)                  |
-| f, fragment    | Fragment by index                  | #f1, #f(1)                  |
-| b, builder     | Builder by index                   | #b1, #b(1)                  |
-| join           | Join the template by the separator | #join('#fragment', ' AND ') |
-| join           | Join from index 3 to end           | #join('#?', ',', 3)         |
-| join           | Join from index 3 to 6             | #join('#?', ',', 3, 6)      |
-| $              | Bindvar, usually used in #join()   | #join('#$', ', ')           |
-| ?              | Bindvar, usually used in #join()   | #join('#?', ', ')           |
-| global$        | global context  var by index       | #global$1                   |
-| global?        | global context  var by index       | #global?1                   |
+| name           | description                          | example                        |
+| -------------- | ------------------------------------ | ------------------------------ |
+| c, col, column | Column by index                      | #c1, #c(1)                     |
+| t, table       | Table name / alias by index          | #t1, #t(1)                     |
+| f, fragment    | Fragment by index                    | #f1, #f(1)                     |
+| b, builder     | Builder by index                     | #b1, #b(1)                     |
+| argDollar      | arg at index with style $            | #join('#argDollar', ', ')      |
+| argQuestion    | arg at index with style ?            | #join('#argQuestion', ', ')    |
+| ctxArgDollar   | arg from global context with style $ | #ctxArgDollar1                 |
+| ctxArgQuestion | arg from global context with style ? | #ctxArgQuestion1               |
+| join           | Join the template by the separator   | #join('#fragment', ' AND ')    |
+|                | Join from index 3 to end             | #join('#argDollar', ',', 3)    |
+|                | Join from index 3 to 6               | #join('#argDollar', ',', 3, 6) |
 
 Note:
   - References in the #join template are functions, not function calls.
@@ -50,7 +50,7 @@ In most cases, it's easy and flexible to create your own builder  for simple que
 func Example_update() {
 	update := &sqlf.Fragment{
 		Prefix: "",
-		Raw:    "UPDATE #t1 SET #join('#c=#$', ', ')",
+		Raw:    "UPDATE #t1 SET #join('#c=#argDollar', ', ')",
 	}
 	where := &sqlf.Fragment{
 		Prefix: "WHERE",

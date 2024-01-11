@@ -43,7 +43,7 @@ func (b *QueryBuilder) Where2(column *sqlf.TableColumn, op string, arg any) *Que
 // WhereIn adds a where IN condition like `t.id IN (1,2,3)`
 func (b *QueryBuilder) WhereIn(column *sqlf.TableColumn, list any) *QueryBuilder {
 	return b.Where(&sqlf.Fragment{
-		Raw:     "#c1 IN (#join('#$', ', '))",
+		Raw:     "#c1 IN (#join('#argDollar', ', '))",
 		Columns: []*sqlf.TableColumn{column},
 		Args:    util.Args(list),
 	})
@@ -52,7 +52,7 @@ func (b *QueryBuilder) WhereIn(column *sqlf.TableColumn, list any) *QueryBuilder
 // WhereNotIn adds a where NOT IN condition like `t.id NOT IN (1,2,3)`
 func (b *QueryBuilder) WhereNotIn(column *sqlf.TableColumn, list any) *QueryBuilder {
 	return b.Where(&sqlf.Fragment{
-		Raw:     "#c1 NOT IN (#join('#$', ', '))",
+		Raw:     "#c1 NOT IN (#join('#argDollar', ', '))",
 		Columns: []*sqlf.TableColumn{column},
 		Args:    util.Args(list),
 	})

@@ -27,7 +27,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "#join",
 			fragment: &sqlf.Fragment{
-				Raw:  "#join('#?',','),#?(1),#?(2)",
+				Raw:  "#join('#argQuestion',','),#argQuestion(1),#argQuestion(2)",
 				Args: []any{1, 2},
 			},
 			want:     "?,?,?,?",
@@ -36,7 +36,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "#join range",
 			fragment: &sqlf.Fragment{
-				Raw:  "$1,#join('#$',',', 2)",
+				Raw:  "$1,#join('#argDollar',',', 2)",
 				Args: []any{1, 2, 3, 4},
 			},
 			want:     "$1,$2,$3,$4",
@@ -45,7 +45,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name: "#join mixed function and call",
 			fragment: &sqlf.Fragment{
-				Raw:       "#join('#f1#?',',')",
+				Raw:       "#join('#f1#argQuestion',',')",
 				Args:      []any{1, 2},
 				Fragments: []*sqlf.Fragment{{Raw: "s1"}},
 			},
@@ -213,7 +213,7 @@ func TestBuildFragment(t *testing.T) {
 			fragment: &sqlf.Fragment{
 				Raw: "#f1, #f1",
 				Fragments: []*sqlf.Fragment{{
-					Raw:  "#join('#?', ', '), ?",
+					Raw:  "#join('#argQuestion', ', '), ?",
 					Args: []any{1, 2},
 				}},
 			},
@@ -258,13 +258,13 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{1},
 		},
 		{
-			name: "build with global args $",
+			name: "build with global args",
 			fragment: &sqlf.Fragment{
 				Raw: "#join('#fragment',' ')",
 				Fragments: []*sqlf.Fragment{
-					{Raw: "#global$1"},
-					{Raw: "#global$2"},
-					{Raw: "#global$2"},
+					{Raw: "#ctxArgDollar1"},
+					{Raw: "#ctxArgDollar2"},
+					{Raw: "#ctxArgDollar2"},
 				},
 			},
 			globalArgs: []any{1, 2},
@@ -276,9 +276,9 @@ func TestBuildFragment(t *testing.T) {
 			fragment: &sqlf.Fragment{
 				Raw: "#join('#fragment',' ')",
 				Fragments: []*sqlf.Fragment{
-					{Raw: "#global?1"},
-					{Raw: "#global?2"},
-					{Raw: "#global?2"},
+					{Raw: "#ctxArgQuestion1"},
+					{Raw: "#ctxArgQuestion2"},
+					{Raw: "#ctxArgQuestion2"},
 				},
 			},
 			globalArgs: []any{1, 2},

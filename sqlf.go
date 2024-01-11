@@ -1,4 +1,4 @@
-// Package sqls focuses only on bulding SQL queries by free combination
+// Package sqlf focuses only on bulding SQL queries by free combination
 // of fragments. Thus, it works naturally with all sql dialects without
 // having to deal with the differences between them. Unlike any other
 // sql builder or ORMs, Fragment is the only concept you need to learn.
@@ -20,12 +20,15 @@
 //
 // # Preprocessing Functions
 //
-//   - c, col, column 		: Column by index, e.g. #c1, #c(1)
-//   - t, table				: Table name / alias by index, e.g. #t1, #t(1)
-//   - f, fragment		    : Fragment by index, e.g. #f1, #f(1)
-//   - join 				: Join the template by the separator, e.g. #join('#column', ', '), #join('#c=#$', ', ')
-//   - $ 					: Argument by index, used in #join().
-//   - ?					: Argument by index, used in #join().
+//   - c, col, column: Column at index, e.g. #c1, #c(1)
+//   - t, table				: Table name / alias at index, e.g. #t1, #t(1)
+//   - f, fragment		    : Fragment at index, e.g. #f1, #f(1)
+//   - b, builder		    : Builder at index, e.g. #b1, #b(1)
+//   - argDollar			: arg at index with style $x, usually used in #join().
+//   - argQuestion			: arg at index with style ?, usually used in #join().
+//   - ctxArgDollar 		: arg from global context with style $x, e.g.: #ctxArgDollar1, #ctxArgDollar(1)
+//   - ctxArgQuestion 		: arg from global context with style ?, e.g.: #ctxArgQuestion1, #ctxArgQuestion(1)
+//   - join 				: Join the template by the separator, e.g. #join('#column', ', '), #join('#argDollar', ',', 3), #join('#argDollar', ',', 3, 6)
 //
 // Note:
 //   - References in the #join template are functions, not function calls.

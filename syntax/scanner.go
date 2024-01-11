@@ -126,7 +126,7 @@ func scanFunc(s *scanner) scanFn {
 
 func scanFuncName(s *scanner) scanFn {
 	s.StartToken()
-	for s.IsLetter() || s.rune == '$' || s.rune == '?' {
+	for s.IsLetter() {
 		s.Next()
 	}
 	if !s.Advanced() {

@@ -30,8 +30,7 @@ func Example_select() {
 	selects.WithColumns(users.Expressions("id", "name", "email")...)
 	from.WithTables(users)
 	where.AppendFragments(&sqlf.Fragment{
-		// (#join('#?', ', ') is also supported
-		Raw:     "#c1 IN (#join('#$', ', '))",
+		Raw:     "#c1 IN (#join('#argDollar', ', '))",
 		Columns: users.Expressions("id"),
 		Args:    []any{1, 2, 3},
 	})
@@ -55,7 +54,7 @@ func Example_select() {
 func Example_update() {
 	update := &sqlf.Fragment{
 		Prefix: "",
-		Raw:    "UPDATE #t1 SET #join('#c=#$', ', ')",
+		Raw:    "UPDATE #t1 SET #join('#c=#argDollar', ', ')",
 	}
 	where := &sqlf.Fragment{
 		Prefix: "WHERE",

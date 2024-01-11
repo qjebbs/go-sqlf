@@ -44,11 +44,11 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			raw: "#join('#c=#$', ',')",
+			raw: "#join('#c=#argDollar', ',')",
 			want: []syntax.Expr{
 				&syntax.FuncCallExpr{
 					Name: "join",
-					Args: []string{"#c=#$", ","},
+					Args: []string{"#c=#argDollar", ","},
 				},
 			},
 		},

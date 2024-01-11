@@ -89,10 +89,7 @@ func buildClause(ctx *context, clause *syntax.Clause) (string, error) {
 			}
 			b.WriteString(s)
 		case *syntax.BindVarExpr:
-			if ctx.global.BindVarStyle == 0 {
-				ctx.global.BindVarStyle = expr.Type
-			}
-			s, err := buildArg(ctx, expr.Index)
+			s, err := buildArg(ctx, expr.Index, expr.Type)
 			if err != nil {
 				return "", err
 			}
@@ -105,16 +102,17 @@ func buildClause(ctx *context, clause *syntax.Clause) (string, error) {
 }
 
 // Arg renders the bindvar at index.
-func buildArg(ctx *context, index int) (string, error) {
+func buildArg(ctx *context, index int, style syntax.BindVarStyle) (string, error) {
 	if index > len(ctx.Fragment.Args) {
 		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(ctx.Fragment.Args))
 	}
+	ctx.global.onBindArg(style)
 	i := index - 1
 	ctx.ArgsUsed[i] = true
 	built := ctx.ArgsBuilt[i]
-	if built == "" || ctx.global.BindVarStyle == syntax.Question {
+	if built == "" || ctx.global.bindVarStyle == syntax.Question {
 		*ctx.global.ArgStore = append(*ctx.global.ArgStore, ctx.Fragment.Args[i])
-		if ctx.global.BindVarStyle == syntax.Question {
+		if ctx.global.bindVarStyle == syntax.Question {
 			built = "?"
 		} else {
 			built = "$" + strconv.Itoa(len(*ctx.global.ArgStore))
@@ -133,7 +131,7 @@ func buildColumn(ctx *context, index int) (string, error) {
 	ctx.ColumnsUsed[i] = true
 	col := ctx.Fragment.Columns[i]
 	built := ctx.ColumnsBuilt[i]
-	if built == "" || (ctx.global.BindVarStyle == syntax.Question && len(col.Args) > 0) {
+	if built == "" || (ctx.global.bindVarStyle == syntax.Question && len(col.Args) > 0) {
 		b, err := buildColumn2(ctx, col)
 		if err != nil {
 			return "", err
@@ -184,7 +182,7 @@ func buildFragment(ctx *context, index int) (string, error) {
 	ctx.FragmentsUsed[i] = true
 	seg := ctx.Fragment.Fragments[i]
 	built := ctx.FragmentsBuilt[i]
-	if built == "" || (ctx.global.BindVarStyle == syntax.Question && len(seg.Args) > 0) {
+	if built == "" || (ctx.global.bindVarStyle == syntax.Question && len(seg.Args) > 0) {
 		b, err := seg.BuildContext(ctx.global)
 		if err != nil {
 			return "", err
@@ -203,7 +201,7 @@ func buildBuilder(ctx *context, index int) (string, error) {
 	ctx.BuilderUsed[i] = true
 	builder := ctx.Fragment.Builders[i]
 	built := ctx.BuildersBuilt[i]
-	if built == "" || ctx.global.BindVarStyle == syntax.Question {
+	if built == "" || ctx.global.bindVarStyle == syntax.Question {
 		b, err := builder.BuildContext(ctx.global)
 		if err != nil {
 			return "", err
