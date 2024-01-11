@@ -20,19 +20,19 @@ plus preprocessing functions support:
 
 ## Preprocessing Functions
 
-| name            | description                        | example                    |
-| --------------- | ---------------------------------- | -------------------------- |
-| c, col, column  | Column by index                    | #c1, #c(1)                 |
-| t, table        | Table name / alias by index        | #t1, #t(1)                 |
-| s, seg, fragment | Fragment by index                   | #f1, #f(1)                 |
-| b, builder      | Builder by index                   | #b1, #b(1)                 |
-| join            | Join the template by the separator | #join('#fragment', ' AND ') |
-| join            | Join from index 3 to end           | #join('#?', ',', 3)        |
-| join            | Join from index 3 to 6             | #join('#?', ',', 3, 6)     |
-| $               | Bindvar, usually used in #join()   | #join('#$', ', ')          |
-| ?               | Bindvar, usually used in #join()   | #join('#?', ', ')          |
-| global$         | global context  var by index       | #global$1                  |
-| global?         | global context  var by index       | #global?1                  |
+| name           | description                        | example                     |
+| -------------- | ---------------------------------- | --------------------------- |
+| c, col, column | Column by index                    | #c1, #c(1)                  |
+| t, table       | Table name / alias by index        | #t1, #t(1)                  |
+| f, fragment    | Fragment by index                  | #f1, #f(1)                  |
+| b, builder     | Builder by index                   | #b1, #b(1)                  |
+| join           | Join the template by the separator | #join('#fragment', ' AND ') |
+| join           | Join from index 3 to end           | #join('#?', ',', 3)         |
+| join           | Join from index 3 to 6             | #join('#?', ',', 3, 6)      |
+| $              | Bindvar, usually used in #join()   | #join('#$', ', ')           |
+| ?              | Bindvar, usually used in #join()   | #join('#?', ', ')           |
+| global$        | global context  var by index       | #global$1                   |
+| global?        | global context  var by index       | #global?1                   |
 
 Note:
   - References in the #join template are functions, not function calls.
