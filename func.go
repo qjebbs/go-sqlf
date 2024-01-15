@@ -12,7 +12,7 @@ var (
 	fmtStringerType  = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
 	reflectValueType = reflect.TypeOf((*reflect.Value)(nil)).Elem()
 
-	contextPointerType = reflect.TypeOf((*context)(nil))
+	contextPointerType = reflect.TypeOf((*FragmentContext)(nil))
 )
 
 // FuncMap is the type of the map defining the mapping from names to functions.

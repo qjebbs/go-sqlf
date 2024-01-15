@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func evalFunction(ctx *context, name string, args []any) (string, error) {
+func evalFunction(ctx *FragmentContext, name string, args []any) (string, error) {
 	function, ok := builtInFuncs[name]
 	if !ok {
 		return "", fmt.Errorf("%q is not a defined function", name)
@@ -13,7 +13,7 @@ func evalFunction(ctx *context, name string, args []any) (string, error) {
 	return evalCall(ctx, function, name, args)
 }
 
-func evalCall(ctx *context, fun reflect.Value, name string, args []any) (string, error) {
+func evalCall(ctx *FragmentContext, fun reflect.Value, name string, args []any) (string, error) {
 	typ := fun.Type()
 	ctxArg := typ.NumIn() > 0 && typ.In(0) == contextPointerType
 	if ctxArg {

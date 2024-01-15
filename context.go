@@ -44,8 +44,8 @@ func (c *Context) WithBindVarStyle(style syntax.BindVarStyle) *Context {
 	return c
 }
 
-// buildArg returns the built buildArg in the context at index.
-func (c *Context) buildArg(index int, style syntax.BindVarStyle) (string, error) {
+// Arg returns the built Arg in the context at index.
+func (c *Context) Arg(index int, style syntax.BindVarStyle) (string, error) {
 	if index > len(c.args) {
 		return "", fmt.Errorf("%w: global bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.args))
 	}
@@ -75,74 +75,6 @@ func (c *Context) checkUsage() error {
 	for i, v := range c.argsUsed {
 		if !v {
 			return fmt.Errorf("arg %d is not used", i+1)
-		}
-	}
-	return nil
-}
-
-// context is the context for current fragment building.
-type context struct {
-	global   *Context  // global context
-	Fragment *Fragment // current fragment
-
-	ArgsBuilt      []string // cache of built args
-	ColumnsBuilt   []string // cache of built columns
-	FragmentsBuilt []string // cache of built fragments
-	BuildersBuilt  []string // cache of built builders
-
-	ArgsUsed      []bool // flags to indicate if an arg is used
-	ColumnsUsed   []bool // flags to indicate if a column is used
-	TableUsed     []bool // flag to indicate if a table is used
-	FragmentsUsed []bool // flags to indicate if a fragment is used
-	BuilderUsed   []bool // flags to indicate if a builder is used
-}
-
-func newFragmentContext(ctx *Context, f *Fragment) *context {
-	if f == nil {
-		return nil
-	}
-	return &context{
-		global:         ctx,
-		Fragment:       f,
-		ArgsBuilt:      make([]string, len(f.Args)),
-		ColumnsBuilt:   make([]string, len(f.Columns)),
-		TableUsed:      make([]bool, len(f.Tables)),
-		FragmentsBuilt: make([]string, len(f.Fragments)),
-		BuildersBuilt:  make([]string, len(f.Builders)),
-		ArgsUsed:       make([]bool, len(f.Args)),
-		ColumnsUsed:    make([]bool, len(f.Columns)),
-		FragmentsUsed:  make([]bool, len(f.Fragments)),
-		BuilderUsed:    make([]bool, len(f.Builders)),
-	}
-}
-
-func (c *context) checkUsage() error {
-	if c == nil {
-		return nil
-	}
-	for i, v := range c.ArgsUsed {
-		if !v {
-			return fmt.Errorf("arg %d is not used", i+1)
-		}
-	}
-	for i, v := range c.ColumnsUsed {
-		if !v {
-			return fmt.Errorf("column %d is not used", i+1)
-		}
-	}
-	for i, v := range c.TableUsed {
-		if !v {
-			return fmt.Errorf("table %d is not used", i+1)
-		}
-	}
-	for i, v := range c.FragmentsUsed {
-		if !v {
-			return fmt.Errorf("fragment %d is not used", i+1)
-		}
-	}
-	for i, v := range c.BuilderUsed {
-		if !v {
-			return fmt.Errorf("builder %d is not used", i+1)
 		}
 	}
 	return nil

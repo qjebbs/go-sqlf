@@ -27,7 +27,7 @@ func init() {
 	})
 }
 
-func funcJoin(ctx *context, tmpl, separator string, indexes ...int) (string, error) {
+func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (string, error) {
 	var err error
 	var from, to int
 	switch len(indexes) {
@@ -98,34 +98,34 @@ func funcJoin(ctx *context, tmpl, separator string, indexes ...int) (string, err
 	return b.String(), nil
 }
 
-func funcArgDollar(ctx *context, i int) (string, error) {
-	return buildArg(ctx, i, syntax.Dollar)
+func funcArgDollar(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Arg(i, syntax.Dollar)
 }
 
-func funcArgQuestion(ctx *context, i int) (string, error) {
-	return buildArg(ctx, i, syntax.Question)
+func funcArgQuestion(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Arg(i, syntax.Question)
 }
 
-func funcCtxArgDollar(ctx *context, i int) (string, error) {
-	return ctx.global.buildArg(i, syntax.Dollar)
+func funcCtxArgDollar(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Global.Arg(i, syntax.Dollar)
 }
 
-func funcCtxArgQuestion(ctx *context, i int) (string, error) {
-	return ctx.global.buildArg(i, syntax.Question)
+func funcCtxArgQuestion(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Global.Arg(i, syntax.Question)
 }
 
-func funcColumn(ctx *context, i int) (string, error) {
-	return buildColumn(ctx, i)
+func funcColumn(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Column(i)
 }
 
-func funcTable(ctx *context, i int) (string, error) {
-	return buildTable(ctx, i)
+func funcTable(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Table(i)
 }
 
-func funcFragment(ctx *context, i int) (string, error) {
-	return buildFragment(ctx, i)
+func funcFragment(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Fragment(i)
 }
 
-func funcBuilder(ctx *context, i int) (string, error) {
-	return buildBuilder(ctx, i)
+func funcBuilder(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Builder(i)
 }
