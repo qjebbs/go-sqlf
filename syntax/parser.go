@@ -102,7 +102,7 @@ func (p *parser) refExpr() (Expr, error) {
 		if err := p.want(_Literal); err != nil {
 			return nil, err
 		}
-		if p.token.kind != _IntLit {
+		if p.token.kind != _NumberLit {
 			return nil, p.syntaxError("unexpected '" + p.token.lit + "', want bindvar index")
 		}
 		val, err := strconv.ParseUint(p.token.lit, 10, 64)
@@ -127,7 +127,7 @@ func (p *parser) funcExpr() error {
 	p.NextToken()
 	switch p.token.typ {
 	case _Lparen:
-		args := []string{}
+		args := make([]any, 0)
 		for {
 			if !p.got(_Literal) {
 				if p.token.typ != _Rparen {
@@ -138,11 +138,23 @@ func (p *parser) funcExpr() error {
 			if p.token.bad {
 				return p.syntaxError("bad argument: " + p.token.lit)
 			}
-			arg := p.token.lit
-			if p.token.kind == _StringLit {
-				arg = strings.ReplaceAll(arg[1:len(arg)-1], "''", "'")
+			switch p.token.kind {
+			case _NilLit:
+				args = append(args, nil)
+			case _BoolLit:
+				args = append(args, p.token.lit == "true")
+			case _NumberLit:
+				val, err := strconv.ParseFloat(p.token.lit, 64)
+				if err != nil {
+					return p.syntaxError(err.Error())
+				}
+				args = append(args, val)
+			case _StringLit:
+				arg := strings.ReplaceAll(p.token.lit[1:len(p.token.lit)-1], "''", "'")
+				args = append(args, arg)
+			default:
+				return p.syntaxError("unexpected token " + string(p.token.typ))
 			}
-			args = append(args, arg)
 			if !p.got(_Comma) {
 				break
 			}
@@ -159,15 +171,23 @@ func (p *parser) funcExpr() error {
 			},
 		)
 	case _Literal:
+		if p.token.kind != _NumberLit {
+			return p.syntaxError("unexpected '" + p.token.lit + "', want index")
+		}
+		val, err := strconv.ParseFloat(p.token.lit, 64)
+		if err != nil {
+			return p.syntaxError(err.Error())
+		}
 		p.c.ExprList = append(
 			p.c.ExprList,
 			&FuncCallExpr{
 				Name: nameToken.lit,
-				Args: []string{p.token.lit},
+				Args: []any{val},
 				expr: expr{node{pos}},
 			},
 		)
 	default:
+		// EOF or _Plain
 		p.c.ExprList = append(
 			p.c.ExprList,
 			&FuncExpr{Name: nameToken.lit},

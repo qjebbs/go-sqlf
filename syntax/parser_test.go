@@ -48,16 +48,16 @@ func TestParser(t *testing.T) {
 			want: []syntax.Expr{
 				&syntax.FuncCallExpr{
 					Name: "join",
-					Args: []string{"#c=#argDollar", ","},
+					Args: []any{"#c=#argDollar", ","},
 				},
 			},
 		},
 		{
 			raw: "#c1#t1#fragment1",
 			want: []syntax.Expr{
-				&syntax.FuncCallExpr{Name: "c", Args: []string{"1"}},
-				&syntax.FuncCallExpr{Name: "t", Args: []string{"1"}},
-				&syntax.FuncCallExpr{Name: "fragment", Args: []string{"1"}},
+				&syntax.FuncCallExpr{Name: "c", Args: []any{float64(1)}},
+				&syntax.FuncCallExpr{Name: "t", Args: []any{float64(1)}},
+				&syntax.FuncCallExpr{Name: "fragment", Args: []any{float64(1)}},
 			},
 		},
 	}

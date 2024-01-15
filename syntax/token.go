@@ -31,8 +31,7 @@ const (
 type litKind uint8
 
 const (
-	_IntLit litKind = iota
-	_FloatLit
+	_NumberLit litKind = iota
 	_StringLit
 	_BoolLit
 	_NilLit

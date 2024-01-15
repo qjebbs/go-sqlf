@@ -52,7 +52,7 @@ const (
 // FuncCallExpr is the function calling declaration.
 type FuncCallExpr struct {
 	Name string
-	Args []string
+	Args []any // number (float64, int, uint...), string, bool, nil
 	expr
 }
 

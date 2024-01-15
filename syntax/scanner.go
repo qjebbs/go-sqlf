@@ -94,7 +94,7 @@ func scanIndex(s *scanner) scanFn {
 				break
 			}
 		}
-		s.emitToken(_Literal, _IntLit, false)
+		s.emitToken(_Literal, _NumberLit, false)
 	}
 	return scanPlain
 }
@@ -138,7 +138,7 @@ func scanFuncName(s *scanner) scanFn {
 		s.Next()
 	}
 	if s.Advanced() {
-		s.emitToken(_Literal, _IntLit, false)
+		s.emitToken(_Literal, _NumberLit, false)
 		return scanPlain
 	}
 	if s.rune == '(' {
@@ -179,15 +179,11 @@ func scanFuncArgs(s *scanner) scanFn {
 					s.emitToken(_Literal, _NilLit, false)
 					return scanFuncArgs
 				}
-				if _, err := strconv.ParseInt(seg, 10, 64); err == nil {
-					s.emitToken(_Literal, _IntLit, false)
-					return scanFuncArgs
-				}
 				if _, err := strconv.ParseFloat(seg, 64); err == nil {
-					s.emitToken(_Literal, _FloatLit, false)
+					s.emitToken(_Literal, _NumberLit, false)
 					return scanFuncArgs
 				}
-				s.emitToken(_Literal, _StringLit, true)
+				s.emitToken(_Name, _StringLit, true)
 			}
 			return scanFuncArgs
 		}

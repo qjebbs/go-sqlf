@@ -79,11 +79,7 @@ func buildClause(ctx *context, clause *syntax.Clause) (string, error) {
 		case *syntax.PlainExpr:
 			b.WriteString(expr.Text)
 		case *syntax.FuncCallExpr:
-			fn := builtInFuncs[expr.Name]
-			if fn == nil {
-				return "", fmt.Errorf("function '%s' is not found", expr.Name)
-			}
-			s, err := fn(ctx, expr.Args...)
+			s, err := evalFunction(ctx, expr.Name, expr.Args)
 			if err != nil {
 				return "", err
 			}
