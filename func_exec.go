@@ -6,7 +6,7 @@ import (
 )
 
 func evalFunction(ctx *FragmentContext, name string, args []any) (string, error) {
-	function, ok := builtInFuncs[name]
+	function, ok := ctx.Global.funcs[name]
 	if !ok {
 		return "", fmt.Errorf("%q is not a defined function", name)
 	}

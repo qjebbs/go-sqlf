@@ -2,6 +2,7 @@ package sqlf
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/qjebbs/go-sqlf/syntax"
@@ -13,6 +14,7 @@ type Context struct {
 	ArgStore *[]any
 
 	bindVarStyle syntax.BindVarStyle
+	funcs        map[string]reflect.Value
 
 	args      []any    // args to be referenced by other builders, with Context.Arg(int)
 	argsUsed  []bool   // flags to indicate if an arg is used
@@ -23,6 +25,7 @@ type Context struct {
 func NewContext(argStore *[]any) *Context {
 	return &Context{
 		ArgStore: argStore,
+		funcs:    createValueFuncs(builtInFuncs),
 	}
 }
 
@@ -42,6 +45,11 @@ func (c *Context) WithArgs(args []any) *Context {
 func (c *Context) WithBindVarStyle(style syntax.BindVarStyle) *Context {
 	c.bindVarStyle = style
 	return c
+}
+
+// Funcs adds the elements of the argument map to the FuncMap.
+func (c *Context) Funcs(funcs FuncMap) {
+	addValueFuncs(c.funcs, funcs)
 }
 
 // Arg returns the built Arg in the context at index.

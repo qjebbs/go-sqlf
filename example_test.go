@@ -90,3 +90,28 @@ func Example_update() {
 	// UPDATE users SET name=$1, email=$2 WHERE id=$3
 	// [alice alice@example.org 1]
 }
+
+func ExampleContext_Funcs() {
+	args := make([]any, 0)
+	ctx := sqlf.NewContext(&args)
+	ctx.Funcs(sqlf.FuncMap{
+		"interpolate": func(ctx *sqlf.FragmentContext, i int) (string, error) {
+			// avoid "arg i is not used" error
+			ctx.ReportUsedArg(i)
+			return fmt.Sprint(ctx.This.Args[i-1]), nil
+		},
+	})
+	fragment := &sqlf.Fragment{
+		Raw:  "#interpolate(1)",
+		Args: []any{1},
+	}
+	bulit, err := fragment.BuildContext(ctx)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(bulit)
+	fmt.Println(args)
+	// Output:
+	// 1
+	// []
+}

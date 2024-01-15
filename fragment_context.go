@@ -156,6 +156,47 @@ func (c *FragmentContext) Builder(index int) (string, error) {
 	}
 	return built, nil
 }
+
+// ReportUsedArg reports the arg at index is used, starting from 1.
+func (c *FragmentContext) ReportUsedArg(index int) {
+	if index <= 0 || index > len(c.argsUsed) {
+		return
+	}
+	c.argsUsed[index-1] = true
+}
+
+// ReportUsedColumn reports the column at index is used, starting from 1.
+func (c *FragmentContext) ReportUsedColumn(index int) {
+	if index <= 0 || index > len(c.columnsUsed) {
+		return
+	}
+	c.columnsUsed[index-1] = true
+}
+
+// ReportUsedTable reports the table at index is used, starting from 1.
+func (c *FragmentContext) ReportUsedTable(index int) {
+	if index <= 0 || index > len(c.tableUsed) {
+		return
+	}
+	c.tableUsed[index-1] = true
+}
+
+// ReportUsedFragment reports the fragment at index is used, starting from 1.
+func (c *FragmentContext) ReportUsedFragment(index int) {
+	if index <= 0 || index > len(c.fragmentsUsed) {
+		return
+	}
+	c.fragmentsUsed[index-1] = true
+}
+
+// ReportUsedBuilder reports the builder at index is used, starting from 1.
+func (c *FragmentContext) ReportUsedBuilder(index int) {
+	if index > len(c.builderUsed) {
+		return
+	}
+	c.builderUsed[index-1] = true
+}
+
 func (c *FragmentContext) checkUsage() error {
 	if c == nil {
 		return nil

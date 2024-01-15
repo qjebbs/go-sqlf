@@ -3,28 +3,23 @@ package sqlf
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/qjebbs/go-sqlf/syntax"
 )
 
-var builtInFuncs map[string]reflect.Value
-
-func init() {
-	builtInFuncs = createValueFuncs(FuncMap{
-		"c":              funcColumn,
-		"column":         funcColumn,
-		"t":              funcTable,
-		"table":          funcTable,
-		"fragment":       funcFragment,
-		"builder":        funcBuilder,
-		"argDollar":      funcArgDollar,
-		"argQuestion":    funcArgQuestion,
-		"ctxArgDollar":   funcCtxArgDollar,
-		"ctxArgQuestion": funcCtxArgQuestion,
-		"join":           funcJoin,
-	})
+var builtInFuncs = FuncMap{
+	"c":              funcColumn,
+	"column":         funcColumn,
+	"t":              funcTable,
+	"table":          funcTable,
+	"fragment":       funcFragment,
+	"builder":        funcBuilder,
+	"argDollar":      funcArgDollar,
+	"argQuestion":    funcArgQuestion,
+	"ctxArgDollar":   funcCtxArgDollar,
+	"ctxArgQuestion": funcCtxArgQuestion,
+	"join":           funcJoin,
 }
 
 func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (string, error) {

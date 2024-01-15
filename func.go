@@ -38,6 +38,9 @@ func addValueFuncs(out map[string]reflect.Value, in FuncMap) {
 		if !goodFunc(v.Type()) {
 			panic(fmt.Errorf("can't install method/function %q with %d results", name, v.Type().NumOut()))
 		}
+		if _, ok := out[name]; ok {
+			panic(fmt.Errorf("function %q already exists", name))
+		}
 		out[name] = v
 	}
 }
