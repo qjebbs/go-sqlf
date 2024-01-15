@@ -34,7 +34,7 @@ func (f *Fragment) BuildContext(ctx *Context) (string, error) {
 		return "", err
 	}
 	if err := ctxCur.checkUsage(); err != nil {
-		return "", fmt.Errorf("build '%s': %w", ctxCur.This.Raw, err)
+		return "", fmt.Errorf("build '%s': %w", ctxCur.Fragment.Raw, err)
 	}
 	// TODO: check usage of global args
 	// check inside BuildContext() is not a good idea,
@@ -59,13 +59,13 @@ func (f *Fragment) BuildContext(ctx *Context) (string, error) {
 
 // build builds the fragment
 func build(ctx *FragmentContext) (string, error) {
-	clause, err := syntax.Parse(ctx.This.Raw)
+	clause, err := syntax.Parse(ctx.Fragment.Raw)
 	if err != nil {
-		return "", fmt.Errorf("parse '%s': %w", ctx.This.Raw, err)
+		return "", fmt.Errorf("parse '%s': %w", ctx.Fragment.Raw, err)
 	}
 	built, err := buildClause(ctx, clause)
 	if err != nil {
-		return "", fmt.Errorf("build '%s': %w", ctx.This.Raw, err)
+		return "", fmt.Errorf("build '%s': %w", ctx.Fragment.Raw, err)
 	}
 	return built, nil
 }
@@ -84,7 +84,7 @@ func buildClause(ctx *FragmentContext, clause *syntax.Clause) (string, error) {
 			}
 			b.WriteString(s)
 		case *syntax.BindVarExpr:
-			s, err := ctx.Arg(expr.Index, expr.Type)
+			s, err := ctx.BuildArg(expr.Index, expr.Type)
 			if err != nil {
 				return "", err
 			}

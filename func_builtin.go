@@ -94,33 +94,33 @@ func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (str
 }
 
 func funcArgDollar(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Arg(i, syntax.Dollar)
+	return ctx.BuildArg(i, syntax.Dollar)
 }
 
 func funcArgQuestion(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Arg(i, syntax.Question)
+	return ctx.BuildArg(i, syntax.Question)
 }
 
 func funcGlobalArgDollar(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Global.Arg(i, syntax.Dollar)
+	return ctx.Global.BuildArg(i, syntax.Dollar)
 }
 
 func funcGlobalArgQuestion(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Global.Arg(i, syntax.Question)
+	return ctx.Global.BuildArg(i, syntax.Question)
 }
 
 func funcColumn(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Column(i)
+	return ctx.BuildColumn(i)
 }
 
 func funcTable(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Table(i)
+	return ctx.BuildTable(i)
 }
 
 func funcFragment(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Fragment(i)
+	return ctx.BuildFragment(i)
 }
 
 func funcBuilder(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Builder(i)
+	return ctx.BuildBuilder(i)
 }

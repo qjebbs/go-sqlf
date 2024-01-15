@@ -9,8 +9,8 @@ import (
 
 // FragmentContext is the FragmentContext for current fragment building.
 type FragmentContext struct {
-	Global *Context  // global context
-	This   *Fragment // current fragment
+	Global   *Context  // global context
+	Fragment *Fragment // current fragment
 
 	argsBuilt      []string // cache of built args
 	columnsBuilt   []string // cache of built columns
@@ -30,7 +30,7 @@ func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
 	}
 	return &FragmentContext{
 		Global:         ctx,
-		This:           f,
+		Fragment:       f,
 		argsBuilt:      make([]string, len(f.Args)),
 		columnsBuilt:   make([]string, len(f.Columns)),
 		tableUsed:      make([]bool, len(f.Tables)),
@@ -43,17 +43,18 @@ func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
 	}
 }
 
-// Arg returns the rendered the bindvar at index.
-func (c *FragmentContext) Arg(index int, defaultStyle syntax.BindVarStyle) (string, error) {
-	if index > len(c.This.Args) {
-		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.This.Args))
+// BuildArg returns the rendered the bindvar at index.
+// defaultStyle is used only when no style is set in the context and no style is seen before.
+func (c *FragmentContext) BuildArg(index int, defaultStyle syntax.BindVarStyle) (string, error) {
+	if index > len(c.Fragment.Args) {
+		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Args))
 	}
 	c.Global.onBindVar(defaultStyle)
 	i := index - 1
 	c.argsUsed[i] = true
 	built := c.argsBuilt[i]
 	if built == "" || c.Global.bindVarStyle == syntax.Question {
-		*c.Global.argStore = append(*c.Global.argStore, c.This.Args[i])
+		*c.Global.argStore = append(*c.Global.argStore, c.Fragment.Args[i])
 		if c.Global.bindVarStyle == syntax.Question {
 			built = "?"
 		} else {
@@ -64,14 +65,14 @@ func (c *FragmentContext) Arg(index int, defaultStyle syntax.BindVarStyle) (stri
 	return built, nil
 }
 
-// Column returns the rendered column at index.
-func (c *FragmentContext) Column(index int) (string, error) {
-	if index > len(c.This.Columns) {
-		return "", fmt.Errorf("%w: column index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.This.Columns))
+// BuildColumn returns the rendered column at index.
+func (c *FragmentContext) BuildColumn(index int) (string, error) {
+	if index > len(c.Fragment.Columns) {
+		return "", fmt.Errorf("%w: column index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Columns))
 	}
 	i := index - 1
 	c.columnsUsed[i] = true
-	col := c.This.Columns[i]
+	col := c.Fragment.Columns[i]
 	built := c.columnsBuilt[i]
 	if built == "" || (c.Global.bindVarStyle == syntax.Question && len(col.Args) > 0) {
 		b, err := c.buildColumn(col)
@@ -108,23 +109,23 @@ func (c *FragmentContext) buildColumn(column *TableColumn) (string, error) {
 	return built, err
 }
 
-// Table returns the rendered table at index.
-func (c *FragmentContext) Table(index int) (string, error) {
-	if index > len(c.This.Tables) {
-		return "", fmt.Errorf("%w: table index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.This.Tables))
+// BuildTable returns the rendered table at index.
+func (c *FragmentContext) BuildTable(index int) (string, error) {
+	if index > len(c.Fragment.Tables) {
+		return "", fmt.Errorf("%w: table index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Tables))
 	}
 	c.tableUsed[index-1] = true
-	return string(c.This.Tables[index-1]), nil
+	return string(c.Fragment.Tables[index-1]), nil
 }
 
-// Fragment returns the rendered fragment at index.
-func (c *FragmentContext) Fragment(index int) (string, error) {
-	if index > len(c.This.Fragments) {
-		return "", fmt.Errorf("%w: fragment index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.This.Fragments))
+// BuildFragment returns the rendered fragment at index.
+func (c *FragmentContext) BuildFragment(index int) (string, error) {
+	if index > len(c.Fragment.Fragments) {
+		return "", fmt.Errorf("%w: fragment index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Fragments))
 	}
 	i := index - 1
 	c.fragmentsUsed[i] = true
-	seg := c.This.Fragments[i]
+	seg := c.Fragment.Fragments[i]
 	built := c.fragmentsBuilt[i]
 	if built == "" || (c.Global.bindVarStyle == syntax.Question && len(seg.Args) > 0) {
 		b, err := seg.BuildContext(c.Global)
@@ -137,14 +138,14 @@ func (c *FragmentContext) Fragment(index int) (string, error) {
 	return built, nil
 }
 
-// Builder returns the rendered builder at index.
-func (c *FragmentContext) Builder(index int) (string, error) {
-	if index > len(c.This.Builders) {
-		return "", fmt.Errorf("%w: builder index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.This.Builders))
+// BuildBuilder returns the rendered builder at index.
+func (c *FragmentContext) BuildBuilder(index int) (string, error) {
+	if index > len(c.Fragment.Builders) {
+		return "", fmt.Errorf("%w: builder index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Builders))
 	}
 	i := index - 1
 	c.builderUsed[i] = true
-	builder := c.This.Builders[i]
+	builder := c.Fragment.Builders[i]
 	built := c.buildersBuilt[i]
 	if built == "" || c.Global.bindVarStyle == syntax.Question {
 		b, err := builder.BuildContext(c.Global)

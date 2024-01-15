@@ -29,14 +29,10 @@ func NewContext() *Context {
 	}
 }
 
-// BuiltArgs returns the built args of the context.
-func (c *Context) BuiltArgs() []any {
-	return *c.argStore
-}
-
 // Funcs adds the elements of the argument map to the FuncMap.
-func (c *Context) Funcs(funcs FuncMap) {
+func (c *Context) Funcs(funcs FuncMap) *Context {
 	addValueFuncs(c.funcs, funcs)
+	return c
 }
 
 // WithBindVarStyle set the bindvar style to the context, which
@@ -57,12 +53,18 @@ func (c *Context) WithGlobalArgs(args []any) *Context {
 	return c
 }
 
-// Arg returns the built Arg in the context at index.
-func (c *Context) Arg(index int, style syntax.BindVarStyle) (string, error) {
+// BuiltArgs returns the built args of the context.
+func (c *Context) BuiltArgs() []any {
+	return *c.argStore
+}
+
+// BuildArg returns the built BuildArg in the context at index.
+// defaultStyle is used only when no style is set in the context and no style is seen before.
+func (c *Context) BuildArg(index int, defaultStyle syntax.BindVarStyle) (string, error) {
 	if index > len(c.globalArgs) {
 		return "", fmt.Errorf("%w: global bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.globalArgs))
 	}
-	c.onBindVar(style)
+	c.onBindVar(defaultStyle)
 	i := index - 1
 	c.globalArgsUsed[i] = true
 	built := c.globalArgsBuilt[i]
