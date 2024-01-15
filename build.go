@@ -9,12 +9,12 @@ import (
 
 // Build builds the fragment.
 func (f *Fragment) Build() (query string, args []any, err error) {
-	args = make([]any, 0)
-	query, err = f.BuildContext(NewContext(&args))
+	ctx := NewContext()
+	query, err = f.BuildContext(ctx)
 	if err != nil {
 		return "", nil, err
 	}
-	return query, args, nil
+	return query, ctx.BuiltArgs(), nil
 }
 
 // BuildContext builds the fragment with context.
@@ -25,7 +25,7 @@ func (f *Fragment) BuildContext(ctx *Context) (string, error) {
 	if ctx == nil {
 		return "", fmt.Errorf("nil context")
 	}
-	if ctx.ArgStore == nil {
+	if ctx.argStore == nil {
 		return "", fmt.Errorf("nil arg store (of *[]any)")
 	}
 	ctxCur := newFragmentContext(ctx, f)

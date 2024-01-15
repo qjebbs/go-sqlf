@@ -10,11 +10,10 @@ import (
 
 // Context is the global context shared between all fragments building.
 type Context struct {
-	// ArgStore is the storage for built args.
-	ArgStore *[]any
+	funcs map[string]reflect.Value
 
+	argStore     *[]any
 	bindVarStyle syntax.BindVarStyle
-	funcs        map[string]reflect.Value
 
 	args      []any    // args to be referenced by other builders, with Context.Arg(int)
 	argsUsed  []bool   // flags to indicate if an arg is used
@@ -22,11 +21,17 @@ type Context struct {
 }
 
 // NewContext returns a new context.
-func NewContext(argStore *[]any) *Context {
+func NewContext() *Context {
+	argStore := make([]any, 0)
 	return &Context{
-		ArgStore: argStore,
 		funcs:    createValueFuncs(builtInFuncs),
+		argStore: &argStore,
 	}
+}
+
+// BuiltArgs returns the built args of the context.
+func (c *Context) BuiltArgs() []any {
+	return *c.argStore
 }
 
 // WithArgs set the args to the context, which can be referenced by #globalArgDollar and #globalArgQuestion.
@@ -62,11 +67,11 @@ func (c *Context) Arg(index int, style syntax.BindVarStyle) (string, error) {
 	c.argsUsed[i] = true
 	built := c.argsBuilt[i]
 	if built == "" || c.bindVarStyle == syntax.Question {
-		*c.ArgStore = append(*c.ArgStore, c.args[i])
+		*c.argStore = append(*c.argStore, c.args[i])
 		if c.bindVarStyle == syntax.Question {
 			built = "?"
 		} else {
-			built = "$" + strconv.Itoa(len(*c.ArgStore))
+			built = "$" + strconv.Itoa(len(*c.argStore))
 		}
 		c.argsBuilt[i] = built
 	}

@@ -290,8 +290,8 @@ func TestBuildFragment(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			args := make([]any, 0)
-			got, err := tc.fragment.BuildContext(sqlf.NewContext(&args).WithArgs(tc.globalArgs))
+			ctx := sqlf.NewContext().WithArgs(tc.globalArgs)
+			got, err := tc.fragment.BuildContext(ctx)
 			if err != nil {
 				if tc.wantErr {
 					return
@@ -301,6 +301,7 @@ func TestBuildFragment(t *testing.T) {
 			if got != tc.want {
 				t.Errorf("got %q, want %q", got, tc.want)
 			}
+			args := ctx.BuiltArgs()
 			if !reflect.DeepEqual(args, tc.wantArgs) {
 				t.Errorf("got %v, want %v", args, tc.wantArgs)
 			}
