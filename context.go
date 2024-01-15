@@ -84,6 +84,14 @@ func (c *Context) onBindVar(style syntax.BindVarStyle) {
 	}
 }
 
+// ReportUsedArg reports the global arg at index is used.
+func (c *Context) ReportUsedArg(index int) {
+	if index > len(c.globalArgsUsed) {
+		return
+	}
+	c.globalArgsUsed[index-1] = true
+}
+
 func (c *Context) checkUsage() error {
 	for i, v := range c.globalArgsUsed {
 		if !v {
