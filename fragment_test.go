@@ -262,9 +262,9 @@ func TestBuildFragment(t *testing.T) {
 			fragment: &sqlf.Fragment{
 				Raw: "#join('#fragment',' ')",
 				Fragments: []*sqlf.Fragment{
-					{Raw: "#ctxArgDollar1"},
-					{Raw: "#ctxArgDollar2"},
-					{Raw: "#ctxArgDollar2"},
+					{Raw: "#globalArgDollar1"},
+					{Raw: "#globalArgDollar2"},
+					{Raw: "#globalArgDollar2"},
 				},
 			},
 			globalArgs: []any{1, 2},
@@ -276,9 +276,9 @@ func TestBuildFragment(t *testing.T) {
 			fragment: &sqlf.Fragment{
 				Raw: "#join('#fragment',' ')",
 				Fragments: []*sqlf.Fragment{
-					{Raw: "#ctxArgQuestion1"},
-					{Raw: "#ctxArgQuestion2"},
-					{Raw: "#ctxArgQuestion2"},
+					{Raw: "#globalArgQuestion1"},
+					{Raw: "#globalArgQuestion2"},
+					{Raw: "#globalArgQuestion2"},
 				},
 			},
 			globalArgs: []any{1, 2},
@@ -290,7 +290,7 @@ func TestBuildFragment(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := sqlf.NewContext().WithArgs(tc.globalArgs)
+			ctx := sqlf.NewContext().WithGlobalArgs(tc.globalArgs)
 			got, err := tc.fragment.BuildContext(ctx)
 			if err != nil {
 				if tc.wantErr {

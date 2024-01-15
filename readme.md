@@ -34,8 +34,8 @@ Explanation:
 | builder        | `Fragment.Builders` at index          | #builder1                      |
 | argDollar      | `Fragment.Args` at index with style $ | #join('#argDollar', ', ')      |
 | argQuestion    | `Fragment.Args` at index with style ? | #join('#argQuestion', ', ')    |
-| ctxArgDollar   | Arg from global context with style $  | #ctxArgDollar1                 |
-| ctxArgQuestion | Arg from global context with style ?  | #ctxArgQuestion1               |
+| globalArgDollar   | Arg from global context with style $  | #globalArgDollar1                 |
+| globalArgQuestion | Arg from global context with style ?  | #globalArgQuestion1               |
 | join           | Join the template with separator      | #join('#fragment', ' AND ')    |
 |                | Join from index 3 to end              | #join('#argDollar', ',', 3)    |
 |                | Join from index 3 to 6                | #join('#argDollar', ',', 3, 6) |

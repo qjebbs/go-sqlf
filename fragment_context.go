@@ -48,7 +48,7 @@ func (c *FragmentContext) Arg(index int, defaultStyle syntax.BindVarStyle) (stri
 	if index > len(c.This.Args) {
 		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.This.Args))
 	}
-	c.Global.onBindArg(defaultStyle)
+	c.Global.onBindVar(defaultStyle)
 	i := index - 1
 	c.argsUsed[i] = true
 	built := c.argsBuilt[i]

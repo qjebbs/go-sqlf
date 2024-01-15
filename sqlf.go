@@ -31,8 +31,8 @@
 //   - builder		   	: Fragment.Builders at index, e.g. #builder1
 //   - argDollar		: Fragment.Args at index with style $, usually used in #join().
 //   - argQuestion		: Fragment.Args at index with style ?, usually used in #join().
-//   - ctxArgDollar 	: Arg from global context with style $, e.g.: #ctxArgDollar1
-//   - ctxArgQuestion 	: Arg from global context with style ?, e.g.: #ctxArgQuestion1
+//   - globalArgDollar 	: Arg from global context with style $, e.g.: #globalArgDollar1
+//   - globalArgQuestion 	: Arg from global context with style ?, e.g.: #globalArgQuestion1
 //   - join 			: Join the template with separator, e.g. #join('#column', ', '), #join('#argDollar', ',', 3), #join('#argDollar', ',', 3, 6)
 //
 // Note:

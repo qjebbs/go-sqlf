@@ -15,9 +15,9 @@ type Context struct {
 	argStore     *[]any
 	bindVarStyle syntax.BindVarStyle
 
-	args      []any    // args to be referenced by other builders, with Context.Arg(int)
-	argsUsed  []bool   // flags to indicate if an arg is used
-	argsBuilt []string // cache of built args
+	globalArgs      []any    // args to be referenced by other builders, with Context.Arg(int)
+	globalArgsUsed  []bool   // flags to indicate if an arg is used
+	globalArgsBuilt []string // cache of built args
 }
 
 // NewContext returns a new context.
@@ -34,14 +34,9 @@ func (c *Context) BuiltArgs() []any {
 	return *c.argStore
 }
 
-// WithArgs set the args to the context, which can be referenced by #globalArgDollar and #globalArgQuestion.
-//
-// Note: it has nothing to do with the c.ArgStore.
-func (c *Context) WithArgs(args []any) *Context {
-	c.args = args
-	c.argsBuilt = make([]string, len(args))
-	c.argsUsed = make([]bool, len(args))
-	return c
+// Funcs adds the elements of the argument map to the FuncMap.
+func (c *Context) Funcs(funcs FuncMap) {
+	addValueFuncs(c.funcs, funcs)
 }
 
 // WithBindVarStyle set the bindvar style to the context, which
@@ -52,40 +47,45 @@ func (c *Context) WithBindVarStyle(style syntax.BindVarStyle) *Context {
 	return c
 }
 
-// Funcs adds the elements of the argument map to the FuncMap.
-func (c *Context) Funcs(funcs FuncMap) {
-	addValueFuncs(c.funcs, funcs)
+// WithGlobalArgs set the global args to the context, which can be referenced by #globalArgDollar and #globalArgQuestion.
+//
+// Note: it has nothing to do with the c.ArgStore.
+func (c *Context) WithGlobalArgs(args []any) *Context {
+	c.globalArgs = args
+	c.globalArgsBuilt = make([]string, len(args))
+	c.globalArgsUsed = make([]bool, len(args))
+	return c
 }
 
 // Arg returns the built Arg in the context at index.
 func (c *Context) Arg(index int, style syntax.BindVarStyle) (string, error) {
-	if index > len(c.args) {
-		return "", fmt.Errorf("%w: global bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.args))
+	if index > len(c.globalArgs) {
+		return "", fmt.Errorf("%w: global bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.globalArgs))
 	}
-	c.onBindArg(style)
+	c.onBindVar(style)
 	i := index - 1
-	c.argsUsed[i] = true
-	built := c.argsBuilt[i]
+	c.globalArgsUsed[i] = true
+	built := c.globalArgsBuilt[i]
 	if built == "" || c.bindVarStyle == syntax.Question {
-		*c.argStore = append(*c.argStore, c.args[i])
+		*c.argStore = append(*c.argStore, c.globalArgs[i])
 		if c.bindVarStyle == syntax.Question {
 			built = "?"
 		} else {
 			built = "$" + strconv.Itoa(len(*c.argStore))
 		}
-		c.argsBuilt[i] = built
+		c.globalArgsBuilt[i] = built
 	}
 	return built, nil
 }
 
-func (c *Context) onBindArg(style syntax.BindVarStyle) {
+func (c *Context) onBindVar(style syntax.BindVarStyle) {
 	if c.bindVarStyle == 0 {
 		c.bindVarStyle = style
 	}
 }
 
 func (c *Context) checkUsage() error {
-	for i, v := range c.argsUsed {
+	for i, v := range c.globalArgsUsed {
 		if !v {
 			return fmt.Errorf("arg %d is not used", i+1)
 		}

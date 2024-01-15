@@ -9,17 +9,17 @@ import (
 )
 
 var builtInFuncs = FuncMap{
-	"c":              funcColumn,
-	"column":         funcColumn,
-	"t":              funcTable,
-	"table":          funcTable,
-	"fragment":       funcFragment,
-	"builder":        funcBuilder,
-	"argDollar":      funcArgDollar,
-	"argQuestion":    funcArgQuestion,
-	"ctxArgDollar":   funcCtxArgDollar,
-	"ctxArgQuestion": funcCtxArgQuestion,
-	"join":           funcJoin,
+	"c":                 funcColumn,
+	"column":            funcColumn,
+	"t":                 funcTable,
+	"table":             funcTable,
+	"fragment":          funcFragment,
+	"builder":           funcBuilder,
+	"argDollar":         funcArgDollar,
+	"argQuestion":       funcArgQuestion,
+	"globalArgDollar":   funcGlobalArgDollar,
+	"globalArgQuestion": funcGlobalArgQuestion,
+	"join":              funcJoin,
 }
 
 func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (string, error) {
@@ -101,11 +101,11 @@ func funcArgQuestion(ctx *FragmentContext, i int) (string, error) {
 	return ctx.Arg(i, syntax.Question)
 }
 
-func funcCtxArgDollar(ctx *FragmentContext, i int) (string, error) {
+func funcGlobalArgDollar(ctx *FragmentContext, i int) (string, error) {
 	return ctx.Global.Arg(i, syntax.Dollar)
 }
 
-func funcCtxArgQuestion(ctx *FragmentContext, i int) (string, error) {
+func funcGlobalArgQuestion(ctx *FragmentContext, i int) (string, error) {
 	return ctx.Global.Arg(i, syntax.Question)
 }
 

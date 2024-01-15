@@ -15,8 +15,8 @@ func evalFunction(ctx *FragmentContext, name string, args []any) (string, error)
 
 func evalCall(ctx *FragmentContext, fun reflect.Value, name string, args []any) (string, error) {
 	typ := fun.Type()
-	ctxArg := typ.NumIn() > 0 && typ.In(0) == contextPointerType
-	if ctxArg {
+	globalArg := typ.NumIn() > 0 && typ.In(0) == contextPointerType
+	if globalArg {
 		args = append([]any{ctx}, args...)
 	}
 	numIn := len(args)
@@ -43,7 +43,7 @@ func evalCall(ctx *FragmentContext, fun reflect.Value, name string, args []any) 
 	// Fixed args first.
 	i := 0
 	for ; i < numFixed && i < len(args); i++ {
-		if i == 0 && ctxArg {
+		if i == 0 && globalArg {
 			argv[i] = reflect.ValueOf(args[0])
 			continue
 		}
