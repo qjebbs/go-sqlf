@@ -20,6 +20,14 @@ func Args(s any) []any {
 		return Ttoa(a)
 	case []int32:
 		return Ttoa(a)
+	case []int:
+		return Ttoa(a)
+	case []uint64:
+		return Ttoa(a)
+	case []uint32:
+		return Ttoa(a)
+	case []uint:
+		return Ttoa(a)
 	case []string:
 		return Ttoa(a)
 	case *[]bool:
@@ -32,6 +40,14 @@ func Args(s any) []any {
 		return Ttoa(*a)
 	case *[]int32:
 		return Ttoa(*a)
+	case *[]int:
+		return Ttoa(*a)
+	case *[]uint64:
+		return Ttoa(*a)
+	case *[]uint32:
+		return Ttoa(*a)
+	case *[]uint:
+		return Ttoa(*a)
 	case *[]string:
 		return Ttoa(*a)
 	default:
@@ -39,7 +55,7 @@ func Args(s any) []any {
 	}
 }
 
-// Ttoa is a help func to convert slice to []any.
+// Ttoa is a help func to convert a slice to []any.
 func Ttoa[T any](slice []T) []any {
 	if len(slice) == 0 {
 		return nil
@@ -53,6 +69,9 @@ func Ttoa[T any](slice []T) []any {
 
 func convertArrayReflect(slice any) []any {
 	rv := reflect.ValueOf(slice)
+	if rv.Kind() == reflect.Pointer {
+		rv = rv.Elem()
+	}
 	switch rv.Kind() {
 	case reflect.Slice:
 		if rv.IsNil() {
