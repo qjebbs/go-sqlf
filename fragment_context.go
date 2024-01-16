@@ -2,7 +2,6 @@ package sqlf
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/qjebbs/go-sqlf/syntax"
 )
@@ -49,17 +48,11 @@ func (c *FragmentContext) BuildArg(index int, defaultStyle syntax.BindVarStyle) 
 	if index > len(c.Fragment.Args) {
 		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Args))
 	}
-	c.Global.onBindVar(defaultStyle)
 	i := index - 1
 	c.argsUsed[i] = true
 	built := c.argsBuilt[i]
 	if built == "" || c.Global.bindVarStyle == syntax.Question {
-		c.Global.argStore = append(c.Global.argStore, c.Fragment.Args[i])
-		if c.Global.bindVarStyle == syntax.Question {
-			built = "?"
-		} else {
-			built = "$" + strconv.Itoa(len(c.Global.argStore))
-		}
+		built = c.Global.CommitBuiltArg(c.Fragment.Args[i], defaultStyle)
 		c.argsBuilt[i] = built
 	}
 	return built, nil

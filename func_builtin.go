@@ -102,11 +102,11 @@ func funcArgQuestion(ctx *FragmentContext, i int) (string, error) {
 }
 
 func funcGlobalArgDollar(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Global.BuildArg(i, syntax.Dollar)
+	return ctx.Global.BuildGlobalArg(i, syntax.Dollar)
 }
 
 func funcGlobalArgQuestion(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Global.BuildArg(i, syntax.Question)
+	return ctx.Global.BuildGlobalArg(i, syntax.Question)
 }
 
 func funcColumn(ctx *FragmentContext, i int) (string, error) {

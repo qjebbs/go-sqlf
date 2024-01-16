@@ -57,36 +57,37 @@ func (c *Context) BuiltArgs() []any {
 	return c.argStore
 }
 
-// BuildArg returns the built BuildArg in the context at index.
+// CommitBuiltArg commits the arg to the built args of the context and returns the built bindvar.
 // defaultStyle is used only when no style is set in the context and no style is seen before.
-func (c *Context) BuildArg(index int, defaultStyle syntax.BindVarStyle) (string, error) {
+func (c *Context) CommitBuiltArg(arg any, defaultStyle syntax.BindVarStyle) string {
+	if c.bindVarStyle == 0 {
+		c.bindVarStyle = defaultStyle
+	}
+	c.argStore = append(c.argStore, arg)
+	if c.bindVarStyle == syntax.Question {
+		return "?"
+	}
+	return "$" + strconv.Itoa(len(c.argStore))
+}
+
+// BuildGlobalArg returns the built globalArg in the context at index.
+// defaultStyle is used only when no style is set in the context and no style is seen before.
+func (c *Context) BuildGlobalArg(index int, defaultStyle syntax.BindVarStyle) (string, error) {
 	if index > len(c.globalArgs) {
 		return "", fmt.Errorf("%w: global bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.globalArgs))
 	}
-	c.onBindVar(defaultStyle)
 	i := index - 1
 	c.globalArgsUsed[i] = true
 	built := c.globalArgsBuilt[i]
 	if built == "" || c.bindVarStyle == syntax.Question {
-		c.argStore = append(c.argStore, c.globalArgs[i])
-		if c.bindVarStyle == syntax.Question {
-			built = "?"
-		} else {
-			built = "$" + strconv.Itoa(len(c.argStore))
-		}
+		built = c.CommitBuiltArg(c.globalArgs[i], defaultStyle)
 		c.globalArgsBuilt[i] = built
 	}
 	return built, nil
 }
 
-func (c *Context) onBindVar(style syntax.BindVarStyle) {
-	if c.bindVarStyle == 0 {
-		c.bindVarStyle = style
-	}
-}
-
-// ReportUsedArg reports the global arg at index is used.
-func (c *Context) ReportUsedArg(index int) {
+// ReportUsedGlobalArg reports the global arg at index is used.
+func (c *Context) ReportUsedGlobalArg(index int) {
 	if index > len(c.globalArgsUsed) {
 		return
 	}
