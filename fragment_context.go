@@ -45,7 +45,7 @@ func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
 // BuildArg returns the built the bindvar at index.
 // defaultStyle is used only when no style is set in the context and no style is seen before.
 func (c *FragmentContext) BuildArg(index int, defaultStyle syntax.BindVarStyle) (string, error) {
-	if index > len(c.Fragment.Args) {
+	if index < 1 || index > len(c.Fragment.Args) {
 		return "", fmt.Errorf("%w: bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Args))
 	}
 	i := index - 1
@@ -60,7 +60,7 @@ func (c *FragmentContext) BuildArg(index int, defaultStyle syntax.BindVarStyle) 
 
 // BuildColumn returns the built column at index.
 func (c *FragmentContext) BuildColumn(index int) (string, error) {
-	if index > len(c.Fragment.Columns) {
+	if index < 1 || index > len(c.Fragment.Columns) {
 		return "", fmt.Errorf("%w: column index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Columns))
 	}
 	i := index - 1
@@ -82,21 +82,21 @@ func (c *FragmentContext) buildColumn(column *TableColumn) (string, error) {
 	if column == nil || column.Raw == "" {
 		return "", nil
 	}
-	seg := &Fragment{
+	fragment := &Fragment{
 		Raw:    column.Raw,
 		Args:   column.Args,
 		Tables: []Table{column.Table},
 	}
-	ctxCol := newFragmentContext(c.Global, seg)
-	built, err := build(ctxCol)
+	ctxColumn := newFragmentContext(c.Global, fragment)
+	built, err := build(ctxColumn)
 	if err != nil {
 		return "", err
 	}
 	// don't check usage of tables
-	for i := range ctxCol.tableUsed {
-		ctxCol.tableUsed[i] = true
+	for i := range ctxColumn.tableUsed {
+		ctxColumn.tableUsed[i] = true
 	}
-	if err := ctxCol.checkUsage(); err != nil {
+	if err := ctxColumn.checkUsage(); err != nil {
 		return "", fmt.Errorf("build '%s': %w", column.Raw, err)
 	}
 	return built, err
@@ -104,7 +104,7 @@ func (c *FragmentContext) buildColumn(column *TableColumn) (string, error) {
 
 // BuildTable returns the built table at index.
 func (c *FragmentContext) BuildTable(index int) (string, error) {
-	if index > len(c.Fragment.Tables) {
+	if index < 1 || index > len(c.Fragment.Tables) {
 		return "", fmt.Errorf("%w: table index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Tables))
 	}
 	c.tableUsed[index-1] = true
@@ -113,15 +113,15 @@ func (c *FragmentContext) BuildTable(index int) (string, error) {
 
 // BuildFragment returns the built fragment at index.
 func (c *FragmentContext) BuildFragment(index int) (string, error) {
-	if index > len(c.Fragment.Fragments) {
+	if index < 1 || index > len(c.Fragment.Fragments) {
 		return "", fmt.Errorf("%w: fragment index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Fragments))
 	}
 	i := index - 1
 	c.fragmentsUsed[i] = true
-	seg := c.Fragment.Fragments[i]
+	fragment := c.Fragment.Fragments[i]
 	built := c.fragmentsBuilt[i]
-	if built == "" || (c.Global.bindVarStyle == syntax.Question && len(seg.Args) > 0) {
-		b, err := seg.BuildContext(c.Global)
+	if built == "" || (c.Global.bindVarStyle == syntax.Question && len(fragment.Args) > 0) {
+		b, err := fragment.BuildContext(c.Global)
 		if err != nil {
 			return "", err
 		}
@@ -133,7 +133,7 @@ func (c *FragmentContext) BuildFragment(index int) (string, error) {
 
 // BuildBuilder returns the built builder at index.
 func (c *FragmentContext) BuildBuilder(index int) (string, error) {
-	if index > len(c.Fragment.Builders) {
+	if index < 1 || index > len(c.Fragment.Builders) {
 		return "", fmt.Errorf("%w: builder index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Builders))
 	}
 	i := index - 1
@@ -153,7 +153,7 @@ func (c *FragmentContext) BuildBuilder(index int) (string, error) {
 
 // ReportUsedArg reports the arg at index is used, starting from 1.
 func (c *FragmentContext) ReportUsedArg(index int) {
-	if index <= 0 || index > len(c.argsUsed) {
+	if index < 1 || index > len(c.argsUsed) {
 		return
 	}
 	c.argsUsed[index-1] = true
@@ -161,7 +161,7 @@ func (c *FragmentContext) ReportUsedArg(index int) {
 
 // ReportUsedColumn reports the column at index is used, starting from 1.
 func (c *FragmentContext) ReportUsedColumn(index int) {
-	if index <= 0 || index > len(c.columnsUsed) {
+	if index < 1 || index > len(c.columnsUsed) {
 		return
 	}
 	c.columnsUsed[index-1] = true
@@ -169,7 +169,7 @@ func (c *FragmentContext) ReportUsedColumn(index int) {
 
 // ReportUsedTable reports the table at index is used, starting from 1.
 func (c *FragmentContext) ReportUsedTable(index int) {
-	if index <= 0 || index > len(c.tableUsed) {
+	if index < 1 || index > len(c.tableUsed) {
 		return
 	}
 	c.tableUsed[index-1] = true
@@ -177,7 +177,7 @@ func (c *FragmentContext) ReportUsedTable(index int) {
 
 // ReportUsedFragment reports the fragment at index is used, starting from 1.
 func (c *FragmentContext) ReportUsedFragment(index int) {
-	if index <= 0 || index > len(c.fragmentsUsed) {
+	if index < 1 || index > len(c.fragmentsUsed) {
 		return
 	}
 	c.fragmentsUsed[index-1] = true
@@ -185,7 +185,7 @@ func (c *FragmentContext) ReportUsedFragment(index int) {
 
 // ReportUsedBuilder reports the builder at index is used, starting from 1.
 func (c *FragmentContext) ReportUsedBuilder(index int) {
-	if index > len(c.builderUsed) {
+	if index < 1 || index > len(c.builderUsed) {
 		return
 	}
 	c.builderUsed[index-1] = true

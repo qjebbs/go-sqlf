@@ -17,7 +17,7 @@ and any number of condition fragments,
 
 ```sql
 id IN (#join('#argDollar', ', '))  -- args: [1, 2, 3]
-updated > $1 					   -- args: [2021-01-01]
+updated > $1                       -- args: [2021-01-01]
 ```
 
 We will get the following query:

@@ -170,16 +170,16 @@ func scanFuncArgs(s *scanner) scanFn {
 				r = s.Next()
 			}
 			if s.Advanced() {
-				seg := s.input[s.start:s.pos]
-				if seg == "true" || seg == "false" {
+				fragment := s.input[s.start:s.pos]
+				if fragment == "true" || fragment == "false" {
 					s.emitToken(_Literal, _BoolLit, false)
 					return scanFuncArgs
 				}
-				if seg == "null" || seg == "nil" {
+				if fragment == "null" || fragment == "nil" {
 					s.emitToken(_Literal, _NilLit, false)
 					return scanFuncArgs
 				}
-				if _, err := strconv.ParseFloat(seg, 64); err == nil {
+				if _, err := strconv.ParseFloat(fragment, 64); err == nil {
 					s.emitToken(_Literal, _NumberLit, false)
 					return scanFuncArgs
 				}

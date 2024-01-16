@@ -71,7 +71,7 @@ func (c *Context) CommitBuiltArg(arg any, defaultStyle syntax.BindVarStyle) stri
 // BuildGlobalArg returns the built globalArg in the context at index.
 // defaultStyle is used only when no style is set in the context and no style is seen before.
 func (c *Context) BuildGlobalArg(index int, defaultStyle syntax.BindVarStyle) (string, error) {
-	if index > len(c.globalArgs) {
+	if index < 1 || index > len(c.globalArgs) {
 		return "", fmt.Errorf("%w: global bindvar index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.globalArgs))
 	}
 	i := index - 1
@@ -86,7 +86,7 @@ func (c *Context) BuildGlobalArg(index int, defaultStyle syntax.BindVarStyle) (s
 
 // ReportUsedGlobalArg reports the global arg at index is used.
 func (c *Context) ReportUsedGlobalArg(index int) {
-	if index > len(c.globalArgsUsed) {
+	if index < 1 || index > len(c.globalArgsUsed) {
 		return
 	}
 	c.globalArgsUsed[index-1] = true
