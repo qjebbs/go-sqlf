@@ -54,11 +54,11 @@ func (c *FragmentContext) BuildArg(index int, defaultStyle syntax.BindVarStyle) 
 	c.argsUsed[i] = true
 	built := c.argsBuilt[i]
 	if built == "" || c.Global.bindVarStyle == syntax.Question {
-		*c.Global.argStore = append(*c.Global.argStore, c.Fragment.Args[i])
+		c.Global.argStore = append(c.Global.argStore, c.Fragment.Args[i])
 		if c.Global.bindVarStyle == syntax.Question {
 			built = "?"
 		} else {
-			built = "$" + strconv.Itoa(len(*c.Global.argStore))
+			built = "$" + strconv.Itoa(len(c.Global.argStore))
 		}
 		c.argsBuilt[i] = built
 	}

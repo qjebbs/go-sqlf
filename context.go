@@ -12,7 +12,7 @@ import (
 type Context struct {
 	funcs map[string]reflect.Value
 
-	argStore     *[]any
+	argStore     []any
 	bindVarStyle syntax.BindVarStyle
 
 	globalArgs      []any    // args to be referenced by other builders, with Context.Arg(int)
@@ -22,10 +22,9 @@ type Context struct {
 
 // NewContext returns a new context.
 func NewContext() *Context {
-	argStore := make([]any, 0)
 	return &Context{
 		funcs:    createValueFuncs(builtInFuncs),
-		argStore: &argStore,
+		argStore: make([]any, 0),
 	}
 }
 
@@ -55,7 +54,7 @@ func (c *Context) WithGlobalArgs(args []any) *Context {
 
 // BuiltArgs returns the built args of the context.
 func (c *Context) BuiltArgs() []any {
-	return *c.argStore
+	return c.argStore
 }
 
 // BuildArg returns the built BuildArg in the context at index.
@@ -69,11 +68,11 @@ func (c *Context) BuildArg(index int, defaultStyle syntax.BindVarStyle) (string,
 	c.globalArgsUsed[i] = true
 	built := c.globalArgsBuilt[i]
 	if built == "" || c.bindVarStyle == syntax.Question {
-		*c.argStore = append(*c.argStore, c.globalArgs[i])
+		c.argStore = append(c.argStore, c.globalArgs[i])
 		if c.bindVarStyle == syntax.Question {
 			built = "?"
 		} else {
-			built = "$" + strconv.Itoa(len(*c.argStore))
+			built = "$" + strconv.Itoa(len(c.argStore))
 		}
 		c.globalArgsBuilt[i] = built
 	}
