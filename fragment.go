@@ -4,52 +4,72 @@ package sqlf
 // to write and combine fragments with freedom.
 type Fragment struct {
 	Raw       string         // Raw string support bindvars and preprocessing functions.
-	Args      []any          // Args to be referenced by the Raw
-	Columns   []*TableColumn // Columns to be referenced by the Raw
-	Tables    []Table        // Table names / alias to be referenced by the Raw
-	Fragments []*Fragment    // Fragments to be referenced by the Raw
-	Builders  []Builder      // Builders to be referenced by the Raw
+	Args      []any          // Args to be referred by the Raw, e.g.: ?, $1
+	Columns   []*TableColumn // Columns to be referred by the Raw, e.g.: #c1, #column2
+	Tables    []Table        // Table names / alias to be referred by the Raw, e.g.: #t1, #table2
+	Fragments []*Fragment    // Fragments to be referred by the Raw, e.g.: #fragment1, #fragment2
+	Builders  []Builder      // Builders to be referred by the Raw, e.g.: #builder1, #builder2
 
-	Prefix string // Prefix is added before the rendered fragment only if which is not empty.
-	Suffix string // Suffix is added after the rendered fragment only if which is not empty.
-}
-
-// AppendTables appends tables to the fragment.
-func (f *Fragment) AppendTables(tables ...Table) {
-	f.Tables = append(f.Tables, tables...)
-}
-
-// AppendColumns appends columns to the fragment.
-func (f *Fragment) AppendColumns(columns ...*TableColumn) {
-	f.Columns = append(f.Columns, columns...)
-}
-
-// AppendFragments appends fragments to the fragment.
-func (f *Fragment) AppendFragments(fragments ...*Fragment) {
-	f.Fragments = append(f.Fragments, fragments...)
+	Prefix string // Prefix is added before the built fragment only if which is not empty.
+	Suffix string // Suffix is added after the built fragment only if which is not empty.
 }
 
 // AppendArgs appends args to the fragment.
+// Args are used to be referred by the Raw, e.g.: ?, $1
 func (f *Fragment) AppendArgs(args ...any) {
 	f.Args = append(f.Args, args...)
 }
 
-// WithTables replace f.Tables with the tables
-func (f *Fragment) WithTables(tables ...Table) {
-	f.Tables = tables
+// AppendColumns appends columns to the fragment.
+// Columns are used to be referred by the Raw, e.g.: #c1, #column2
+func (f *Fragment) AppendColumns(columns ...*TableColumn) {
+	f.Columns = append(f.Columns, columns...)
+}
+
+// AppendTables appends tables to the fragment.
+// Tables are used to be referred by the Raw, e.g.: #t1, #table2
+func (f *Fragment) AppendTables(tables ...Table) {
+	f.Tables = append(f.Tables, tables...)
+}
+
+// AppendFragments appends fragments to the fragment.
+// Fragments are used to be referred by the Raw, e.g.: #fragment1, #fragment2
+func (f *Fragment) AppendFragments(fragments ...*Fragment) {
+	f.Fragments = append(f.Fragments, fragments...)
+}
+
+// AppendBuilders appends builders to the fragment.
+// Builders are used to be referred by the Raw, e.g.: #builder1, #builder2
+func (f *Fragment) AppendBuilders(builders ...Builder) {
+	f.Builders = append(f.Builders, builders...)
+}
+
+// WithArgs replace f.Args with the args
+// Args are used to be referred by the Raw, e.g.: ?, $1
+func (f *Fragment) WithArgs(args ...any) {
+	f.Args = args
 }
 
 // WithColumns replace f.Columns with the columns
+// Columns are used to be referred by the Raw, e.g.: #c1, #column2
 func (f *Fragment) WithColumns(columns ...*TableColumn) {
 	f.Columns = columns
 }
 
+// WithTables replace f.Tables with the tables
+// Tables are used to be referred by the Raw, e.g.: #t1, #table2
+func (f *Fragment) WithTables(tables ...Table) {
+	f.Tables = tables
+}
+
 // WithFragments replace f.Fragments with the fragments
+// Fragments are used to be referred by the Raw, e.g.: #fragment1, #fragment2
 func (f *Fragment) WithFragments(fragments ...*Fragment) {
 	f.Fragments = fragments
 }
 
-// WithArgs replace f.Args with the args
-func (f *Fragment) WithArgs(args ...any) {
-	f.Args = args
+// WithBuilders replace f.Builders with the builders
+// Builders are used to be referred by the Raw, e.g.: #builder1, #builder2
+func (f *Fragment) WithBuilders(builders ...Builder) {
+	f.Builders = builders
 }

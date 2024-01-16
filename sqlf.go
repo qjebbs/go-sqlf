@@ -1,39 +1,43 @@
-// Package sqlf focuses only on bulding SQL queries by free combination
-// of fragments. Thus, it works naturally with all sql dialects without
-// having to deal with the differences between them. Unlike any other
-// sql builder or ORMs, Fragment is the only concept you need to learn.
+// Package sqlf focuses only on building SQL queries by combining fragments.
+// Low reusability and scalability are the main challenges we face when
+// writing SQL, sqlf is designed to solve these problems.
 //
 // # Fragment
 //
-// Fragment is the builder for a part of or even the full query, it allows you
-// to write and combine fragments with freedom.
+// Unlike any other sql builder or ORMs, Fragment is the only concept
+// you need to learn.
 //
-// With the help of Fragment, we pay attention only to the reference relationships
-// inside the fragment, for example, use $1 to refer Fragment.Args[0].
+// Fragment is usually a part of a SQL query, for example, combining
+// fragments of main fragment,
 //
-// The syntax of the fragment is exactly the same as the syntax of the "database/sql",
-// plus preprocessing functions support:
+//	SELECT id, name, age FROM users WHERE #join('#fragment', ' AND ')
 //
-//	SELECT * FROM foo WHERE id IN ($1, $2, $3) AND #fragment(1)
-//	SELECT * FROM foo WHERE id IN (?, ?, ?) AND #fragment(1)
-//	SELECT * FROM foo WHERE #join('#fragment', ' AND ')
+// and condition fragments,
+//
+//	id IN (#join('#argDollar', ', '))  // args: [1, 2, 3]
+//	updated > $1                       // args: [2021-01-01]
+//
+// We will get the following query.
+//
+//	SELECT id, name, age FROM users WHERE id IN ($1, $2, $3) AND updated > $4
+//	// built args: [1, 2, 3, 2021-01-01]
 //
 // Explanation:
-//   - $1, $2, $3 means the first, second, third argument of the Fragment.Args.
-//   - ? means the argument of the Fragment.Args in order.
-//   - #fragment is a preprocessing function, which will be explained later.
+//
+//   - With the help of Fragment, we pay attention only to the reference relationships inside the fragment, for example, use $1 to refer Fragment.Args[0], or ? to refer Fragment.Args in order.
+//   - #join, #column, #fragment, etc., are preprocessing functions, which will be explained later.
 //
 // # Preprocessing Functions
 //
-//   - c, column		: Fragment.Columns at index, e.g. #c1
-//   - t, table			: Fragment.Tables at index, e.g. #t1
-//   - fragment		   	: Fragment.Fragments at index, e.g. #fragment1
-//   - builder		   	: Fragment.Builders at index, e.g. #builder1
-//   - argDollar		: Fragment.Args at index with style $, usually used in #join().
-//   - argQuestion		: Fragment.Args at index with style ?, usually used in #join().
-//   - globalArgDollar 	: Arg from global context with style $, e.g.: #globalArgDollar1
-//   - globalArgQuestion 	: Arg from global context with style ?, e.g.: #globalArgQuestion1
-//   - join 			: Join the template with separator, e.g. #join('#column', ', '), #join('#argDollar', ',', 3), #join('#argDollar', ',', 3, 6)
+//   - c, column: Fragment.Columns at index, e.g. #c1
+//   - t, table: Fragment.Tables at index, e.g. #t1
+//   - fragment: Fragment.Fragments at index, e.g. #fragment1
+//   - builder: Fragment.Builders at index, e.g. #builder1
+//   - argDollar: Fragment.Args at index with style $, usually used in #join().
+//   - argQuestion: Fragment.Args at index with style ?, usually used in #join().
+//   - globalArgDollar: Arg from global context with style $, e.g.: #globalArgDollar1
+//   - globalArgQuestion: Arg from global context with style ?, e.g.: #globalArgQuestion1
+//   - join: Join the template with separator, e.g. #join('#column', ', '), #join('#argDollar', ',', 3), #join('#argDollar', ',', 3, 6)
 //
 // Note:
 //   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when a number is the only argument.

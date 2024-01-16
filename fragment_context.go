@@ -42,7 +42,7 @@ func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
 	}
 }
 
-// BuildArg returns the rendered the bindvar at index.
+// BuildArg returns the built the bindvar at index.
 // defaultStyle is used only when no style is set in the context and no style is seen before.
 func (c *FragmentContext) BuildArg(index int, defaultStyle syntax.BindVarStyle) (string, error) {
 	if index > len(c.Fragment.Args) {
@@ -58,7 +58,7 @@ func (c *FragmentContext) BuildArg(index int, defaultStyle syntax.BindVarStyle) 
 	return built, nil
 }
 
-// BuildColumn returns the rendered column at index.
+// BuildColumn returns the built column at index.
 func (c *FragmentContext) BuildColumn(index int) (string, error) {
 	if index > len(c.Fragment.Columns) {
 		return "", fmt.Errorf("%w: column index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Columns))
@@ -102,7 +102,7 @@ func (c *FragmentContext) buildColumn(column *TableColumn) (string, error) {
 	return built, err
 }
 
-// BuildTable returns the rendered table at index.
+// BuildTable returns the built table at index.
 func (c *FragmentContext) BuildTable(index int) (string, error) {
 	if index > len(c.Fragment.Tables) {
 		return "", fmt.Errorf("%w: table index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Tables))
@@ -111,7 +111,7 @@ func (c *FragmentContext) BuildTable(index int) (string, error) {
 	return string(c.Fragment.Tables[index-1]), nil
 }
 
-// BuildFragment returns the rendered fragment at index.
+// BuildFragment returns the built fragment at index.
 func (c *FragmentContext) BuildFragment(index int) (string, error) {
 	if index > len(c.Fragment.Fragments) {
 		return "", fmt.Errorf("%w: fragment index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Fragments))
@@ -131,7 +131,7 @@ func (c *FragmentContext) BuildFragment(index int) (string, error) {
 	return built, nil
 }
 
-// BuildBuilder returns the rendered builder at index.
+// BuildBuilder returns the built builder at index.
 func (c *FragmentContext) BuildBuilder(index int) (string, error) {
 	if index > len(c.Fragment.Builders) {
 		return "", fmt.Errorf("%w: builder index %d out of range [1,%d]", ErrInvalidIndex, index, len(c.Fragment.Builders))

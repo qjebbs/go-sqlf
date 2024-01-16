@@ -28,7 +28,7 @@ func NewContext() *Context {
 	}
 }
 
-// Funcs adds the elements of the argument map to the FuncMap.
+// Funcs adds the preprocessing functions of the FuncMap to the context.
 func (c *Context) Funcs(funcs FuncMap) *Context {
 	addValueFuncs(c.funcs, funcs)
 	return c
@@ -43,8 +43,6 @@ func (c *Context) WithBindVarStyle(style syntax.BindVarStyle) *Context {
 }
 
 // WithGlobalArgs set the global args to the context, which can be referenced by #globalArgDollar and #globalArgQuestion.
-//
-// Note: it has nothing to do with the c.ArgStore.
 func (c *Context) WithGlobalArgs(args []any) *Context {
 	c.globalArgs = args
 	c.globalArgsBuilt = make([]string, len(args))
