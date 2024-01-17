@@ -45,12 +45,11 @@
 package sqlf
 
 // Builder is the interface for sql builders.
-//
-// Implementations tip: if a builder want to render an Arg in the *Context,
-// use ctx.Arg(index).
 type Builder interface {
 	// Build builds and returns the query and args.
 	Build() (query string, args []any, err error)
 	// BuildContext builds the query with the context.
+	// The built args should be committed to the context, which can be
+	// retrieved after building.
 	BuildContext(ctx *Context) (query string, err error)
 }

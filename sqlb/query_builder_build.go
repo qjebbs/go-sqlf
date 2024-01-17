@@ -17,7 +17,11 @@ func (b *QueryBuilder) Build() (query string, args []any, err error) {
 	if err != nil {
 		return "", nil, err
 	}
-	return query, ctx.BuiltArgs(), nil
+	args, err = ctx.BuiltArgs()
+	if err != nil {
+		return "", nil, err
+	}
+	return query, args, nil
 }
 
 // BuildContext builds the query with the context.
@@ -101,7 +105,11 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 		query = strings.TrimSpace(query + " " + union)
 	}
 	if b.debug {
-		interpolated, err := util.Interpolate(query, ctx.BuiltArgs())
+		args, err := ctx.BuiltArgs()
+		if err != nil {
+			return "", err
+		}
+		interpolated, err := util.Interpolate(query, args)
 		if err != nil {
 			log.Printf("debug: interpolated query: %s\n", err)
 		}

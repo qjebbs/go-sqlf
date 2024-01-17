@@ -107,8 +107,12 @@ func ExampleContext_Funcs() {
 	if err != nil {
 		panic(err)
 	}
+	args, err := ctx.BuiltArgs()
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(bulit)
-	fmt.Println(ctx.BuiltArgs())
+	fmt.Println(args)
 	// Output:
 	// 1
 	// []

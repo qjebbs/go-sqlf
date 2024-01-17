@@ -51,8 +51,11 @@ func (c *Context) WithGlobalArgs(args []any) *Context {
 }
 
 // BuiltArgs returns the built args of the context.
-func (c *Context) BuiltArgs() []any {
-	return c.argStore
+func (c *Context) BuiltArgs() ([]any, error) {
+	if err := c.checkUsage(); err != nil {
+		return nil, err
+	}
+	return c.argStore, nil
 }
 
 // CommitBuiltArg commits the arg to the built args of the context and returns the built bindvar.

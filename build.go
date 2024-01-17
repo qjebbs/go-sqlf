@@ -14,7 +14,11 @@ func (f *Fragment) Build() (query string, args []any, err error) {
 	if err != nil {
 		return "", nil, err
 	}
-	return query, ctx.BuiltArgs(), nil
+	args, err = ctx.BuiltArgs()
+	if err != nil {
+		return "", nil, err
+	}
+	return query, args, nil
 }
 
 // BuildContext builds the fragment with context.
@@ -36,13 +40,10 @@ func (f *Fragment) BuildContext(ctx *Context) (string, error) {
 	if err := ctxCur.checkUsage(); err != nil {
 		return "", fmt.Errorf("build '%s': %w", ctxCur.Fragment.Raw, err)
 	}
-	// TODO: check usage of global args
-	// check inside BuildContext() is not a good idea,
-	// because it's not called for every child fragment/builder,
+	// don't do usage check for global context here,
+	// because it's called from children fragments/builders,
 	// when the building is not complete yet.
-	// if err := ctx.checkUsage(); err != nil {
-	// 	return "", fmt.Errorf("context: %w", err)
-	// }
+
 	body = strings.TrimSpace(body)
 	if body == "" {
 		return "", nil

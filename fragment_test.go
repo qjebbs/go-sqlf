@@ -301,7 +301,10 @@ func TestBuildFragment(t *testing.T) {
 			if got != tc.want {
 				t.Errorf("got %q, want %q", got, tc.want)
 			}
-			args := ctx.BuiltArgs()
+			args, err := ctx.BuiltArgs()
+			if err != nil {
+				t.Fatal(err)
+			}
 			if !reflect.DeepEqual(args, tc.wantArgs) {
 				t.Errorf("got %v, want %v", args, tc.wantArgs)
 			}
