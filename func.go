@@ -168,7 +168,7 @@ func joinCompatible(f *funcInfo) error {
 			return errSig
 		}
 	case 2:
-		if !numberType(f.inTypes[1].Kind()) {
+		if !f.contexArg || !numberType(f.inTypes[1].Kind()) {
 			return errSig
 		}
 	default:
