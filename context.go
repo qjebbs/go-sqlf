@@ -29,6 +29,50 @@ func NewContext() *Context {
 }
 
 // Funcs adds the preprocessing functions of the FuncMap to the context.
+//
+// The function name is case sensitive, only letters and underscore are allowed.
+//
+// Allowed function signatures are:
+//
+//	func(/* args... */) string
+//	func(/* args... */) (string, error)
+//
+// Allowed argument types are:
+//   - number types: int, int8, int16, int32, int64, float32, float64
+//   - string
+//   - bool
+//   - *sqlf.FragmentContext: allowed only as the first argument
+//
+// Example:
+//
+//	ctx := sqlf.NewContext().Funcs(sqlf.FuncMap{
+//	    // #nunmber1, #join('#nunmber', ', ')
+//		"nunmber": func(i int) (string, error) {
+//			if i > 10 {
+//				// to work with #join(), we must return sqlf.ErrInvalidIndex
+//				// if the index is out of range.
+//				return "", sqlf.ErrInvalidIndex
+//			}
+//			// ...
+//		},
+//	    // #myBuilder1, #join('#myBuilder', ', ')
+//		"myBuilder": func(ctx *sqlf.FragmentContext, i int) (string, error) {
+//			if i > len(ctx.Fragment.Builders) {
+//				// to work with #join(), we must return sqlf.ErrInvalidIndex
+//				// if the index is out of range.
+//				return "", sqlf.ErrInvalidIndex
+//			}
+//			// ...
+//		},
+//	    // #string('string'), not compatible with #join()
+//		"string": func(str string) string {
+//			// ...
+//		},
+//	    // #numbers(1,2), not compatible with #join()
+//		"numbers": func(ctx *sqlf.FragmentContext, a, b int) string {
+//			// ...
+//		},
+//	})
 func (c *Context) Funcs(funcs FuncMap) *Context {
 	addValueFuncs(c.funcs, funcs)
 	return c
