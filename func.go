@@ -35,26 +35,29 @@ type funcInfo struct {
 }
 
 // createValueFuncs turns a FuncMap into a map[string]reflect.Value
-func createValueFuncs(funcMap FuncMap) map[string]*funcInfo {
+func createValueFuncs(funcMap FuncMap) (map[string]*funcInfo, error) {
 	m := make(map[string]*funcInfo)
-	addValueFuncs(m, funcMap)
-	return m
+	err := addValueFuncs(m, funcMap)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // addValueFuncs adds to values the functions in funcs, converting them to *funcInfos.
-func addValueFuncs(out map[string]*funcInfo, in FuncMap) {
+func addValueFuncs(out map[string]*funcInfo, in FuncMap) error {
 	for name, fn := range in {
 		if !goodName(name) {
-			panic(fmt.Errorf("function name %q is not a valid identifier", name))
+			return fmt.Errorf("function name %q is not a valid identifier", name)
 		}
 		v := reflect.ValueOf(fn)
 		if v.Kind() != reflect.Func {
-			panic("value for " + name + " not a function")
+			return fmt.Errorf("value for #%s not a function", name)
 		}
 		typ := v.Type()
 
 		if _, ok := out[name]; ok {
-			panic(fmt.Errorf("function %q already exists", name))
+			return fmt.Errorf("function #%s already defined", name)
 		}
 		nIn := typ.NumIn()
 		nOut := typ.NumOut()
@@ -81,7 +84,7 @@ func addValueFuncs(out map[string]*funcInfo, in FuncMap) {
 		}
 
 		if err := goodFunc(fun); err != nil {
-			panic(err)
+			return fmt.Errorf("function #%s: %w", name, err)
 		}
 
 		if err := joinCompatible(fun); err != nil {
@@ -90,6 +93,7 @@ func addValueFuncs(out map[string]*funcInfo, in FuncMap) {
 
 		out[name] = fun
 	}
+	return nil
 }
 
 // goodName reports whether the function name is a valid identifier.
@@ -98,9 +102,7 @@ func goodName(name string) bool {
 		return false
 	}
 	for _, r := range name {
-		switch {
-		case r == '_':
-		case !unicode.IsLetter(r) && !unicode.IsDigit(r):
+		if r != '_' && !unicode.IsLetter(r) {
 			return false
 		}
 	}
@@ -133,7 +135,7 @@ func goodFunc(f *funcInfo) error {
 			t = t.Elem()
 		}
 		if !goodArgType(t) {
-			return fmt.Errorf("invalid argument #%d type %s, allowed: number, string, bool", i, t)
+			return fmt.Errorf("invalid argument #%d type %s, allowed: <number>, string, bool", i, t)
 		}
 	}
 
@@ -157,7 +159,7 @@ func numberType(k reflect.Kind) bool {
 
 func joinCompatible(f *funcInfo) error {
 	errSig := errors.New("incompatible function signature, expected func(<number>) (string, error) or func(*sqlf.FragmentContext, <number>) (string, error)")
-	if f.nOut != 2 && f.outTypes[1] != errorType {
+	if f.nOut != 2 || f.outTypes[1] != errorType {
 		return errSig
 	}
 	switch f.nIn {

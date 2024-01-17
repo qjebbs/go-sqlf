@@ -92,7 +92,8 @@ func Example_update() {
 }
 
 func ExampleContext_Funcs() {
-	ctx := sqlf.NewContext().Funcs(sqlf.FuncMap{
+	ctx := sqlf.NewContext()
+	err := ctx.Funcs(sqlf.FuncMap{
 		"interpolate": func(ctx *sqlf.FragmentContext, i int) (string, error) {
 			// avoid "arg i is not used" error
 			ctx.ReportUsedArg(i)

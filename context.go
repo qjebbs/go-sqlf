@@ -21,8 +21,13 @@ type Context struct {
 
 // NewContext returns a new context.
 func NewContext() *Context {
+	funcs, err := createValueFuncs(builtInFuncs)
+	if err != nil {
+		// should never happen for builtInFuncs
+		panic(err)
+	}
 	return &Context{
-		funcs:    createValueFuncs(builtInFuncs),
+		funcs:    funcs,
 		argStore: make([]any, 0),
 	}
 }
@@ -72,9 +77,8 @@ func NewContext() *Context {
 //			// ...
 //		},
 //	})
-func (c *Context) Funcs(funcs FuncMap) *Context {
-	addValueFuncs(c.funcs, funcs)
-	return c
+func (c *Context) Funcs(funcs FuncMap) error {
+	return addValueFuncs(c.funcs, funcs)
 }
 
 // WithBindVarStyle set the bindvar style to the context, which
