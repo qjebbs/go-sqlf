@@ -10,24 +10,30 @@ func evalFunction(ctx *FragmentContext, name string, args []any) (string, error)
 	if !ok {
 		return "", fmt.Errorf("%q is not a defined function", name)
 	}
-	return evalCall(ctx, function, name, args)
+	return evalCall(ctx, function, args)
 }
 
-func evalCall(ctx *FragmentContext, fun reflect.Value, name string, args []any) (string, error) {
-	typ := fun.Type()
-	globalArg := typ.NumIn() > 0 && typ.In(0) == contextPointerType
-	if globalArg {
-		args = append([]any{ctx}, args...)
+func evalCall(ctx *FragmentContext, f *funcInfo, args []any) (string, error) {
+	// check input args
+	nArgs := len(args)
+	nIn := f.nIn
+	nInFixed := f.nInFixed
+	if f.contexArg {
+		nIn--
+		nInFixed--
 	}
-	numIn := len(args)
-	numFixed := typ.NumIn()
-	if typ.IsVariadic() {
-		numFixed-- // last arg is the variadic one.
-		if numIn < numFixed {
-			return "", fmt.Errorf("wrong number of args for #%s: want at least %d got %d", name, typ.NumIn()-1, len(args))
+	if f.variadic {
+		if nArgs < nInFixed {
+			return "", fmt.Errorf("wrong number of args for #%s: want at least %d got %d", f.name, nInFixed, nArgs)
 		}
-	} else if numIn != typ.NumIn() {
-		return "", fmt.Errorf("wrong number of args for #%s: want %d got %d", name, typ.NumIn(), numIn)
+	} else if nArgs != nIn {
+		return "", fmt.Errorf("wrong number of args for #%s: want %d got %d", f.name, nIn, nArgs)
+	}
+
+	// Prepare the arg list.
+	if f.contexArg {
+		nArgs++
+		args = append([]any{ctx}, args...)
 	}
 
 	unwrap := func(v reflect.Value) reflect.Value {
@@ -39,38 +45,38 @@ func evalCall(ctx *FragmentContext, fun reflect.Value, name string, args []any) 
 
 	// Build the arg list.
 	var err error
-	argv := make([]reflect.Value, numIn)
+	argv := make([]reflect.Value, nArgs)
 	// Fixed args first.
 	i := 0
-	for ; i < numFixed && i < len(args); i++ {
-		if i == 0 && globalArg {
+	for ; i < f.nInFixed && i < len(args); i++ {
+		if i == 0 && f.contexArg {
 			argv[i] = reflect.ValueOf(args[0])
 			continue
 		}
-		inType := typ.In(i)
+		inType := f.inTypes[i]
 		argv[i], err = evalArg(inType, args[i])
 		if err != nil {
-			return "", fmt.Errorf("arg %d has wrong type for #%s: %w", i, name, err)
+			return "", fmt.Errorf("arg %d has wrong type for #%s: %w", i, f.name, err)
 		}
 	}
 	// Now the ... args.
-	if typ.IsVariadic() {
-		inType := typ.In(typ.NumIn() - 1).Elem() // Argument is a slice.
+	if f.variadic {
+		inType := f.inTypes[f.nIn-1].Elem() // Argument is a slice.
 		for ; i < len(args); i++ {
 			argv[i], err = evalArg(inType, args[i])
 			if err != nil {
-				return "", fmt.Errorf("arg %d has wrong type for #%s: %w", i, name, err)
+				return "", fmt.Errorf("arg %d has wrong type for #%s: %w", i, f.name, err)
 			}
 		}
 	}
-	v, err := safeCall(fun, argv)
+	v, err := safeCall(f.fn, argv)
 	if err != nil {
-		return "", fmt.Errorf("error calling #%s: %w", name, err)
+		return "", fmt.Errorf("error calling #%s: %w", f.name, err)
 	}
 	valAny := unwrap(v).Interface()
 	val, ok := valAny.(string)
 	if !ok {
-		return "", fmt.Errorf("function #%s returned %T, not string", name, valAny)
+		return "", fmt.Errorf("function #%s returned %T, not string", f.name, valAny)
 	}
 	return val, nil
 }

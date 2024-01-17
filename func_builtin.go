@@ -52,6 +52,13 @@ func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (str
 		if !ok {
 			continue
 		}
+		f, ok := ctx.Global.funcs[fn.Name]
+		if !ok {
+			return "", fmt.Errorf("unknown function #%s", fn.Name)
+		}
+		if f.joinError != nil {
+			return "", fmt.Errorf("function #%s not compatible with #join: %w", fn.Name, f.joinError)
+		}
 		call := &syntax.FuncCallExpr{
 			Name: fn.Name,
 		}

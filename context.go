@@ -2,7 +2,6 @@ package sqlf
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
 
 	"github.com/qjebbs/go-sqlf/syntax"
@@ -10,7 +9,7 @@ import (
 
 // Context is the global context shared between all fragments building.
 type Context struct {
-	funcs map[string]reflect.Value
+	funcs map[string]*funcInfo
 
 	argStore     []any
 	bindVarStyle syntax.BindVarStyle
