@@ -38,6 +38,7 @@ func NewContext() *Context {
 //
 // Allowed function signatures are:
 //
+//	func(/* args... */)
 //	func(/* args... */) string
 //	func(/* args... */) (string, error)
 //
@@ -47,27 +48,18 @@ func NewContext() *Context {
 //   - bool
 //   - *sqlf.FragmentContext: allowed only as the first argument
 //
-// Example:
+// Here are examples of legal names and function signatures:
 //
-//	ctx := sqlf.NewContext()
-//	ctx.Funcs(sqlf.FuncMap{
-//		// #nunmber1, #join('#nunmber', ', ')
-//		"nunmber": func(i int) (string, error) {
-//			// ...
-//		},
+//	funcs := sqlf.FuncMap{
+//		// #number1, #join('#number', ', ')
+//		"number": func(i int) (string, error) {/* ... */},
 //		// #myBuilder1, #join('#myBuilder', ', ')
-//		"myBuilder": func(ctx *sqlf.FragmentContext, i int) (string, error) {
-//			// ...
-//		},
+//		"myBuilder": func(ctx *sqlf.FragmentContext, i int) (string, error)  {/* ... */},
 //		// #string('string')
-//		"string": func(str string) (string, error) {
-//			// ...
-//		},
+//		"string": func(str string) (string, error)  {/* ... */},
 //		// #numbers(1,2)
-//		"numbers": func(ctx *sqlf.FragmentContext, a, b int) string {
-//			// ...
-//		},
-//	})
+//		"numbers": func(ctx *sqlf.FragmentContext, a, b int) string  {/* ... */},
+//	}
 func (c *Context) Funcs(funcs FuncMap) error {
 	return addValueFuncs(c.funcs, funcs)
 }

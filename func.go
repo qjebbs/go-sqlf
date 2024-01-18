@@ -121,6 +121,8 @@ func goodFunc(f *funcInfo) error {
 	errInvalidFuncOutput := errors.New("invalid function output, allowed: func(...) string; func(...) (string, error);")
 	// Check the result signature.
 	switch f.nOut {
+	case 0:
+		// ok
 	case 1:
 		if f.outTypes[0] != stringType {
 			return errInvalidFuncOutput

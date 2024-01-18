@@ -36,13 +36,6 @@ func evalCall(ctx *FragmentContext, f *funcInfo, args []any) (string, error) {
 		args = append([]any{ctx}, args...)
 	}
 
-	unwrap := func(v reflect.Value) reflect.Value {
-		if v.Type() == reflectValueType {
-			v = v.Interface().(reflect.Value)
-		}
-		return v
-	}
-
 	// Build the arg list.
 	var err error
 	argv := make([]reflect.Value, nArgs)
@@ -73,17 +66,12 @@ func evalCall(ctx *FragmentContext, f *funcInfo, args []any) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error calling #%s: %w", f.name, err)
 	}
-	valAny := unwrap(v).Interface()
-	val, ok := valAny.(string)
-	if !ok {
-		return "", fmt.Errorf("function #%s returned %T, not string", f.name, valAny)
-	}
-	return val, nil
+	return v, nil
 }
 
 // safeCall runs fun.Call(args), and returns the resulting value and error, if
 // any. If the call panics, the panic value is returned as an error.
-func safeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err error) {
+func safeCall(fun reflect.Value, args []reflect.Value) (val string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if e, ok := r.(error); ok {
@@ -93,11 +81,28 @@ func safeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err e
 			}
 		}
 	}()
+
 	ret := fun.Call(args)
-	if len(ret) == 2 && !ret[1].IsNil() {
-		return ret[0], ret[1].Interface().(error)
+	switch len(ret) {
+	case 0:
+		return "", nil
+	case 1:
+		rVal, err := convertString(ret[0])
+		if err != nil {
+			return "", fmt.Errorf("first return value: %w", err)
+		}
+		return rVal, nil
+	default:
+		rVal, err := convertString(ret[0])
+		if err != nil {
+			return "", fmt.Errorf("first return value: %w", err)
+		}
+		rErr, err := convertError(ret[1])
+		if err != nil {
+			return "", fmt.Errorf("second return value: %w", err)
+		}
+		return rVal, rErr
 	}
-	return ret[0], nil
 }
 
 func evalArg(typ reflect.Type, arg any) (reflect.Value, error) {
@@ -134,4 +139,32 @@ func evalArg(typ reflect.Type, arg any) (reflect.Value, error) {
 		return v, nil
 	}
 	return v, fmt.Errorf("can't assign %s to %s", argType, typ)
+}
+
+func convertString(v reflect.Value) (string, error) {
+	any := unwrap(v).Interface()
+	val, ok := any.(string)
+	if !ok {
+		return "", fmt.Errorf("expected string got %T", any)
+	}
+	return val, nil
+}
+
+func convertError(v reflect.Value) (error, error) {
+	any := unwrap(v).Interface()
+	if any == nil {
+		return nil, nil
+	}
+	val, ok := any.(error)
+	if !ok {
+		return nil, fmt.Errorf("expected error got %T", any)
+	}
+	return val, nil
+}
+
+func unwrap(v reflect.Value) reflect.Value {
+	if v.Type() == reflectValueType {
+		v = v.Interface().(reflect.Value)
+	}
+	return v
 }
