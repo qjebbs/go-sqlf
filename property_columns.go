@@ -8,11 +8,11 @@ import (
 
 // ColumnsProperty is the columns property
 type ColumnsProperty struct {
-	*propertyBase[*TableColumn]
+	*propertyBase[*Column]
 }
 
 // NewColumnsProperty returns a new ColumnsProperty.
-func NewColumnsProperty(columns []*TableColumn) *ColumnsProperty {
+func NewColumnsProperty(columns []*Column) *ColumnsProperty {
 	return &ColumnsProperty{
 		propertyBase: newPropertyBase("columns", columns),
 	}
@@ -37,7 +37,7 @@ func (b *ColumnsProperty) Build(ctx *Context, index int) (string, error) {
 	return built, nil
 }
 
-func (b *ColumnsProperty) buildColumn(ctx *Context, column *TableColumn) (string, error) {
+func (b *ColumnsProperty) buildColumn(ctx *Context, column *Column) (string, error) {
 	if column == nil || column.Raw == "" {
 		return "", nil
 	}

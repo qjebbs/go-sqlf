@@ -18,7 +18,7 @@ func ExampleQueryBuilder_Build() {
 		From(foo).
 		InnerJoin(bar, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqlf.TableColumn{
+			Columns: []*sqlf.Column{
 				bar.Column("foo_id"),
 				foo.Column("id"),
 			},
@@ -62,7 +62,7 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		// declare an optional LEFT JOIN
 		LeftJoinOptional(bar, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqlf.TableColumn{
+			Columns: []*sqlf.Column{
 				bar.Column("foo_id"),
 				foo.Column("id"),
 			},
@@ -101,7 +101,7 @@ func ExampleQueryBuilder_With() {
 		From(foo).
 		LeftJoinOptional(cte, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqlf.TableColumn{
+			Columns: []*sqlf.Column{
 				cte.Column("foo_id"),
 				foo.Column("id"),
 			},

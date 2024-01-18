@@ -75,7 +75,7 @@ func (b *QueryBuilder) Distinct() *QueryBuilder {
 }
 
 // Select replace the SELECT clause with the columns.
-func (b *QueryBuilder) Select(columns ...*sqlf.TableColumn) *QueryBuilder {
+func (b *QueryBuilder) Select(columns ...*sqlf.Column) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
 	}
@@ -106,7 +106,7 @@ var orders = []string{
 }
 
 // OrderBy set the sorting order. the order can be "ASC", "DESC", "ASC NULLS FIRST" or "DESC NULLS LAST"
-func (b *QueryBuilder) OrderBy(column *sqlf.TableColumn, order Order) *QueryBuilder {
+func (b *QueryBuilder) OrderBy(column *sqlf.Column, order Order) *QueryBuilder {
 	idx := len(b.orders.Fragments) + 1
 	alias := fmt.Sprintf("_order_%d", idx)
 
@@ -117,7 +117,7 @@ func (b *QueryBuilder) OrderBy(column *sqlf.TableColumn, order Order) *QueryBuil
 	// pq: for SELECT DISTINCT, ORDER BY expressions must appear in select list
 	b.touches.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1 AS " + alias,
-		Columns: []*sqlf.TableColumn{column},
+		Columns: []*sqlf.Column{column},
 	})
 	b.orders.AppendFragments(&sqlf.Fragment{
 		Raw:     fmt.Sprintf("%s %s", alias, orderStr),
@@ -144,10 +144,10 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 }
 
 // GroupBy set the sorting order.
-func (b *QueryBuilder) GroupBy(column *sqlf.TableColumn, args ...any) *QueryBuilder {
+func (b *QueryBuilder) GroupBy(column *sqlf.Column, args ...any) *QueryBuilder {
 	b.groupbys.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1",
-		Columns: []*sqlf.TableColumn{column},
+		Columns: []*sqlf.Column{column},
 		Args:    args,
 	})
 	return b

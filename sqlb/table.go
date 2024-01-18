@@ -49,7 +49,7 @@ func (t Table) Names() []sqlf.Table {
 // If you want to use the column name directly, try:
 //
 //	t.Expressions("id") // "id"
-func (t Table) Column(name string) *sqlf.TableColumn {
+func (t Table) Column(name string) *sqlf.Column {
 	return t.AppliedName().Column(name)
 }
 
@@ -66,7 +66,7 @@ func (t Table) Column(name string) *sqlf.TableColumn {
 // If you want to use the column name directly, try:
 //
 //	t.Expressions("id", "name") // "id", "name"
-func (t Table) Columns(names ...string) []*sqlf.TableColumn {
+func (t Table) Columns(names ...string) []*sqlf.Column {
 	return t.AppliedName().Columns(names...)
 }
 
@@ -81,7 +81,7 @@ func (t Table) Columns(names ...string) []*sqlf.TableColumn {
 //	t.Expression("#t1.id")                  // "t.id"
 //	t.Expression("COALESCE(#t1.id,0)")      // "COALESCE(t.id,0)"
 //	t.Expression("#t1.deteled_at > $1", 1)  // "t.deteled_at > $1"
-func (t Table) Expression(expression string, args ...any) *sqlf.TableColumn {
+func (t Table) Expression(expression string, args ...any) *sqlf.Column {
 	return t.AppliedName().Expression(expression, args...)
 }
 
@@ -95,6 +95,6 @@ func (t Table) Expression(expression string, args ...any) *sqlf.TableColumn {
 //	t.Expressions("#t1.id", "#t1.deteled_at") // "table.id", "table.deteled_at"
 //	t.Expressions("#t1.id", "#t1.deteled_at") // "t.id", "t.deteled_at"
 //	t.Expressions("COALESCE(#t1.id,0)")       // "COALESCE(t.id,0)"
-func (t Table) Expressions(expressions ...string) []*sqlf.TableColumn {
+func (t Table) Expressions(expressions ...string) []*sqlf.Column {
 	return t.AppliedName().Expressions(expressions...)
 }

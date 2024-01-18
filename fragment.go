@@ -3,12 +3,12 @@ package sqlf
 // Fragment is the builder for a part of or even the full query, it allows you
 // to write and combine fragments with freedom.
 type Fragment struct {
-	Raw       string         // Raw string support bindvars and preprocessing functions.
-	Args      []any          // Args to be referred by the Raw, e.g.: ?, $1
-	Columns   []*TableColumn // Columns to be referred by the Raw, e.g.: #c1, #column2
-	Tables    []Table        // Table names / alias to be referred by the Raw, e.g.: #t1, #table2
-	Fragments []*Fragment    // Fragments to be referred by the Raw, e.g.: #fragment1, #fragment2
-	Builders  []Builder      // Builders to be referred by the Raw, e.g.: #builder1, #builder2
+	Raw       string      // Raw string support bindvars and preprocessing functions.
+	Args      []any       // Args to be referred by the Raw, e.g.: ?, $1
+	Columns   []*Column   // Columns to be referred by the Raw, e.g.: #c1, #column2
+	Tables    []Table     // Table names / alias to be referred by the Raw, e.g.: #t1, #table2
+	Fragments []*Fragment // Fragments to be referred by the Raw, e.g.: #fragment1, #fragment2
+	Builders  []Builder   // Builders to be referred by the Raw, e.g.: #builder1, #builder2
 
 	Prefix string // Prefix is added before the built fragment only if which is not empty.
 	Suffix string // Suffix is added after the built fragment only if which is not empty.
@@ -22,7 +22,7 @@ func (f *Fragment) AppendArgs(args ...any) {
 
 // AppendColumns appends columns to the fragment.
 // Columns are used to be referred by the Raw, e.g.: #c1, #column2
-func (f *Fragment) AppendColumns(columns ...*TableColumn) {
+func (f *Fragment) AppendColumns(columns ...*Column) {
 	f.Columns = append(f.Columns, columns...)
 }
 
@@ -52,7 +52,7 @@ func (f *Fragment) WithArgs(args ...any) {
 
 // WithColumns replace f.Columns with the columns
 // Columns are used to be referred by the Raw, e.g.: #c1, #column2
-func (f *Fragment) WithColumns(columns ...*TableColumn) {
+func (f *Fragment) WithColumns(columns ...*Column) {
 	f.Columns = columns
 }
 

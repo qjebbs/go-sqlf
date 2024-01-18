@@ -26,14 +26,14 @@ func TestQueryBuilder(t *testing.T) {
 		From(users).
 		LeftJoinOptional(foo, &sqlf.Fragment{
 			Raw: "#c1=#c2",
-			Columns: []*sqlf.TableColumn{
+			Columns: []*sqlf.Column{
 				foo.Column("user_id"),
 				users.Column("id"),
 			},
 		}).
 		LeftJoinOptional(bar, &sqlf.Fragment{ // not referenced, should be ignored
 			Raw: "#c1=#c2",
-			Columns: []*sqlf.TableColumn{
+			Columns: []*sqlf.Column{
 				bar.Column("user_id"),
 				users.Column("id"),
 			},

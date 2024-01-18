@@ -74,7 +74,7 @@ func TestBuildFragment(t *testing.T) {
 			name: "build nil column",
 			fragment: &sqlf.Fragment{
 				Raw:     "WHERE #c1=$1",
-				Columns: []*sqlf.TableColumn{nil},
+				Columns: []*sqlf.Column{nil},
 				Args:    []any{nil},
 			},
 			want:     "WHERE =$1",
@@ -124,7 +124,7 @@ func TestBuildFragment(t *testing.T) {
 			name: "build column expression with args",
 			fragment: &sqlf.Fragment{
 				Raw: "#c1",
-				Columns: []*sqlf.TableColumn{
+				Columns: []*sqlf.Column{
 					alias.Expression("#t1.id=$1", 1),
 				},
 			},
@@ -135,7 +135,7 @@ func TestBuildFragment(t *testing.T) {
 			name: "build column expression with args, and args",
 			fragment: &sqlf.Fragment{
 				Raw: "#c1 > $1",
-				Columns: []*sqlf.TableColumn{
+				Columns: []*sqlf.Column{
 					alias.Expression("#t1.id - $1", 1),
 				},
 				Args: []any{2},
@@ -155,7 +155,7 @@ func TestBuildFragment(t *testing.T) {
 						Args:    []any{1},
 					},
 				},
-				Columns: []*sqlf.TableColumn{
+				Columns: []*sqlf.Column{
 					alias.Column("id"),
 					alias.Expression("#t1.id=$1", 2),
 				},
@@ -169,7 +169,7 @@ func TestBuildFragment(t *testing.T) {
 			name: "build complex fragment 2",
 			fragment: &sqlf.Fragment{
 				Raw: "SELECT #join('#c', ', ') FROM #t1 AS #t2 ",
-				Columns: []*sqlf.TableColumn{
+				Columns: []*sqlf.Column{
 					alias.Column("id"),
 					alias.Expression("#t1.id=$1", 1),
 					alias.Column("name"),

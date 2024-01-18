@@ -16,8 +16,8 @@ type Table string
 // If you want to use the column name directly, try:
 //
 //	t.Expressions("id") // "id"
-func (t Table) Column(name string) *TableColumn {
-	return &TableColumn{
+func (t Table) Column(name string) *Column {
+	return &Column{
 		Table: t,
 		Raw:   "#t1." + name,
 	}
@@ -36,8 +36,8 @@ func (t Table) Column(name string) *TableColumn {
 // If you want to use the column name directly, try:
 //
 //	t.Expressions("id", "name") // "id", "name"
-func (t Table) Columns(names ...string) []*TableColumn {
-	r := make([]*TableColumn, 0, len(names))
+func (t Table) Columns(names ...string) []*Column {
+	r := make([]*Column, 0, len(names))
 	for _, name := range names {
 		r = append(r, t.Column(name))
 	}
@@ -55,8 +55,8 @@ func (t Table) Columns(names ...string) []*TableColumn {
 //	t.Expression("#t1.id")                  // "t.id"
 //	t.Expression("COALESCE(#t1.id,0)")      // "COALESCE(t.id,0)"
 //	t.Expression("#t1.deteled_at > $1", 1)  // "t.deteled_at > $1"
-func (t Table) Expression(expression string, args ...any) *TableColumn {
-	return &TableColumn{
+func (t Table) Expression(expression string, args ...any) *Column {
+	return &Column{
 		Table: t,
 		Raw:   expression,
 		Args:  args,
@@ -73,16 +73,16 @@ func (t Table) Expression(expression string, args ...any) *TableColumn {
 //	t.Expressions("#t1.id", "#t1.deteled_at") // "table.id", "table.deteled_at"
 //	t.Expressions("#t1.id", "#t1.deteled_at") // "t.id", "t.deteled_at"
 //	t.Expressions("COALESCE(#t1.id,0)")       // "COALESCE(t.id,0)"
-func (t Table) Expressions(expressions ...string) []*TableColumn {
-	r := make([]*TableColumn, 0, len(expressions))
+func (t Table) Expressions(expressions ...string) []*Column {
+	r := make([]*Column, 0, len(expressions))
 	for _, exp := range expressions {
 		r = append(r, t.Expression(exp))
 	}
 	return r
 }
 
-// TableColumn is a column of a table.
-type TableColumn struct {
+// Column is a column of a table.
+type Column struct {
 	Table Table
 	Raw   string
 	Args  []any
