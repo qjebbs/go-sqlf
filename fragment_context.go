@@ -10,7 +10,7 @@ import (
 type FragmentContext struct {
 	Global     *Context  // global context
 	Fragment   *Fragment // current fragment
-	Properties *Properties
+	Properties *properties
 }
 
 func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
@@ -20,7 +20,7 @@ func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
 	return &FragmentContext{
 		Global:     ctx,
 		Fragment:   f,
-		Properties: NewProperties(f),
+		Properties: newProperties(f),
 	}
 }
 

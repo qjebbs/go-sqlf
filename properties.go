@@ -1,7 +1,7 @@
 package sqlf
 
-// Properties is the Properties
-type Properties struct {
+// properties is the properties
+type properties struct {
 	Args      *ArgsProperty
 	Columns   *ColumnsProperty
 	Tables    *TablesProperty
@@ -9,12 +9,12 @@ type Properties struct {
 	Builders  *BuildersProperty
 }
 
-// NewProperties returns a new Properties.
-func NewProperties(f *Fragment) *Properties {
+// newProperties returns a new Properties.
+func newProperties(f *Fragment) *properties {
 	if f == nil {
 		return nil
 	}
-	return &Properties{
+	return &properties{
 		Args:      NewArgsProperty(f.Args),
 		Columns:   NewColumnsProperty(f.Columns),
 		Tables:    NewTablesProperty(f.Tables),

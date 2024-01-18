@@ -11,12 +11,11 @@ func TestBuildFragment(t *testing.T) {
 	t.Parallel()
 	var table, alias sqlf.Table = "table", "t"
 	testCases := []struct {
-		name       string
-		fragment   *sqlf.Fragment
-		globalArgs []any
-		want       string
-		wantArgs   []any
-		wantErr    bool
+		name     string
+		fragment *sqlf.Fragment
+		want     string
+		wantArgs []any
+		wantErr  bool
 	}{
 		{
 			name:     "build nil fragment",
@@ -257,40 +256,12 @@ func TestBuildFragment(t *testing.T) {
 			want:     "id IN (SELECT id FROM table WHERE id > $1)",
 			wantArgs: []any{1},
 		},
-		{
-			name: "build with global args",
-			fragment: &sqlf.Fragment{
-				Raw: "#join('#fragment',' ')",
-				Fragments: []*sqlf.Fragment{
-					{Raw: "#globalArgDollar1"},
-					{Raw: "#globalArgDollar2"},
-					{Raw: "#globalArgDollar2"},
-				},
-			},
-			globalArgs: []any{1, 2},
-			want:       "$1 $2 $2",
-			wantArgs:   []any{1, 2},
-		},
-		{
-			name: "build with global args ?",
-			fragment: &sqlf.Fragment{
-				Raw: "#join('#fragment',' ')",
-				Fragments: []*sqlf.Fragment{
-					{Raw: "#globalArgQuestion1"},
-					{Raw: "#globalArgQuestion2"},
-					{Raw: "#globalArgQuestion2"},
-				},
-			},
-			globalArgs: []any{1, 2},
-			want:       "? ? ?",
-			wantArgs:   []any{1, 2, 2},
-		},
 	}
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := sqlf.NewContext().WithGlobalArgs(tc.globalArgs)
+			ctx := sqlf.NewContext()
 			got, err := tc.fragment.BuildContext(ctx)
 			if err != nil {
 				if tc.wantErr {
@@ -301,10 +272,7 @@ func TestBuildFragment(t *testing.T) {
 			if got != tc.want {
 				t.Errorf("got %q, want %q", got, tc.want)
 			}
-			args, err := ctx.BuiltArgs()
-			if err != nil {
-				t.Fatal(err)
-			}
+			args := ctx.Args()
 			if !reflect.DeepEqual(args, tc.wantArgs) {
 				t.Errorf("got %v, want %v", args, tc.wantArgs)
 			}

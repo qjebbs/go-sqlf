@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf"
+	"github.com/qjebbs/go-sqlf/syntax"
 )
 
 func Example_select() {
@@ -91,30 +92,36 @@ func Example_update() {
 	// [alice alice@example.org 1]
 }
 
-func ExampleContext_Funcs() {
+func Example_globalArgs() {
+	// this example shows how to use Global Args by using
+	// *sqlf.ArgsProperty and custom function, so that we
+	// don't have to put Args into every fragment, which leads
+	// to a list of redundant args.
+	IDs := sqlf.NewArgsProperty([]any{1, 2, 3})
 	ctx := sqlf.NewContext()
 	err := ctx.Funcs(sqlf.FuncMap{
-		"interpolate": func(ctx *sqlf.FragmentContext, i int) (string, error) {
-			// avoid "arg i is not used" error
-			ctx.Properties.Args.ReportUsed(i)
-			return fmt.Sprint(ctx.Fragment.Args[i-1]), nil
+		"_id": func(ctx *sqlf.FragmentContext, i int) (string, error) {
+			return IDs.Build(ctx.Global, i, syntax.Dollar)
 		},
 	})
+	if err != nil {
+		panic(err)
+	}
 	fragment := &sqlf.Fragment{
-		Raw:  "#interpolate(1)",
-		Args: []any{1},
+		Raw: "#join('#fragment', ' UNION ')",
+		Fragments: []*sqlf.Fragment{
+			{Raw: "SELECT id, 'type_foo', count FROM foo WHERE id IN (#join('#_id', ', '))"},
+			{Raw: "SELECT id, 'type_bar', count FROM bar WHERE id IN (#join('#_id', ', '))"},
+		},
 	}
 	bulit, err := fragment.BuildContext(ctx)
 	if err != nil {
 		panic(err)
 	}
-	args, err := ctx.BuiltArgs()
-	if err != nil {
-		panic(err)
-	}
+	args := ctx.Args()
 	fmt.Println(bulit)
 	fmt.Println(args)
 	// Output:
-	// 1
-	// []
+	// SELECT id, 'type_foo', count FROM foo WHERE id IN ($1, $2, $3) UNION SELECT id, 'type_bar', count FROM bar WHERE id IN ($1, $2, $3)
+	// [1 2 3]
 }

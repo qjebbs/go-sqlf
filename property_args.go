@@ -25,7 +25,7 @@ func (b *ArgsProperty) Build(ctx *Context, index int, defaultStyle syntax.BindVa
 	b.used[i] = true
 	built := b.cache[i]
 	if built == "" || ctx.bindVarStyle == syntax.Question {
-		built = ctx.CommitBuiltArg(b.items[i], defaultStyle)
+		built = ctx.CommitArg(b.items[i], defaultStyle)
 		b.cache[i] = built
 	}
 	return built, nil
