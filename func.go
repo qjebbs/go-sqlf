@@ -31,7 +31,18 @@ type funcInfo struct {
 	nOut      int            // number of outputs
 	outTypes  []reflect.Type // types of all outputs
 
-	joinError error // error to return when the function is not compatible with #join()
+	joinTested bool  // whether the function has been tested for #join()s
+	joinError  error // error to return when the function is not compatible with #join()
+}
+
+// JoinCompatibilityError reports whether the function is compatible with #join().
+func (f *funcInfo) JoinCompatibilityError() error {
+	if f.joinTested {
+		return f.joinError
+	}
+	f.joinError = joinCompatibility(f)
+	f.joinTested = true
+	return f.joinError
 }
 
 // createValueFuncs turns a FuncMap into a map[string]reflect.Value
@@ -87,10 +98,6 @@ func addValueFuncs(out map[string]*funcInfo, in FuncMap) error {
 			return fmt.Errorf("function #%s: %w", name, err)
 		}
 
-		if err := joinCompatible(fun); err != nil {
-			fun.joinError = err
-		}
-
 		out[name] = fun
 	}
 	return nil
@@ -135,7 +142,7 @@ func goodFunc(f *funcInfo) error {
 			t = t.Elem()
 		}
 		if !goodArgType(t) {
-			return fmt.Errorf("invalid argument #%d type %s, allowed: <number>, string, bool", i, t)
+			return fmt.Errorf("invalid argument type %s, allowed: <number>, string, bool", t)
 		}
 	}
 
@@ -157,7 +164,7 @@ func numberType(k reflect.Kind) bool {
 	return false
 }
 
-func joinCompatible(f *funcInfo) error {
+func joinCompatibility(f *funcInfo) error {
 	errSig := errors.New("incompatible function signature, expected func(<number>) (string, error) or func(*sqlf.FragmentContext, <number>) (string, error)")
 	if f.nOut != 2 || f.outTypes[1] != errorType {
 		return errSig
