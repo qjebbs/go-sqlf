@@ -2,7 +2,9 @@ package sqlf
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/qjebbs/go-sqlf/syntax"
 )
 
@@ -96,7 +98,7 @@ func (c *FragmentContext) buildColumn(column *TableColumn) (string, error) {
 	for i := range ctxColumn.tableUsed {
 		ctxColumn.tableUsed[i] = true
 	}
-	if err := ctxColumn.checkUsage(); err != nil {
+	if err := ctxColumn.CheckUsage(); err != nil {
 		return "", fmt.Errorf("build '%s': %w", column.Raw, err)
 	}
 	return built, err
@@ -191,34 +193,42 @@ func (c *FragmentContext) ReportUsedBuilder(index int) {
 	c.builderUsed[index-1] = true
 }
 
-func (c *FragmentContext) checkUsage() error {
+// CheckUsage checks if all args, columns, tables, fragments and builders are used.
+func (c *FragmentContext) CheckUsage() error {
 	if c == nil {
 		return nil
 	}
-	for i, v := range c.argsUsed {
-		if !v {
-			return fmt.Errorf("arg %d is not used", i+1)
-		}
+	msgs := make([]string, 0, 5)
+	if msg := unusedIndexs(c.argsUsed); msg != "" {
+		msgs = append(msgs, "unused args: ["+msg+"]")
 	}
-	for i, v := range c.columnsUsed {
-		if !v {
-			return fmt.Errorf("column %d is not used", i+1)
-		}
+	if msg := unusedIndexs(c.columnsUsed); msg != "" {
+		msgs = append(msgs, "unused columns: ["+msg+"]")
 	}
-	for i, v := range c.tableUsed {
-		if !v {
-			return fmt.Errorf("table %d is not used", i+1)
-		}
+	if msg := unusedIndexs(c.tableUsed); msg != "" {
+		msgs = append(msgs, "unused tables: ["+msg+"]")
 	}
-	for i, v := range c.fragmentsUsed {
-		if !v {
-			return fmt.Errorf("fragment %d is not used", i+1)
-		}
+	if msg := unusedIndexs(c.fragmentsUsed); msg != "" {
+		msgs = append(msgs, "unused fragments: ["+msg+"]")
 	}
-	for i, v := range c.builderUsed {
-		if !v {
-			return fmt.Errorf("builder %d is not used", i+1)
-		}
+	if msg := unusedIndexs(c.builderUsed); msg != "" {
+		msgs = append(msgs, "unused builders: ["+msg+"]")
+	}
+	if len(msgs) > 0 {
+		return errors.New(strings.Join(msgs, "; "))
 	}
 	return nil
+}
+
+func unusedIndexs(used []bool) string {
+	unused := new(strings.Builder)
+	for i, v := range used {
+		if !v {
+			if unused.Len() > 0 {
+				unused.WriteString(", ")
+			}
+			unused.WriteString(fmt.Sprint(i + 1))
+		}
+	}
+	return unused.String()
 }

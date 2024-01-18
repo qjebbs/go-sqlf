@@ -1,6 +1,7 @@
 package sqlf
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -82,7 +83,7 @@ func (c *Context) WithGlobalArgs(args []any) *Context {
 
 // BuiltArgs returns the built args of the context.
 func (c *Context) BuiltArgs() ([]any, error) {
-	if err := c.checkUsage(); err != nil {
+	if err := c.CheckUsage(); err != nil {
 		return nil, err
 	}
 	return c.argStore, nil
@@ -125,11 +126,10 @@ func (c *Context) ReportUsedGlobalArg(index int) {
 	c.globalArgsUsed[index-1] = true
 }
 
-func (c *Context) checkUsage() error {
-	for i, v := range c.globalArgsUsed {
-		if !v {
-			return fmt.Errorf("arg %d is not used", i+1)
-		}
+// CheckUsage checks if all args are used.
+func (c *Context) CheckUsage() error {
+	if msg := unusedIndexs(c.globalArgsUsed); msg != "" {
+		return errors.New("unused global args: [" + msg + "]")
 	}
 	return nil
 }

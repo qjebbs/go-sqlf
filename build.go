@@ -37,7 +37,7 @@ func (f *Fragment) BuildContext(ctx *Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := ctxCur.checkUsage(); err != nil {
+	if err := ctxCur.CheckUsage(); err != nil {
 		return "", fmt.Errorf("build '%s': %w", ctxCur.Fragment.Raw, err)
 	}
 	// don't do usage check for global context here,
