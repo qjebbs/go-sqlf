@@ -29,9 +29,6 @@ func (f *Fragment) BuildContext(ctx *Context) (string, error) {
 	if ctx == nil {
 		return "", fmt.Errorf("nil context")
 	}
-	if ctx.argStore == nil {
-		return "", fmt.Errorf("nil arg store (of *[]any)")
-	}
 	ctxCur := newFragmentContext(ctx, f)
 	body, err := build(ctxCur)
 	if err != nil {
@@ -85,7 +82,7 @@ func buildClause(ctx *FragmentContext, clause *syntax.Clause) (string, error) {
 			}
 			b.WriteString(s)
 		case *syntax.BindVarExpr:
-			s, err := ctx.BuildArg(expr.Index, expr.Type)
+			s, err := ctx.Properties.Args.Build(ctx.Global, expr.Index, expr.Type)
 			if err != nil {
 				return "", err
 			}

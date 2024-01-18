@@ -184,8 +184,7 @@ func joinCompatibility(f *funcInfo) error {
 		return errSig
 	}
 	ctx := newFragmentContext(&Context{
-		funcs:    make(map[string]*funcInfo),
-		argStore: make([]any, 0),
+		funcs: make(map[string]*funcInfo),
 	}, &Fragment{})
 	_, err := evalCall(ctx, f, []any{math.MaxInt32})
 	if err == nil || !errors.Is(err, ErrInvalidIndex) {

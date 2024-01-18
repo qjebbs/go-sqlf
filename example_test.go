@@ -96,7 +96,7 @@ func ExampleContext_Funcs() {
 	err := ctx.Funcs(sqlf.FuncMap{
 		"interpolate": func(ctx *sqlf.FragmentContext, i int) (string, error) {
 			// avoid "arg i is not used" error
-			ctx.ReportUsedArg(i)
+			ctx.Properties.Args.ReportUsed(i)
 			return fmt.Sprint(ctx.Fragment.Args[i-1]), nil
 		},
 	})
