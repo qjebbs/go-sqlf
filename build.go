@@ -68,18 +68,20 @@ func buildClause(ctx *FragmentContext, clause *syntax.Clause) (string, error) {
 		switch expr := decl.(type) {
 		case *syntax.PlainExpr:
 			b.WriteString(expr.Text)
-		case *syntax.FuncCallExpr:
-			s, err := evalFunction(ctx, expr.Name, expr.Args)
-			if err != nil {
-				return "", err
-			}
-			b.WriteString(s)
 		case *syntax.BindVarExpr:
 			s, err := ctx.Args.Build(ctx.Global, expr.Index, expr.Type)
 			if err != nil {
 				return "", err
 			}
 			b.WriteString(s)
+		case *syntax.FuncCallExpr:
+			s, err := evalFunction(ctx, expr.Name, expr.Args)
+			if err != nil {
+				return "", err
+			}
+			b.WriteString(s)
+		case *syntax.FuncExpr:
+			return "", fmt.Errorf("unexpected function value at %s, forgot to call it?", expr.Pos())
 		default:
 			return "", fmt.Errorf("unknown expression type %T", expr)
 		}
