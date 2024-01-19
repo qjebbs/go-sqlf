@@ -6,17 +6,17 @@ import (
 
 // BuildersProperty is the Builders property
 type BuildersProperty struct {
-	*propertyBase[Builder]
+	*property[Builder]
 }
 
 // NewBuildersProperty returns a new BuildersProperty.
 func NewBuildersProperty(builders []Builder) *BuildersProperty {
 	return &BuildersProperty{
-		propertyBase: newPropertyBase("builders", builders),
+		property: newProperty("builders", builders),
 	}
 }
 
-// Build builds the arg at index, with cache.
+// Build builds the builder at index.
 func (b *BuildersProperty) Build(ctx *Context, index int) (string, error) {
 	if err := b.validateIndex(index); err != nil {
 		return "", err
@@ -25,7 +25,7 @@ func (b *BuildersProperty) Build(ctx *Context, index int) (string, error) {
 	b.used[i] = true
 	builder := b.items[i]
 	built := b.cache[i]
-	if built == "" || ctx.bindVarStyle == syntax.Question {
+	if built == "" || ctx.BindVarStyle == syntax.Question {
 		r, err := builder.BuildContext(ctx)
 		if err != nil {
 			return "", err

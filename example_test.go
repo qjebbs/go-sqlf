@@ -97,11 +97,11 @@ func Example_globalArgs() {
 	// *sqlf.ArgsProperty and custom function, so that we
 	// don't have to put Args into every fragment, which leads
 	// to a list of redundant args.
-	IDs := sqlf.NewArgsProperty([]any{1, 2, 3})
+	ids := sqlf.NewArgsProperty([]any{1, 2, 3})
 	ctx := sqlf.NewContext()
 	err := ctx.Funcs(sqlf.FuncMap{
-		"_id": func(ctx *sqlf.FragmentContext, i int) (string, error) {
-			return IDs.Build(ctx.Global, i, syntax.Dollar)
+		"_id": func(i int) (string, error) {
+			return ids.Build(ctx, i, syntax.Dollar)
 		},
 	})
 	if err != nil {
@@ -110,8 +110,8 @@ func Example_globalArgs() {
 	fragment := &sqlf.Fragment{
 		Raw: "#join('#fragment', ' UNION ')",
 		Fragments: []*sqlf.Fragment{
-			{Raw: "SELECT id, 'type_foo', count FROM foo WHERE id IN (#join('#_id', ', '))"},
-			{Raw: "SELECT id, 'type_bar', count FROM bar WHERE id IN (#join('#_id', ', '))"},
+			{Raw: "SELECT id, 'foo' typ, count FROM foo WHERE id IN (#join('#_id', ', '))"},
+			{Raw: "SELECT id, 'bar' typ, count FROM bar WHERE id IN (#join('#_id', ', '))"},
 		},
 	}
 	bulit, err := fragment.BuildContext(ctx)
@@ -122,6 +122,6 @@ func Example_globalArgs() {
 	fmt.Println(bulit)
 	fmt.Println(args)
 	// Output:
-	// SELECT id, 'type_foo', count FROM foo WHERE id IN ($1, $2, $3) UNION SELECT id, 'type_bar', count FROM bar WHERE id IN ($1, $2, $3)
+	// SELECT id, 'foo' typ, count FROM foo WHERE id IN ($1, $2, $3) UNION SELECT id, 'bar' typ, count FROM bar WHERE id IN ($1, $2, $3)
 	// [1 2 3]
 }

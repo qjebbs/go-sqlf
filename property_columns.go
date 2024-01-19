@@ -8,17 +8,17 @@ import (
 
 // ColumnsProperty is the columns property
 type ColumnsProperty struct {
-	*propertyBase[*Column]
+	*property[*Column]
 }
 
 // NewColumnsProperty returns a new ColumnsProperty.
 func NewColumnsProperty(columns []*Column) *ColumnsProperty {
 	return &ColumnsProperty{
-		propertyBase: newPropertyBase("columns", columns),
+		property: newProperty("columns", columns),
 	}
 }
 
-// Build builds the arg at index, with cache.
+// Build builds the column at index.
 func (b *ColumnsProperty) Build(ctx *Context, index int) (string, error) {
 	if err := b.validateIndex(index); err != nil {
 		return "", err
@@ -26,7 +26,7 @@ func (b *ColumnsProperty) Build(ctx *Context, index int) (string, error) {
 	i := index - 1
 	b.used[i] = true
 	built := b.cache[i]
-	if built == "" || (ctx.bindVarStyle == syntax.Question && len(b.items[i].Args) > 0) {
+	if built == "" || (ctx.BindVarStyle == syntax.Question && len(b.items[i].Args) > 0) {
 		r, err := b.buildColumn(ctx, b.items[i])
 		if err != nil {
 			return "", err
@@ -52,7 +52,7 @@ func (b *ColumnsProperty) buildColumn(ctx *Context, column *Column) (string, err
 		return "", err
 	}
 	// don't check usage of tables
-	ctxColumn.Properties.Tables.ReportUsed(1)
+	ctxColumn.Tables.ReportUsed(1)
 	if err := ctxColumn.CheckUsage(); err != nil {
 		return "", fmt.Errorf("build '%s': %w", column.Raw, err)
 	}

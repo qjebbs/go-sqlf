@@ -8,9 +8,14 @@ import (
 
 // FragmentContext is the FragmentContext for current fragment building.
 type FragmentContext struct {
-	Global     *Context  // global context
-	Fragment   *Fragment // current fragment
-	Properties *properties
+	Global *Context // global context
+
+	Raw       string
+	Args      *ArgsProperty
+	Columns   *ColumnsProperty
+	Tables    *TablesProperty
+	Fragments *FragmentsProperty
+	Builders  *BuildersProperty
 }
 
 func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
@@ -18,9 +23,13 @@ func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
 		return nil
 	}
 	return &FragmentContext{
-		Global:     ctx,
-		Fragment:   f,
-		Properties: newProperties(f),
+		Global:    ctx,
+		Raw:       f.Raw,
+		Args:      NewArgsProperty(f.Args),
+		Columns:   NewColumnsProperty(f.Columns),
+		Tables:    NewTablesProperty(f.Tables),
+		Fragments: NewFragmentsProperty(f.Fragments),
+		Builders:  NewBuildersProperty(f.Builders),
 	}
 }
 
@@ -30,19 +39,19 @@ func (c *FragmentContext) CheckUsage() error {
 		return nil
 	}
 	msgs := make([]string, 0, 5)
-	if err := c.Properties.Args.CheckUsage(); err != nil {
+	if err := c.Args.CheckUsage(); err != nil {
 		msgs = append(msgs, err.Error())
 	}
-	if err := c.Properties.Columns.CheckUsage(); err != nil {
+	if err := c.Columns.CheckUsage(); err != nil {
 		msgs = append(msgs, err.Error())
 	}
-	if err := c.Properties.Tables.CheckUsage(); err != nil {
+	if err := c.Tables.CheckUsage(); err != nil {
 		msgs = append(msgs, err.Error())
 	}
-	if err := c.Properties.Fragments.CheckUsage(); err != nil {
+	if err := c.Fragments.CheckUsage(); err != nil {
 		msgs = append(msgs, err.Error())
 	}
-	if err := c.Properties.Builders.CheckUsage(); err != nil {
+	if err := c.Builders.CheckUsage(); err != nil {
 		msgs = append(msgs, err.Error())
 	}
 	if len(msgs) > 0 {

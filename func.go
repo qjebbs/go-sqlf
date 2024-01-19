@@ -3,7 +3,6 @@ package sqlf
 import (
 	"errors"
 	"fmt"
-	"math"
 	"reflect"
 	"unicode"
 )
@@ -59,7 +58,7 @@ func createValueFuncs(funcMap FuncMap) (map[string]*funcInfo, error) {
 func addValueFuncs(out map[string]*funcInfo, in FuncMap) error {
 	for name, fn := range in {
 		if !goodName(name) {
-			return fmt.Errorf("function name %q is not a valid identifier", name)
+			return fmt.Errorf("function name %q is not a valid identifier, only letters and underscore are allowed", name)
 		}
 		v := reflect.ValueOf(fn)
 		if v.Kind() != reflect.Func {
@@ -118,8 +117,7 @@ func goodName(name string) bool {
 
 // goodFunc reports whether the function or method has the right result signature.
 func goodFunc(f *funcInfo) error {
-	errInvalidFuncOutput := errors.New("invalid function output, allowed: func(...) string; func(...) (string, error);")
-	// Check the result signature.
+	errInvalidFuncOutput := errors.New("invalid signature, expected func(...) (string, error); func(...) string; func(...);")
 	switch f.nOut {
 	case 0:
 		// ok
@@ -144,7 +142,7 @@ func goodFunc(f *funcInfo) error {
 			t = t.Elem()
 		}
 		if !goodArgType(t) {
-			return fmt.Errorf("invalid argument type %s, allowed: <number>, string, bool", t)
+			return fmt.Errorf("unsupported argument type '%s', allowed: number(int*, uint*, float*), string, bool, *sqlf.FragmentContext(as the first argument only)", t)
 		}
 	}
 
@@ -186,7 +184,7 @@ func joinCompatibility(f *funcInfo) error {
 	ctx := newFragmentContext(&Context{
 		funcs: make(map[string]*funcInfo),
 	}, &Fragment{})
-	_, err := evalCall(ctx, f, []any{math.MaxInt32})
+	_, err := evalCall(ctx, f, []any{-1})
 	if err == nil || !errors.Is(err, ErrInvalidIndex) {
 		return errors.New("never reports ErrInvalidIndex")
 	}

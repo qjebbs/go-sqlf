@@ -2,17 +2,17 @@ package sqlf
 
 // TablesProperty is the tables property
 type TablesProperty struct {
-	*propertyBase[Table]
+	*property[Table]
 }
 
 // NewTablesProperty returns a new TablesProperty.
 func NewTablesProperty(tables []Table) *TablesProperty {
 	return &TablesProperty{
-		propertyBase: newPropertyBase("tables", tables),
+		property: newProperty("tables", tables),
 	}
 }
 
-// Build builds the arg at index, with cache.
+// Build builds the table at index.
 func (b *TablesProperty) Build(ctx *Context, index int) (string, error) {
 	if err := b.validateIndex(index); err != nil {
 		return "", err

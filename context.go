@@ -8,9 +8,13 @@ import (
 
 // Context is the global context shared between all fragments building.
 type Context struct {
-	funcs        map[string]*funcInfo
-	argStore     []any
-	bindVarStyle syntax.BindVarStyle
+	// BindVarStyle overrides bindvar styles of all fragments.
+	// if not set, the first bindvar style encountered when
+	// building is applied.
+	BindVarStyle syntax.BindVarStyle
+
+	funcs    map[string]*funcInfo
+	argStore []any
 }
 
 // NewContext returns a new context.
@@ -30,13 +34,13 @@ func NewContext() *Context {
 //
 // The function name is case sensitive, only letters and underscore are allowed.
 //
-// Allowed function signatures are:
+// Allowed function signatures:
 //
-//	func(/* args... */)
-//	func(/* args... */) string
 //	func(/* args... */) (string, error)
+//	func(/* args... */) string
+//	func(/* args... */)
 //
-// Allowed argument types are:
+// Allowed argument types:
 //   - number types: int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,float32, float64
 //   - string
 //   - bool
@@ -58,14 +62,6 @@ func (c *Context) Funcs(funcs FuncMap) error {
 	return addValueFuncs(c.funcs, funcs)
 }
 
-// WithBindVarStyle set the bindvar style to the context, which
-// overrides bindvar style of all fragments.
-// if not, the first bindvar style encountered when building is applied.
-func (c *Context) WithBindVarStyle(style syntax.BindVarStyle) *Context {
-	c.bindVarStyle = style
-	return c
-}
-
 // Args returns the built args of the context.
 func (c *Context) Args() []any {
 	return c.argStore
@@ -74,11 +70,11 @@ func (c *Context) Args() []any {
 // CommitArg commits an built arg to the context and returns the built bindvar.
 // defaultStyle is used only when no style is set in the context and no style is seen before.
 func (c *Context) CommitArg(arg any, defaultStyle syntax.BindVarStyle) string {
-	if c.bindVarStyle == 0 {
-		c.bindVarStyle = defaultStyle
+	if c.BindVarStyle == 0 {
+		c.BindVarStyle = defaultStyle
 	}
 	c.argStore = append(c.argStore, arg)
-	if c.bindVarStyle == syntax.Question {
+	if c.BindVarStyle == syntax.Question {
 		return "?"
 	}
 	return "$" + strconv.Itoa(len(c.argStore))

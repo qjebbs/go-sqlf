@@ -32,7 +32,7 @@ func (f *Fragment) BuildContext(ctx *Context) (string, error) {
 		return "", err
 	}
 	if err := ctxCur.CheckUsage(); err != nil {
-		return "", fmt.Errorf("build '%s': %w", ctxCur.Fragment.Raw, err)
+		return "", fmt.Errorf("build '%s': %w", ctxCur.Raw, err)
 	}
 	body = strings.TrimSpace(body)
 	if body == "" {
@@ -50,18 +50,18 @@ func (f *Fragment) BuildContext(ctx *Context) (string, error) {
 
 // build builds the fragment
 func build(ctx *FragmentContext) (string, error) {
-	clause, err := syntax.Parse(ctx.Fragment.Raw)
+	clause, err := syntax.Parse(ctx.Raw)
 	if err != nil {
-		return "", fmt.Errorf("parse '%s': %w", ctx.Fragment.Raw, err)
+		return "", fmt.Errorf("parse '%s': %w", ctx.Raw, err)
 	}
 	built, err := buildClause(ctx, clause)
 	if err != nil {
-		return "", fmt.Errorf("build '%s': %w", ctx.Fragment.Raw, err)
+		return "", fmt.Errorf("build '%s': %w", ctx.Raw, err)
 	}
 	return built, nil
 }
 
-// buildClause builds the parsed clause within current context, not updating the ctx.current.
+// buildClause builds the parsed clause within current context.
 func buildClause(ctx *FragmentContext, clause *syntax.Clause) (string, error) {
 	b := new(strings.Builder)
 	for _, decl := range clause.ExprList {
@@ -75,7 +75,7 @@ func buildClause(ctx *FragmentContext, clause *syntax.Clause) (string, error) {
 			}
 			b.WriteString(s)
 		case *syntax.BindVarExpr:
-			s, err := ctx.Properties.Args.Build(ctx.Global, expr.Index, expr.Type)
+			s, err := ctx.Args.Build(ctx.Global, expr.Index, expr.Type)
 			if err != nil {
 				return "", err
 			}

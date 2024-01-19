@@ -1,6 +1,6 @@
 // Package sqlf focuses only on building SQL queries by combining fragments.
 // Low reusability and scalability are the main challenges we face when
-// writing SQL, sqlf is designed to solve these problems.
+// writing SQL, the sqlf is designed to solve these problems.
 //
 // # Fragment
 //
@@ -8,7 +8,7 @@
 // you need to learn.
 //
 // Fragment is usually a part of a SQL query, for example, combining
-// fragments of main fragment,
+// main fragment,
 //
 //	SELECT id, name, age FROM users WHERE #join('#fragment', ' AND ')
 //
@@ -17,7 +17,7 @@
 //	id IN (#join('#argDollar', ', '))  // args: [1, 2, 3]
 //	updated > $1                       // args: [2021-01-01]
 //
-// We will get the following query.
+// we will get the following query.
 //
 //	SELECT id, name, age FROM users WHERE id IN ($1, $2, $3) AND updated > $4
 //	// built args: [1, 2, 3, 2021-01-01]

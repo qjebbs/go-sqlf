@@ -12,7 +12,7 @@ import (
 // Build builds the query.
 func (b *QueryBuilder) Build() (query string, args []any, err error) {
 	ctx := sqlf.NewContext()
-	ctx.WithBindVarStyle(b.bindVarStyle)
+	ctx.BindVarStyle = b.bindVarStyle
 	query, err = b.buildInternal(ctx)
 	if err != nil {
 		return "", nil, err
