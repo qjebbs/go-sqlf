@@ -66,7 +66,10 @@ func (p *parser) Parse() error {
 				return err
 			}
 		case _Plain:
-			p.c.ExprList = append(p.c.ExprList, &PlainExpr{Text: p.token.lit})
+			p.c.ExprList = append(p.c.ExprList, &PlainExpr{
+				Text: p.token.lit,
+				expr: expr{node{p.token.pos}},
+			})
 		default:
 			return p.syntaxError("unexpected token " + string(p.token.typ))
 		}
@@ -190,8 +193,14 @@ func (p *parser) funcExpr() error {
 		// EOF or _Plain
 		p.c.ExprList = append(
 			p.c.ExprList,
-			&FuncExpr{Name: nameToken.lit},
-			&PlainExpr{Text: p.token.lit},
+			&FuncExpr{
+				Name: nameToken.lit,
+				expr: expr{node{pos}},
+			},
+			&PlainExpr{
+				Text: p.token.lit,
+				expr: expr{node{p.token.pos}},
+			},
 		)
 	}
 
