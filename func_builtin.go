@@ -76,8 +76,9 @@ func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (str
 		}
 		s, err := buildClause(ctx, c)
 		if errors.Is(err, ErrInvalidIndex) {
-			if from > 0 && to > 0 {
-				// index must be valid if from-to explicitly specified
+			if (from > 0 && i == from) ||
+				(to > 0 && i <= to) {
+				// report index error only if explicitly specified
 				return "", err
 			}
 			break
