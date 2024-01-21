@@ -184,7 +184,9 @@ func joinCompatibility(f *funcInfo) error {
 	ctx := newFragmentContext(&Context{
 		funcs: make(map[string]*funcInfo),
 	}, &Fragment{})
-	_, err := evalCall(ctx, f, []any{-1})
+	// #join() Assume that the index starts from 1, so 0 is an invalid index,
+	// a compatible function should return ErrInvalidIndex
+	_, err := evalCall(ctx, f, []any{0})
 	if err == nil || !errors.Is(err, ErrInvalidIndex) {
 		return errors.New("never reports ErrInvalidIndex")
 	}
