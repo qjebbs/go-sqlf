@@ -54,8 +54,7 @@ func Example_select() {
 
 func Example_update() {
 	update := &sqlf.Fragment{
-		Prefix: "",
-		Raw:    "UPDATE #t1 SET #join('#c=#argDollar', ', ')",
+		Raw: "UPDATE #t1 SET #join('#c=#argDollar', ', ')",
 	}
 	where := &sqlf.Fragment{
 		Prefix: "WHERE",

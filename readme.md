@@ -62,14 +62,13 @@ In most cases, it's easy and flexible to create your own builder  for simple que
 ```go
 func Example_update() {
 	update := &sqlf.Fragment{
-		Prefix: "",
-		Raw:    "UPDATE #t1 SET #join('#c=#argDollar', ', ')",
+		Raw: "UPDATE #t1 SET #join('#c=#argDollar', ', ')",
 	}
 	where := &sqlf.Fragment{
 		Prefix: "WHERE",
 		Raw:    "#join('#fragment', ' AND ')",
 	}
-	// consider wrapping it with your own builder 
+	// consider wrapping it with your own builder
 	// to provide a more friendly APIs
 	builder := &sqlf.Fragment{
 		Raw: "#join('#fragment', ' ')",
@@ -82,8 +81,7 @@ func Example_update() {
 	var users sqlf.Table = "users"
 	update.WithTables(users)
 	update.WithColumns(users.Expressions("name", "email")...)
-	update.WithArgs("jebbs", "qjebbs@gmail.com")
-	// append as many conditions as you want
+	update.WithArgs("alice", "alice@example.org")
 	where.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1=$1",
 		Columns: users.Expressions("id"),
@@ -98,7 +96,7 @@ func Example_update() {
 	fmt.Println(args)
 	// Output:
 	// UPDATE users SET name=$1, email=$2 WHERE id=$3
-	// [jebbs qjebbs@gmail.com 1]
+	// [alice alice@example.org 1]
 }
 ```
 </details>
