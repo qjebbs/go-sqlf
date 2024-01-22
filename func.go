@@ -188,7 +188,7 @@ func joinCompatibility(f *funcInfo) error {
 	// a compatible function should return ErrInvalidIndex
 	_, err := evalCall(ctx, f, []any{0})
 	if err == nil || !errors.Is(err, ErrInvalidIndex) {
-		return errors.New("never reports ErrInvalidIndex")
+		return errors.New("not reports ErrInvalidIndex")
 	}
 	return nil
 }
