@@ -7,24 +7,24 @@
 // Unlike any other sql builder or ORMs, Fragment is the only concept
 // you need to learn.
 //
-// Fragment is usually a part of a SQL query, for example, combining
-// main fragment,
+// Fragment is usually a part of a SQL query, for example, combining main fragment and any number of condition fragments, we can get a complete query.
 //
-//	SELECT id, name, age FROM users WHERE #join('#fragment', ' AND ')
-//
-// and condition fragments,
-//
-//	id IN (#join('#argDollar', ', '))  // args: [1, 2, 3]
-//	updated > $1                       // args: [2021-01-01]
-//
-// we will get the following query.
-//
-//	SELECT id, name, age FROM users WHERE id IN ($1, $2, $3) AND updated > $4
-//	// built args: [1, 2, 3, 2021-01-01]
+//	query, args, _ := (&sqlf.Fragment{
+//	    Raw: `SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
+//	    Fragments: []*sqlf.Fragment{
+//	        sqlf.FArgs(`bar IN (#join('#argDollar', ', '))`, 1, 2, 3),
+//	        sqlf.FArgs(`baz = $1`, true),
+//	    },
+//	}).Build()
+//	fmt.Println(query)
+//	fmt.Println(args)
+//	// Output:
+//	// SELECT * FROM foo WHERE bar IN ($1, $2, $3) AND baz = $4
+//	// [1 2 3 true]
 //
 // Explanation:
 //
-//   - With the help of Fragment, we pay attention only to the reference relationships inside the fragment, for example, use $1 to refer Fragment.Args[0], or ? to refer Fragment.Args in order.
+//   - we pay attention only to the references inside the fragment, for example, use $1 to refer Fragment.Args[0], or ? to refer Fragment.Args in order.
 //   - #join, #column, #fragment, etc., are preprocessing functions, which will be explained later.
 //
 // # Preprocessing Functions
