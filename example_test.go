@@ -56,11 +56,11 @@ func Example_select() {
 		Args:    []any{true},
 	})
 
-	bulit, args, err := builder.Build()
+	query, args, err := builder.Build()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(bulit)
+	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
 	// SELECT id, name, email FROM users WHERE id IN ($1, $2, $3) AND active = $4
@@ -95,24 +95,24 @@ func Example_update() {
 		Args:    []any{1},
 	})
 
-	bulit, args, err := builder.Build()
+	query, args, err := builder.Build()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(bulit)
+	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
 	// UPDATE users SET name=$1, email=$2 WHERE id=$3
 	// [alice alice@example.org 1]
 }
 
-func Example_globalArgs() {
+func ExampleContext_Funcs() {
 	// this example shows how to use Global Args by using
 	// *sqlf.ArgsProperty and custom function, so that we
 	// don't have to put Args into every fragment, which leads
 	// to a list of redundant args.
-	ids := sqlf.NewArgsProperty(1, 2, 3)
 	ctx := sqlf.NewContext()
+	ids := sqlf.NewArgsProperty(1, 2, 3)
 	err := ctx.Funcs(sqlf.FuncMap{
 		"_id": func(i int) (string, error) {
 			return ids.Build(ctx, i, syntax.Dollar)
@@ -122,20 +122,22 @@ func Example_globalArgs() {
 		panic(err)
 	}
 	fragment := &sqlf.Fragment{
-		Raw: "#join('#fragment', ' UNION ')",
+		Raw: "#join('#fragment', '\nUNION\n')",
 		Fragments: []*sqlf.Fragment{
 			{Raw: "SELECT id, 'foo' typ, count FROM foo WHERE id IN (#join('#_id', ', '))"},
 			{Raw: "SELECT id, 'bar' typ, count FROM bar WHERE id IN (#join('#_id', ', '))"},
 		},
 	}
-	bulit, err := fragment.BuildContext(ctx)
+	query, err := fragment.BuildContext(ctx)
 	if err != nil {
 		panic(err)
 	}
 	args := ctx.Args()
-	fmt.Println(bulit)
+	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
-	// SELECT id, 'foo' typ, count FROM foo WHERE id IN ($1, $2, $3) UNION SELECT id, 'bar' typ, count FROM bar WHERE id IN ($1, $2, $3)
+	// SELECT id, 'foo' typ, count FROM foo WHERE id IN ($1, $2, $3)
+	// UNION
+	// SELECT id, 'bar' typ, count FROM bar WHERE id IN ($1, $2, $3)
 	// [1 2 3]
 }

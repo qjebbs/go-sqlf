@@ -3,7 +3,7 @@ package sqlf
 // Fragment is the builder for a part of or even the full query, it allows you
 // to write and combine fragments with freedom.
 type Fragment struct {
-	Raw       string      // Raw string support bindvars and preprocessing functions.
+	Raw       string      // Raw string support bind vars and preprocessing functions.
 	Args      []any       // Args to be referred by the Raw, e.g.: ?, $1
 	Columns   []*Column   // Columns to be referred by the Raw, e.g.: #c1, #column2
 	Tables    []Table     // Table names / alias to be referred by the Raw, e.g.: #t1, #table2

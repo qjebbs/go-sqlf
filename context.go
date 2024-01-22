@@ -30,7 +30,7 @@ func NewContext() *Context {
 	}
 }
 
-// Funcs adds the preprocessing functions of the FuncMap to the context.
+// Funcs adds the preprocessing functions to the context.
 //
 // The function name is case sensitive, only letters and underscore are allowed.
 //

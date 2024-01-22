@@ -1,10 +1,10 @@
 package sqlf
 
-// Table is a table identifier, it can a table name or an alias.
+// Table is a table identifier, it can be a table name or an alias.
 type Table string
 
 // Column returns a column of the table.
-// It add table prefix to the column name, e.g.: "id" -> "t.id".
+// It adds table prefix to the column name, e.g.: "id" -> "t.id".
 //
 // For example:
 //
@@ -24,7 +24,7 @@ func (t Table) Column(name string) *Column {
 }
 
 // Columns returns columns of the table from names.
-// It add table prefix to the column name, e.g.: "id" -> "t.id".
+// It adds table prefix to the column name, e.g.: "id" -> "t.id".
 //
 // For example:
 //

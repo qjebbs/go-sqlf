@@ -33,7 +33,7 @@ func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
 	}
 }
 
-// CheckUsage checks if all args, columns, tables, fragments and builders are used.
+// CheckUsage checks if all properties are used.
 func (c *FragmentContext) CheckUsage() error {
 	if c == nil {
 		return nil

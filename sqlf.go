@@ -1,6 +1,6 @@
 // Package sqlf focuses only on building SQL queries by combining fragments.
 // Low reusability and scalability are the main challenges we face when
-// writing SQL, the sqlf is designed to solve these problems.
+// writing SQL, the package is designed to solve these problems.
 //
 // # Fragment
 //
@@ -24,7 +24,7 @@
 //
 // Explanation:
 //
-//   - we pay attention only to the references inside the fragment, for example, use $1 to refer Fragment.Args[0], or ? to refer Fragment.Args in order.
+//   - We pay attention only to the references inside the fragment, for example, use $1 to refer Fragment.Args[0], or ? to refer Fragment.Args in order.
 //   - #join, #column, #fragment, etc., are preprocessing functions, which will be explained later.
 //
 // # Preprocessing Functions
@@ -40,6 +40,7 @@
 // Note:
 //   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when a number is the only argument.
 //   - Expressions in the #join template are functions, not function calls.
+//   - You can register custom functions to the build context, see Context.Funcs.
 package sqlf
 
 // Builder is the interface for sql builders.

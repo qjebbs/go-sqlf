@@ -37,7 +37,7 @@ func (t Table) Names() []sqlf.Table {
 }
 
 // Column returns a column of the table.
-// It add table prefix to the column name, e.g.: "id" -> "t.id".
+// It adds table prefix to the column name, e.g.: "id" -> "t.id".
 //
 // For example:
 //
@@ -54,7 +54,7 @@ func (t Table) Column(name string) *sqlf.Column {
 }
 
 // Columns returns columns of the table from names.
-// It add table prefix to the column name, e.g.: "id" -> "t.id".
+// It adds table prefix to the column name, e.g.: "id" -> "t.id".
 //
 // For example:
 //

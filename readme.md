@@ -1,6 +1,6 @@
 Package `sqlf` focuses only on building SQL queries by combining fragments. 
 Low reusability and scalability are the main challenges we face when 
-writing SQL, the `sqlf` is designed to solve these problems.
+writing SQL, the package is designed to solve these problems.
 
 ## Fragment
 
@@ -26,9 +26,11 @@ fmt.Println(args)
 
 Explanation:
 
-- we pay attention only to the references inside a fragment, e.g., 
+- We pay attention only to the references inside a fragment, e.g., 
 use `$1` to refer `Fragment.Args[0]`, or `?` to refer `Fragment.Args` in order.
 - `#join`, `#column`, `#fragment`, etc., are preprocessing functions, which will be explained later.
+
+See [example_test.go](./example_test.go) for more examples.
 
 ## Preprocessing Functions
 
@@ -48,100 +50,35 @@ Note:
   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when a number is the only argument.
   - Expressions in the #join template are functions, not function calls.
 
-## Examples
-
-> See [example_test.go](./example_test.go) for more examples.
-
-In most cases, it's easy and flexible to create your own builder  for simple queries, with a few lines of code.
-
-<details>
+You can register custom preprocessing functions to the build context.
 
 ```go
-func Example_update() {
-	update := &sqlf.Fragment{
-		Raw: "UPDATE #t1 SET #join('#c=#argDollar', ', ')",
-	}
-	where := &sqlf.Fragment{
-		Prefix: "WHERE",
-		Raw:    "#join('#fragment', ' AND ')",
-	}
-	// consider wrapping it with your own builder
-	// to provide a more friendly APIs
-	builder := &sqlf.Fragment{
-		Raw: "#join('#fragment', ' ')",
-		Fragments: []*sqlf.Fragment{
-			update,
-			where,
-		},
-	}
-
-	var users sqlf.Table = "users"
-	update.WithTables(users)
-	update.WithColumns(users.Expressions("name", "email")...)
-	update.WithArgs("alice", "alice@example.org")
-	where.AppendFragments(&sqlf.Fragment{
-		Raw:     "#c1=$1",
-		Columns: users.Expressions("id"),
-		Args:    []any{1},
-	})
-
-	bulit, args, err := builder.Build()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(bulit)
-	fmt.Println(args)
-	// Output:
-	// UPDATE users SET name=$1, email=$2 WHERE id=$3
-	// [alice alice@example.org 1]
+ctx := sqlf.NewContext()
+ids := sqlf.NewArgsProperty(1, 2, 3)
+_ = ctx.Funcs(sqlf.FuncMap{
+	"_id": func(i int) (string, error) {
+		return ids.Build(ctx, i, syntax.Dollar)
+	},
+})
+b := &sqlf.Fragment{
+	Raw: "#join('#fragment', '\nUNION\n')",
+	Fragments: []*sqlf.Fragment{
+		{Raw: "SELECT id, 'foo' typ, count FROM foo WHERE id IN (#join('#_id', ', '))"},
+		{Raw: "SELECT id, 'bar' typ, count FROM bar WHERE id IN (#join('#_id', ', '))"},
+	},
 }
+query, _ := b.BuildContext(ctx)
+fmt.Println(query)
+fmt.Println(ctx.Args())
+// SELECT id, 'foo' typ, count FROM foo WHERE id IN ($1, $2, $3)
+// UNION
+// SELECT id, 'bar' typ, count FROM bar WHERE id IN ($1, $2, $3)
+// [1 2 3]
 ```
-</details>
 
-The repo also provides `*sqlb.QueryBuilder` for building complex queries.
+## QueryBuilder
 
-<details>
+`*sqlb.QueryBuilder` is a high-level abstraction of SQL queries for building complex queries,
+with `*sqlf.Fragment` as its underlying foundation.
 
-```go
-func ExampleQueryBuilder_Build() {
-	var (
-		foo = sqlb.NewTable("foo", "f")
-		bar = sqlb.NewTable("bar", "b")
-	)
-	b := sqlb.NewQueryBuilder().
-		Select(foo.Column("*")).
-		From(foo).
-		InnerJoin(bar, &sqlf.Fragment{
-			Raw: "#c1=#c2",
-			Columns: []*sqlf.TableColumn{
-				bar.Column("foo_id"),
-				foo.Column("id"),
-			},
-		}).
-		Where(&sqlf.Fragment{
-			Raw:     "(#c1=$1 OR #c2=$1)",
-			Columns: foo.Columns("a", "b"),
-			Args:    []any{1},
-		}).
-		Where2(bar.Column("c"), "=", 2)
-
-	query, args, err := b.BindVar(syntax.Dollar).Build()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(query)
-	fmt.Println(args)
-	query, args, err = b.BindVar(syntax.Question).Build()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(query)
-	fmt.Println(args)
-	// Output:
-	// SELECT f.* FROM foo AS f INNER JOIN bar AS b ON b.foo_id=f.id WHERE (f.a=$1 OR f.b=$1) AND b.c=$2
-	// [1 2]
-	// SELECT f.* FROM foo AS f INNER JOIN bar AS b ON b.foo_id=f.id WHERE (f.a=? OR f.b=?) AND b.c=?
-	// [1 1 2]
-}
-```
-</details>
+See [sqlb/example_test.go](./sqlb/example_test.go) for examples.
