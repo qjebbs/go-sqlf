@@ -10,7 +10,7 @@ type BuildersProperty struct {
 }
 
 // NewBuildersProperty returns a new BuildersProperty.
-func NewBuildersProperty(builders []Builder) *BuildersProperty {
+func NewBuildersProperty(builders ...Builder) *BuildersProperty {
 	return &BuildersProperty{
 		property: newProperty("builders", builders),
 	}

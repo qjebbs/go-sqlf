@@ -6,7 +6,7 @@ type TablesProperty struct {
 }
 
 // NewTablesProperty returns a new TablesProperty.
-func NewTablesProperty(tables []Table) *TablesProperty {
+func NewTablesProperty(tables ...Table) *TablesProperty {
 	return &TablesProperty{
 		property: newProperty("tables", tables),
 	}

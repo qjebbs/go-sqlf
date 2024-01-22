@@ -12,7 +12,7 @@ type ColumnsProperty struct {
 }
 
 // NewColumnsProperty returns a new ColumnsProperty.
-func NewColumnsProperty(columns []*Column) *ColumnsProperty {
+func NewColumnsProperty(columns ...*Column) *ColumnsProperty {
 	return &ColumnsProperty{
 		property: newProperty("columns", columns),
 	}

@@ -10,7 +10,7 @@ type ArgsProperty struct {
 }
 
 // NewArgsProperty returns a new ArgsBuilder.
-func NewArgsProperty(args []any) *ArgsProperty {
+func NewArgsProperty(args ...any) *ArgsProperty {
 	return &ArgsProperty{
 		property: newProperty("args", args),
 	}

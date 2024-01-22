@@ -10,7 +10,7 @@ type FragmentsProperty struct {
 }
 
 // NewFragmentsProperty returns a new FragmentsProperty.
-func NewFragmentsProperty(fragments []*Fragment) *FragmentsProperty {
+func NewFragmentsProperty(fragments ...*Fragment) *FragmentsProperty {
 	return &FragmentsProperty{
 		property: newProperty("fragments", fragments),
 	}

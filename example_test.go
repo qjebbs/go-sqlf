@@ -111,7 +111,7 @@ func Example_globalArgs() {
 	// *sqlf.ArgsProperty and custom function, so that we
 	// don't have to put Args into every fragment, which leads
 	// to a list of redundant args.
-	ids := sqlf.NewArgsProperty([]any{1, 2, 3})
+	ids := sqlf.NewArgsProperty(1, 2, 3)
 	ctx := sqlf.NewContext()
 	err := ctx.Funcs(sqlf.FuncMap{
 		"_id": func(i int) (string, error) {

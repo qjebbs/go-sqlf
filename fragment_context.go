@@ -25,11 +25,11 @@ func newFragmentContext(ctx *Context, f *Fragment) *FragmentContext {
 	return &FragmentContext{
 		Global:    ctx,
 		Raw:       f.Raw,
-		Args:      NewArgsProperty(f.Args),
-		Columns:   NewColumnsProperty(f.Columns),
-		Tables:    NewTablesProperty(f.Tables),
-		Fragments: NewFragmentsProperty(f.Fragments),
-		Builders:  NewBuildersProperty(f.Builders),
+		Args:      NewArgsProperty(f.Args...),
+		Columns:   NewColumnsProperty(f.Columns...),
+		Tables:    NewTablesProperty(f.Tables...),
+		Fragments: NewFragmentsProperty(f.Fragments...),
+		Builders:  NewBuildersProperty(f.Builders...),
 	}
 }
 
