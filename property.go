@@ -22,7 +22,21 @@ func newProperty[T any](name string, items []T) *property[T] {
 	}
 }
 
-// ReportUsed reports the item at index is used.
+// Count returns the count of items.
+func (b *property[T]) Count() int {
+	return len(b.items)
+}
+
+// Get returns the item at index, starting from 1.
+func (b *property[T]) Get(index int) (T, error) {
+	var zero T
+	if err := b.validateIndex(index); err != nil {
+		return zero, err
+	}
+	return b.items[index-1], nil
+}
+
+// ReportUsed reports the item at index is used, starting from 1.
 func (b *property[T]) ReportUsed(index int) {
 	if index < 1 || index > len(b.items) {
 		return

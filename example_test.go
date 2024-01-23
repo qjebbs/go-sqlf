@@ -106,6 +106,36 @@ func Example_update() {
 	// [alice alice@example.org 1]
 }
 
+func Example_unalignedJoin() {
+	// this example demonstrates how #join() works between unaligned properties.
+	// it leaves the extra property items (.Args[2:] here) unused, which leads to an error.
+	// to make it work, we use #noUnusedError() to suppress the error.
+	ctx := sqlf.NewContext()
+	ctx.Funcs(sqlf.FuncMap{
+		"noUnusedError": func(ctx *sqlf.FragmentContext) {
+			for i := 3; i <= ctx.Args.Count(); i++ {
+				ctx.Args.ReportUsed(i)
+			}
+		},
+	})
+	foo := sqlf.Table("foo")
+	b := &sqlf.Fragment{
+		Raw:     "#noUnusedError() UPDATE #t1 SET #join('#c=#argDollar', ', ')",
+		Tables:  []sqlf.Table{foo},
+		Columns: foo.Expressions("bar", "baz"),
+		Args:    []any{1, 2, 3, true, false},
+	}
+	query, err := b.BuildContext(ctx)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(query)
+	fmt.Println(ctx.Args())
+	// Output:
+	// UPDATE foo SET bar=$1, baz=$2
+	// [1 2]
+}
+
 func ExampleContext_Funcs() {
 	// this example shows how to use Global Args by using
 	// *sqlf.ArgsProperty and custom function, so that we
