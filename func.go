@@ -20,15 +20,17 @@ var (
 type FuncMap map[string]any
 
 type funcInfo struct {
-	name      string
-	fn        reflect.Value
-	nIn       int            // number of arguments, including the variadic one
-	inTypes   []reflect.Type // types of all arguments
-	contexArg bool           // if the first argument is *FragmentContext
-	nInFixed  int            // number of fixed arguments, except the variadic one
-	variadic  bool           // if the last argument is variadic
-	nOut      int            // number of outputs
-	outTypes  []reflect.Type // types of all outputs
+	name string
+	fn   reflect.Value
+
+	variadic       bool           // if the last argument is variadic
+	nIn            int            // number of arguments, including the variadic one
+	nInFixed       int            // number of fixed arguments, except the variadic one
+	inTypes        []reflect.Type // types of all arguments
+	inContextFirst bool           // if the first argument is *FragmentContext
+
+	nOut     int            // number of outputs
+	outTypes []reflect.Type // types of all outputs
 
 	joinTested bool  // whether the function has been tested for #join()s
 	joinError  error // error to return when the function is not compatible with #join()
@@ -72,13 +74,13 @@ func addValueFuncs(out map[string]*funcInfo, in FuncMap) error {
 		nIn := typ.NumIn()
 		nOut := typ.NumOut()
 		fun := &funcInfo{
-			name:      name,
-			fn:        v,
-			nIn:       nIn,
-			nInFixed:  nIn,
-			nOut:      nOut,
-			contexArg: nIn > 0 && typ.In(0) == contextPointerType,
-			variadic:  typ.IsVariadic(),
+			name:           name,
+			fn:             v,
+			nIn:            nIn,
+			nInFixed:       nIn,
+			nOut:           nOut,
+			inContextFirst: nIn > 0 && typ.In(0) == contextPointerType,
+			variadic:       typ.IsVariadic(),
 		}
 		if fun.variadic {
 			fun.nInFixed--
@@ -135,7 +137,7 @@ func goodFunc(f *funcInfo) error {
 
 	// Check the argument signature.
 	for i, t := range f.inTypes {
-		if i == 0 && f.contexArg {
+		if i == 0 && f.inContextFirst {
 			continue
 		}
 		if f.variadic && i == f.nIn-1 {
@@ -171,11 +173,22 @@ func joinCompatibility(f *funcInfo) error {
 	}
 	switch f.nIn {
 	case 1:
-		if !numberType(f.inTypes[0].Kind()) {
+		t := f.inTypes[0]
+		if f.variadic {
+			t = t.Elem()
+		}
+		if !numberType(t.Kind()) {
 			return errSig
 		}
 	case 2:
-		if !f.contexArg || !numberType(f.inTypes[1].Kind()) {
+		if !f.inContextFirst {
+			return errSig
+		}
+		t := f.inTypes[1]
+		if f.variadic {
+			t = t.Elem()
+		}
+		if !numberType(t.Kind()) {
 			return errSig
 		}
 	default:

@@ -18,7 +18,7 @@ func evalCall(ctx *FragmentContext, f *funcInfo, args []any) (string, error) {
 	nArgs := len(args)
 	nIn := f.nIn
 	nInFixed := f.nInFixed
-	if f.contexArg {
+	if f.inContextFirst {
 		nIn--
 		nInFixed--
 	}
@@ -31,7 +31,7 @@ func evalCall(ctx *FragmentContext, f *funcInfo, args []any) (string, error) {
 	}
 
 	// Prepare the arg list.
-	if f.contexArg {
+	if f.inContextFirst {
 		nArgs++
 		args = append([]any{ctx}, args...)
 	}
@@ -42,7 +42,7 @@ func evalCall(ctx *FragmentContext, f *funcInfo, args []any) (string, error) {
 	// Fixed args first.
 	i := 0
 	for ; i < f.nInFixed && i < len(args); i++ {
-		if i == 0 && f.contexArg {
+		if i == 0 && f.inContextFirst {
 			argv[i] = reflect.ValueOf(args[0])
 			continue
 		}
