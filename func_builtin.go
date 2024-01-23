@@ -50,7 +50,7 @@ func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (str
 		if !ok {
 			continue
 		}
-		f, ok := ctx.Global.funcs[fn.Name]
+		f, ok := ctx.Global.fn(fn.Name)
 		if !ok {
 			return "", fmt.Errorf("unknown function #%s", fn.Name)
 		}

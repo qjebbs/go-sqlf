@@ -19,15 +19,28 @@ type Context struct {
 
 // NewContext returns a new context.
 func NewContext() *Context {
-	funcs, err := createValueFuncs(builtInFuncs)
+	ctx := newEmptyContext()
+	err := addValueFuncs(ctx.funcs, builtInFuncs)
 	if err != nil {
 		// should never happen for builtInFuncs
 		panic(err)
 	}
+	return ctx
+}
+
+func newEmptyContext() *Context {
 	return &Context{
-		funcs:    funcs,
+		funcs:    make(map[string]*funcInfo),
 		argStore: make([]any, 0),
 	}
+}
+
+func (c *Context) fn(name string) (*funcInfo, bool) {
+	if c == nil || c.funcs == nil {
+		return nil, false
+	}
+	fn, ok := c.funcs[name]
+	return fn, ok
 }
 
 // Funcs adds the preprocessing functions to the context.
