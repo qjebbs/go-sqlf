@@ -12,8 +12,8 @@
 //	query, args, _ := (&sqlf.Fragment{
 //	    Raw: `SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
 //	    Fragments: []*sqlf.Fragment{
-//	        sqlf.FArgs(`bar IN (#join('#argDollar', ', '))`, 1, 2, 3),
-//	        sqlf.FArgs(`baz = $1`, true),
+//	        sqlf.Fa(`bar IN (#join('#argDollar', ', '))`, 1, 2, 3),
+//	        sqlf.Fa(`baz = $1`, true),
 //	    },
 //	}).Build()
 //	fmt.Println(query)
