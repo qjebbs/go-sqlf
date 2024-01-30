@@ -7,7 +7,7 @@ import (
 	"github.com/qjebbs/go-sqlf/syntax"
 )
 
-func Example_basic() {
+func Example_basic1() {
 	query, args, _ := (&sqlf.Fragment{
 		Raw: `SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
 		Fragments: []*sqlf.Fragment{
@@ -20,6 +20,20 @@ func Example_basic() {
 	// Output:
 	// SELECT * FROM foo WHERE bar IN ($1, $2, $3) AND baz = $4
 	// [1 2 3 true]
+}
+
+func Example_basic2() {
+	builders := []sqlf.Builder{
+		sqlf.Fa(`SELECT 1`),
+		sqlf.Fa(`SELECT 2`),
+	}
+	b := sqlf.Fb(`#join('#builder', ' UNION ')`, builders...)
+	query, args, _ := b.Build()
+	fmt.Println(query)
+	fmt.Println(args)
+	// Output:
+	// SELECT 1 UNION SELECT 2
+	// []
 }
 
 func Example_select() {
