@@ -28,7 +28,7 @@ Explanation:
 
 - We pay attention only to the references inside a fragment, e.g., 
 use `$1` to refer `Fragment.Args[0]`, or `?` to refer `Fragment.Args` in order.
-- `#join`, `#column`, `#fragment`, etc., are preprocessing functions, which will be explained later.
+- `#join`, `#fragment`, etc., are preprocessing functions, which will be explained later.
 
 See [example_test.go](./example_test.go) for more examples.
 
@@ -47,7 +47,7 @@ See [example_test.go](./example_test.go) for more examples.
 |                | Join from index 3 to 6                | #join('#argDollar', ',', 3, 6) |
 
 Note:
-  - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when a number is the only argument.
+  - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when an integer (usually an index) is the only argument.
   - Expressions in the #join template are functions, not function calls.
 
 You can register custom preprocessing functions to the build context.

@@ -55,7 +55,7 @@ func (p *parser) Parse() error {
 		case _EOF:
 			break
 		case _Ref:
-			d, err := p.refExpr()
+			d, err := p.bindVarExpr()
 			if err != nil {
 				return err
 			}
@@ -77,7 +77,7 @@ func (p *parser) Parse() error {
 	return nil
 }
 
-func (p *parser) refExpr() (Expr, error) {
+func (p *parser) bindVarExpr() (Expr, error) {
 	pos := p.token.pos
 	var t BindVarStyle
 	switch p.token.lit {

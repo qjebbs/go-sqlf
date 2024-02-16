@@ -25,7 +25,7 @@
 // Explanation:
 //
 //   - We pay attention only to the references inside the fragment, for example, use $1 to refer Fragment.Args[0], or ? to refer Fragment.Args in order.
-//   - #join, #column, #fragment, etc., are preprocessing functions, which will be explained later.
+//   - #join, #fragment, etc., are preprocessing functions, which will be explained later.
 //
 // # Preprocessing Functions
 //

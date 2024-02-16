@@ -27,10 +27,10 @@ func (s *scanner) emitToken(t TokenType, kind litKind, bad bool) {
 		typ:   t,
 		kind:  kind,
 		bad:   bad,
-		start: s.start,
-		end:   s.pos,
-		pos:   s.startPos,
-		lit:   s.input[s.start:s.pos],
+		start: s.start.offset,
+		end:   s.current.offset,
+		pos:   s.start.Pos,
+		lit:   s.input[s.start.offset:s.current.offset],
 	})
 }
 
@@ -56,12 +56,12 @@ func scanPlain(s *scanner) scanFn {
 				s.Next()
 				continue
 			}
-			if s.pos > s.start {
+			if s.current.offset > s.start.offset {
 				s.emitToken(_Plain, _StringLit, false)
 			}
 			return scanRef
 		case '#':
-			if s.pos > s.start {
+			if s.current.offset > s.start.offset {
 				s.emitToken(_Plain, _StringLit, false)
 			}
 			return scanFunc
@@ -70,7 +70,7 @@ func scanPlain(s *scanner) scanFn {
 		}
 	}
 	// EOF
-	if s.pos > s.start {
+	if s.current.offset > s.start.offset {
 		s.emitToken(_Plain, _StringLit, false)
 		return scanPlain
 	}
@@ -170,7 +170,7 @@ func scanFuncArgs(s *scanner) scanFn {
 				r = s.Next()
 			}
 			if s.Advanced() {
-				fragment := s.input[s.start:s.pos]
+				fragment := s.input[s.start.offset:s.current.offset]
 				if fragment == "true" || fragment == "false" {
 					s.emitToken(_Literal, _BoolLit, false)
 					return scanFuncArgs
