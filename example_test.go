@@ -7,7 +7,7 @@ import (
 	"github.com/qjebbs/go-sqlf/syntax"
 )
 
-func Example_basic1() {
+func Example_basic() {
 	query, args, _ := (&sqlf.Fragment{
 		Raw: `SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
 		Fragments: []*sqlf.Fragment{
@@ -22,13 +22,12 @@ func Example_basic1() {
 	// [1 2 3 true]
 }
 
-func Example_basic2() {
-	builders := []sqlf.Builder{
+func Example_shortcutFuncs() {
+	query, args, _ := sqlf.Ff(
+		`#join('#fragment', ' UNION ')`,
 		sqlf.Fa(`SELECT 1`),
 		sqlf.Fa(`SELECT 2`),
-	}
-	b := sqlf.Fb(`#join('#builder', ' UNION ')`, builders...)
-	query, args, _ := b.Build()
+	).Build()
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -47,14 +46,10 @@ func Example_select() {
 		Prefix: "WHERE",
 		Raw:    "#join('#fragment', ' AND ')",
 	}
-	builder := &sqlf.Fragment{
-		Raw: "#join('#fragment', ' ')",
-		Fragments: []*sqlf.Fragment{
-			selects,
-			from,
-			where,
-		},
-	}
+	builder := sqlf.Ff(
+		"#join('#fragment', ' ')",
+		selects, from, where,
+	)
 
 	var users sqlf.Table = "users"
 	selects.WithColumns(users.Expressions("id", "name", "email")...)

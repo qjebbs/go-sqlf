@@ -38,7 +38,7 @@
 //   - join: Join the template with separator, e.g. #join('#column', ', '), #join('#argDollar', ',', 3), #join('#argDollar', ',', 3, 6)
 //
 // Note:
-//   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when a number is the only argument.
+//   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when an integer (usually an index) is the only argument.
 //   - Expressions in the #join template are functions, not function calls.
 //   - You can register custom functions to the build context, see Context.Funcs.
 package sqlf
