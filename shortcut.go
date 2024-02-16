@@ -24,18 +24,18 @@ func Fb(raw string, builders ...Builder) *Fragment {
 	}
 }
 
-// // Fc creates a new Fragment with Columns property.
-// func Fc(raw string, columns ...*Column) *Fragment {
-// 	return &Fragment{
-// 		Raw:     raw,
-// 		Columns: columns,
-// 	}
-// }
+// Fc creates a new Fragment with Columns property.
+func Fc(raw string, columns ...*Column) *Fragment {
+	return &Fragment{
+		Raw:     raw,
+		Columns: columns,
+	}
+}
 
-// // Ft creates a new Fragment with Tables property.
-// func Ft(raw string, tables ...Table) *Fragment {
-// 	return &Fragment{
-// 		Raw:    raw,
-// 		Tables: tables,
-// 	}
-// }
+// Ft creates a new Fragment with Tables property.
+func Ft(raw string, tables ...Table) *Fragment {
+	return &Fragment{
+		Raw:    raw,
+		Tables: tables,
+	}
+}

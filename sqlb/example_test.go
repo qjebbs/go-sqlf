@@ -16,13 +16,11 @@ func ExampleQueryBuilder_Build() {
 	b := sqlb.NewQueryBuilder().
 		Select(foo.Column("*")).
 		From(foo).
-		InnerJoin(bar, &sqlf.Fragment{
-			Raw: "#c1=#c2",
-			Columns: []*sqlf.Column{
-				bar.Column("foo_id"),
-				foo.Column("id"),
-			},
-		}).
+		InnerJoin(bar, sqlf.Fc(
+			"#c1=#c2",
+			bar.Column("foo_id"),
+			foo.Column("id"),
+		)).
 		Where(&sqlf.Fragment{
 			Raw:     "(#c1=$1 OR #c2=$1)",
 			Columns: foo.Columns("a", "b"),
@@ -60,13 +58,11 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		Select(foo.Column("*")).
 		From(foo).
 		// declare an optional LEFT JOIN
-		LeftJoinOptional(bar, &sqlf.Fragment{
-			Raw: "#c1=#c2",
-			Columns: []*sqlf.Column{
-				bar.Column("foo_id"),
-				foo.Column("id"),
-			},
-		}).
+		LeftJoinOptional(bar, sqlf.Fc(
+			"#c1=#c2",
+			bar.Column("foo_id"),
+			foo.Column("id"),
+		)).
 		// don't touch any columns of "bar", so that it can be trimmed
 		Where2(foo.Column("id"), ">", 1).
 		Build()
@@ -99,13 +95,11 @@ func ExampleQueryBuilder_With() {
 			cte.Column("*"),
 		).
 		From(foo).
-		LeftJoinOptional(cte, &sqlf.Fragment{
-			Raw: "#c1=#c2",
-			Columns: []*sqlf.Column{
-				cte.Column("foo_id"),
-				foo.Column("id"),
-			},
-		}).
+		LeftJoinOptional(cte, sqlf.Fc(
+			"#c1=#c2",
+			cte.Column("foo_id"),
+			foo.Column("id"),
+		)).
 		Build()
 	if err != nil {
 		panic(err)
