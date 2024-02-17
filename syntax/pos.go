@@ -11,10 +11,10 @@ type Pos struct {
 func NewPos(line, col uint) Pos { return Pos{line, col} }
 
 // Line returns the line number of the position.
-func (p Pos) Line() uint { return uint(p.line) }
+func (p Pos) Line() uint { return p.line }
 
 // Col returns the column number of the position.
-func (p Pos) Col() uint { return uint(p.col) }
+func (p Pos) Col() uint { return p.col }
 
 func (p Pos) String() string {
 	if p.line == 0 {
