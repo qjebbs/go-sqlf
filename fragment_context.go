@@ -1,9 +1,8 @@
 package sqlf
 
 import (
+	"errors"
 	"strings"
-
-	"github.com/go-oauth2/oauth2/v4/errors"
 )
 
 // FragmentContext is the FragmentContext for current fragment building.
