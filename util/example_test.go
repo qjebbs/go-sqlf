@@ -13,19 +13,17 @@ func ExampleArgs() {
 	print := func(v any) {
 		fmt.Printf("%#v\n", v)
 	}
-	print(util.Args([]any{1, 2, 3}))
+	print(util.Args(1, 2, 3))
 	print(util.Args([]int{1, 2, 3}))
 	print(util.Args(&[]int{1, 2, 3}))
 	print(util.Args([3]int{1, 2, 3}))
-	print(util.Args(&[]time.Duration{time.Millisecond}))
-	print(util.Args(1))
+	print(util.Args(1, []int{2, 3}, []string{"a", "b", "c"}))
 	// Output:
 	// []interface {}{1, 2, 3}
 	// []interface {}{1, 2, 3}
 	// []interface {}{1, 2, 3}
 	// []interface {}{1, 2, 3}
-	// []interface {}{1000000}
-	// []interface {}{1}
+	// []interface {}{1, 2, 3, "a", "b", "c"}
 }
 
 func ExampleInterpolate() {

@@ -4,10 +4,21 @@ import (
 	"reflect"
 )
 
-// Args is a help func to convert s to query args.
-// if s is not a slice or array, it will return []any{s}.
-func Args(s any) []any {
-	switch a := s.(type) {
+// Args is a help func to create a slice of query args from values, slices and array.
+// it concatenates all values to a single slice, and flattens any slices and arrays in the first level.
+// e.g.
+//
+//	Args(1, []int{2, 3}, []string{"a", "b", "c"}) => []any{1, 2, 3, "a", "b", "c"}
+func Args(valueOrSlices ...any) []any {
+	args := make([]any, 0, 10)
+	for _, v := range valueOrSlices {
+		args = append(args, argsFrom(v)...)
+	}
+	return args
+}
+
+func argsFrom(v any) []any {
+	switch a := v.(type) {
 	case []any:
 		return a
 	case []bool:
@@ -51,7 +62,7 @@ func Args(s any) []any {
 	case *[]string:
 		return Ttoa(*a)
 	default:
-		return convertArrayReflect(s)
+		return convertArrayReflect(v)
 	}
 }
 
