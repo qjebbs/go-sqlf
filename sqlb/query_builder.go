@@ -144,11 +144,10 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 }
 
 // GroupBy set the sorting order.
-func (b *QueryBuilder) GroupBy(column *sqlf.Column, args ...any) *QueryBuilder {
+func (b *QueryBuilder) GroupBy(column *sqlf.Column) *QueryBuilder {
 	b.groupbys.AppendFragments(&sqlf.Fragment{
 		Raw:     "#c1",
 		Columns: []*sqlf.Column{column},
-		Args:    args,
 	})
 	return b
 }
