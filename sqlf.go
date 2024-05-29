@@ -9,46 +9,44 @@
 //
 // Fragment is usually a part of a SQL query, for example, combining main fragment and any number of condition fragments, we can get a complete query.
 //
-//	query, args, _ := (&sqlf.Fragment{
-//	    Raw: `SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
-//	    Fragments: []*sqlf.Fragment{
-//	        sqlf.Fa(`bar IN (#join('#argDollar', ', '))`, 1, 2, 3),
-//	        sqlf.Fa(`baz = $1`, true),
-//	    },
-//	}).Build()
+//	query, args, _ := sqlf.Ff(
+//		`SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
+//		sqlf.Fa("baz = $1", true),
+//		sqlf.Fa("bar BETWEEN ? AND ?)", 1, 100),
+//	).BuildQuery()
 //	fmt.Println(query)
 //	fmt.Println(args)
 //	// Output:
-//	// SELECT * FROM foo WHERE bar IN ($1, $2, $3) AND baz = $4
-//	// [1 2 3 true]
+//	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3)
+//	// [true 1 100]
 //
 // Explanation:
 //
 //   - We pay attention only to the references inside the fragment, for example, use $1 to refer Fragment.Args[0], or ? to refer Fragment.Args in order.
-//   - #join, #fragment, etc., are preprocessing functions, which will be explained later.
+//   - #join, #f, etc., are preprocessing functions, which will be explained later.
+//   - See Example (Basic1) for what happend inside a *sqlf.Fragment.
 //
 // # Preprocessing Functions
 //
-//   - c, column: Fragment.Columns at index, e.g. #c1
-//   - t, table: Fragment.Tables at index, e.g. #t1
-//   - fragment: Fragment.Fragments at index, e.g. #fragment1
-//   - builder: Fragment.Builders at index, e.g. #builder1
-//   - argDollar: Fragment.Args at index with style $, usually used in #join().
-//   - argQuestion: Fragment.Args at index with style ?, usually used in #join().
-//   - join: Join the template with separator, e.g. #join('#column', ', '), #join('#argDollar', ',', 3), #join('#argDollar', ',', 3, 6)
+//   - f, fragment: fragment properties at index, e.g. #f1
+//   - join: Join the template with separator, e.g. #join('#f', ', '), #join('#arg', ',', 3), #join('#arg', ',', 3, 6)
+//   - arg: fragment args at index, usually used in #join().
 //
 // Note:
-//   - #c1 is equivalent to #c(1), which is a special syntax to call preprocessing functions when an integer (usually an index) is the only argument.
+//   - #f1 is equivalent to #f(1), which is a special syntax to call preprocessing functions when an integer (usually an index) is the only argument.
 //   - Expressions in the #join template are functions, not function calls.
 //   - You can register custom functions to the build context, see Context.Funcs.
 package sqlf
 
-// Builder is the interface for sql builders.
-type Builder interface {
-	// Build builds and returns the query and args.
-	Build() (query string, args []any, err error)
-	// BuildContext builds the query with the context.
-	// The built args should be committed to the context, which can be
-	// retrieved after building.
-	BuildContext(ctx *Context) (query string, err error)
+// QueryBuilder is the interface for sql builders.
+type QueryBuilder interface {
+	// BuildQuery builds and returns the query and args.
+	BuildQuery() (query string, args []any, err error)
+}
+
+// FragmentBuilder is a builder that builds a fragment.
+type FragmentBuilder interface {
+	// BuildFragment builds as a fragment with the context.
+	// The args should be committed to the ctx if any.
+	BuildFragment(ctx *Context) (query string, err error)
 }

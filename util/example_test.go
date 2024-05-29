@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/qjebbs/go-sqlf"
-	"github.com/qjebbs/go-sqlf/util"
+	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
 func ExampleArgs() {
 	print := func(v any) {
 		fmt.Printf("%#v\n", v)
 	}
-	print(util.Args(1, 2, 3))
-	print(util.Args([]int{1, 2, 3}))
-	print(util.Args(&[]int{1, 2, 3}))
-	print(util.Args([3]int{1, 2, 3}))
-	print(util.Args(1, []int{2, 3}, []string{"a", "b", "c"}))
+	print(util.ArgsFlatted(1, 2, 3))
+	print(util.ArgsFlatted([]int{1, 2, 3}))
+	print(util.ArgsFlatted(&[]int{1, 2, 3}))
+	print(util.ArgsFlatted([3]int{1, 2, 3}))
+	print(util.ArgsFlatted(1, []int{2, 3}, []string{"a", "b", "c"}))
 	// Output:
 	// []interface {}{1, 2, 3}
 	// []interface {}{1, 2, 3}
@@ -41,7 +41,7 @@ func ExampleInterpolate() {
 func ExampleCountBuilder() {
 	var (
 		db      *sql.DB
-		builder sqlf.Builder
+		builder sqlf.QueryBuilder
 	)
 	if db != nil && builder != nil {
 		count, err := util.CountBuilder(db, builder)
@@ -74,10 +74,10 @@ func ExampleScanBuilder() {
 	}
 	var db *sql.DB
 	if db != nil {
-		builder := &sqlf.Fragment{
-			Raw:  "SELECT id, name FROM foo WHERE id IN (#join('#argDollar', ', '))",
-			Args: []any{1, 2, 3},
-		}
+		builder := sqlf.Fa(
+			"SELECT id, name FROM foo WHERE id IN (#join('#arg', ', '))",
+			1, 2, 3,
+		)
 		r, err := util.ScanBuilder(
 			db, builder,
 			func() (*foo, []any) {

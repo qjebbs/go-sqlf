@@ -1,70 +1,50 @@
 package sqlf
 
-import (
-	"fmt"
-	"strings"
-)
+import "github.com/qjebbs/go-sqlf/v2/syntax"
 
-type property[T any] struct {
-	name  string
-	items []T
-	cache []string
-	used  []bool
+// Property is the interface for properties.
+type Property interface {
+	FragmentBuilder
+	// Used reports if the property is used.
+	Used() bool
+	// ReportUsed marks current property as used
+	ReportUsed()
 }
 
-// newProperty returns a new property.
-func newProperty[T any](name string, items []T) *property[T] {
-	return &property[T]{
-		name:  name,
-		items: items,
-		cache: make([]string, len(items)),
-		used:  make([]bool, len(items)),
+var _ Property = (*defaultProperty)(nil)
+
+type defaultProperty struct {
+	value FragmentBuilder
+	used  bool
+	cache string
+}
+
+// newDefaultProperty returns a new property.
+func newDefaultProperty(value FragmentBuilder) *defaultProperty {
+	return &defaultProperty{
+		value: value,
 	}
 }
 
-// Count returns the count of items.
-func (b *property[T]) Count() int {
-	return len(b.items)
+// ReportUsed reports the item is used
+func (p *defaultProperty) ReportUsed() {
+	p.used = true
 }
 
-// Get returns the item at index, starting from 1.
-func (b *property[T]) Get(index int) (T, error) {
-	var zero T
-	if err := b.validateIndex(index); err != nil {
-		return zero, err
-	}
-	return b.items[index-1], nil
+// Used returns true if the column is used.
+func (p *defaultProperty) Used() bool {
+	return p.used
 }
 
-// ReportUsed reports the item at index is used, starting from 1.
-func (b *property[T]) ReportUsed(index int) {
-	if index < 1 || index > len(b.items) {
-		return
-	}
-	b.used[index-1] = true
-}
-
-// CheckUsage checks if all items are used.
-func (b *property[T]) CheckUsage() error {
-	unused := new(strings.Builder)
-	for i, v := range b.used {
-		if !v {
-			if unused.Len() > 0 {
-				unused.WriteString(", ")
-			}
-			unused.WriteString(fmt.Sprint(i + 1))
+// BuildFragment builds the fragment.
+func (p *defaultProperty) BuildFragment(ctx *Context) (string, error) {
+	p.used = true
+	if p.cache == "" || ctx.BindVarStyle == syntax.Question {
+		r, err := p.value.BuildFragment(ctx)
+		if err != nil {
+			return "", err
 		}
+		p.cache = r
 	}
-	if unused.Len() == 0 {
-		return nil
-	}
-	return fmt.Errorf("%s not used: [%s]", b.name, unused.String())
-}
-
-// validateIndex validates the index.
-func (b *property[T]) validateIndex(index int) error {
-	if index < 1 || index > len(b.items) {
-		return fmt.Errorf("%w: %s index %d out of range [1,%d]", ErrInvalidIndex, b.name, index, len(b.items))
-	}
-	return nil
+	return p.cache, nil
 }

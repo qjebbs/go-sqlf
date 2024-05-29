@@ -3,71 +3,76 @@ package sqlf_test
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf"
-	"github.com/qjebbs/go-sqlf/syntax"
+	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/sqlb"
 )
 
-func Example_basic() {
-	query, args, _ := (&sqlf.Fragment{
-		Raw: `SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
-		Fragments: []*sqlf.Fragment{
-			sqlf.Fa(`bar IN (#join('#argDollar', ', '))`, 1, 2, 3),
-			sqlf.Fa(`baz = $1`, true),
-		},
-	}).Build()
-	fmt.Println(query)
-	fmt.Println(args)
-	// Output:
-	// SELECT * FROM foo WHERE bar IN ($1, $2, $3) AND baz = $4
-	// [1 2 3 true]
-}
+func Example_basic1() {
+	// This example is equivalent to Exmaple Basic2 (which is more concise), but
+	// it reveales what happend inside a *sqlf.Fragment.
 
-func Example_shortcutFuncs() {
-	query, args, _ := sqlf.Ff(
-		`#join('#fragment', ' UNION ')`,
-		sqlf.Fa(`SELECT 1`),
-		sqlf.Fa(`SELECT 2`),
-	).Build()
+	// *sqlf.Fragment has two types of properties storage, .Args and .Fragments.
+	// Raw query can reference the contents of .Args, just like `database/sql`.
+	a := &sqlf.Fragment{
+		Raw:  "baz = $1",
+		Args: []any{true},
+	}
+	b := &sqlf.Fragment{
+		Raw:  "bar BETWEEN ? AND ?)",
+		Args: []any{1, 100},
+	}
+	query, args, _ := (&sqlf.Fragment{
+		// Similarly, referencing .Fragments results fragments combinations.
+		Raw:       `SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
+		Fragments: []sqlf.FragmentBuilder{a, b},
+	}).BuildQuery()
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
-	// SELECT 1 UNION SELECT 2
-	// []
+	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3)
+	// [true 1 100]
+}
+func Example_basic2() {
+	query, args, _ := sqlf.Ff(
+		`SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
+		sqlf.Fa("baz = $1", true),
+		sqlf.Fa("bar BETWEEN ? AND ?)", 1, 100),
+	).BuildQuery()
+	fmt.Println(query)
+	fmt.Println(args)
+	// Output:
+	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3)
+	// [true 1 100]
 }
 
 func Example_select() {
-	selects := &sqlf.Fragment{
-		Raw: "SELECT #join('#column', ', ')",
-	}
-	from := &sqlf.Fragment{
-		Raw: "FROM #t1",
-	}
-	where := &sqlf.Fragment{
-		Prefix: "WHERE",
-		Raw:    "#join('#fragment', ' AND ')",
-	}
-	builder := sqlf.Ff(
-		"#join('#fragment', ' ')",
-		selects, from, where,
+	selects := sqlf.Ff("SELECT #join('#fragment', ', ')")
+	from := sqlf.Ff("FROM #f1")
+	where := sqlf.Ff("#join('#fragment', ' AND ')").WithPrefix("WHERE")
+	builder := sqlf.Ff("#join('#fragment', ' ')", selects, from, where)
+
+	var users sqlb.Table = "users"
+	selects.WithFragments(
+		users.AnonymousColumn("id"),
+		users.AnonymousColumn("name"),
+		users.AnonymousColumn("email"),
+	)
+	from.WithFragments(users)
+	where.WithFragments(
+		sqlf.F("#f1 IN (#join('#arg', ', '))").
+			WithFragments(users.AnonymousColumn("id")).
+			WithArgs(1, 2, 3),
+	)
+	where.AppendFragments(
+		sqlf.F("#f1 = $1").
+			WithFragments(users.AnonymousColumn("active")).
+			WithArgs(true),
 	)
 
-	var users sqlf.Table = "users"
-	selects.WithColumns(users.Expressions("id", "name", "email")...)
-	from.WithTables(users)
-	where.AppendFragments(&sqlf.Fragment{
-		Raw:     "#c1 IN (#join('#argDollar', ', '))",
-		Columns: users.Expressions("id"),
-		Args:    []any{1, 2, 3},
-	})
-	where.AppendFragments(&sqlf.Fragment{
-		Raw:     "#c1 = $1",
-		Columns: users.Expressions("active"),
-		Args:    []any{true},
-	})
-
-	query, args, err := builder.Build()
+	query, args, err := builder.BuildQuery()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)
@@ -77,36 +82,29 @@ func Example_select() {
 }
 
 func Example_update() {
-	update := &sqlf.Fragment{
-		Raw: "UPDATE #t1 SET #join('#c=#argDollar', ', ')",
-	}
-	where := &sqlf.Fragment{
-		Prefix: "WHERE",
-		Raw:    "#join('#fragment', ' AND ')",
-	}
-	// consider wrapping it with your own builder
-	// to provide a more friendly APIs
-	builder := &sqlf.Fragment{
-		Raw: "#join('#fragment', ' ')",
-		Fragments: []*sqlf.Fragment{
-			update,
-			where,
-		},
-	}
+	// consider wrapping it with your own builder to provide a more friendly APIs
+	update := sqlf.Fa("UPDATE #f1")
+	fieldValues := sqlf.Fa("SET #join('#fragment=#arg', ', ')")
+	where := sqlf.Fa("#join('#fragment', ' AND ')").WithPrefix("WHERE")
+	builder := sqlf.Ff("#join('#fragment', ' ')", update, fieldValues, where)
 
-	var users sqlf.Table = "users"
-	update.WithTables(users)
-	update.WithColumns(users.Expressions("name", "email")...)
-	update.WithArgs("alice", "alice@example.org")
-	where.AppendFragments(&sqlf.Fragment{
-		Raw:     "#c1=$1",
-		Columns: users.Expressions("id"),
-		Args:    []any{1},
-	})
+	var users sqlb.Table = "users"
+	update.WithFragments(users)
+	fieldValues.WithFragments(
+		users.AnonymousColumn("name"),
+		users.AnonymousColumn("email"),
+	)
+	fieldValues.WithArgs("alice", "alice@example.org")
+	where.AppendFragments(
+		sqlf.F("#f1=$1").
+			WithFragments(users.AnonymousColumn("id")).
+			WithArgs(1),
+	)
 
-	query, args, err := builder.Build()
+	query, args, err := builder.BuildQuery()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)
@@ -122,21 +120,19 @@ func Example_unalignedJoin() {
 	ctx := sqlf.NewContext()
 	ctx.Funcs(sqlf.FuncMap{
 		"noUnusedError": func(ctx *sqlf.FragmentContext) {
-			for i := 3; i <= ctx.Args.Count(); i++ {
-				ctx.Args.ReportUsed(i)
+			for i := 2; i < len(ctx.Args); i++ {
+				ctx.Args[i].ReportUsed()
 			}
 		},
 	})
-	foo := sqlf.Table("foo")
-	b := &sqlf.Fragment{
-		Raw:     "#noUnusedError() UPDATE #t1 SET #join('#c=#argDollar', ', ')",
-		Tables:  []sqlf.Table{foo},
-		Columns: foo.Expressions("bar", "baz"),
-		Args:    []any{1, 2, 3, true, false},
-	}
-	query, err := b.BuildContext(ctx)
+	foo := sqlb.Table("foo")
+	b := sqlf.F("#noUnusedError() UPDATE foo SET #join('#fragment=#arg', ', ')").
+		WithFragments(foo.AnonymousColumn("bar"), foo.AnonymousColumn("baz")).
+		WithArgs(1, 2, 3, true, false)
+	query, err := b.BuildFragment(ctx)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	fmt.Println(query)
 	fmt.Println(ctx.Args())
@@ -151,29 +147,28 @@ func ExampleContext_Funcs() {
 	// don't have to put Args into every fragment, which leads
 	// to a list of redundant args.
 	ctx := sqlf.NewContext()
-	ids := sqlf.NewArgsProperty(1, 2, 3)
+	ids := sqlf.NewArgsProperties(1, 2, 3)
 	err := ctx.Funcs(sqlf.FuncMap{
 		"_id": func(i int) (string, error) {
-			return ids.Build(ctx, i, syntax.Dollar)
+			return ids.Build(ctx, i)
 		},
 	})
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
-	fragment := &sqlf.Fragment{
-		Raw: "#join('#fragment', '\nUNION\n')",
-		Fragments: []*sqlf.Fragment{
-			{Raw: "SELECT id, 'foo' typ, count FROM foo WHERE id IN (#join('#_id', ', '))"},
-			{Raw: "SELECT id, 'bar' typ, count FROM bar WHERE id IN (#join('#_id', ', '))"},
-		},
-	}
-	query, err := fragment.BuildContext(ctx)
+	fragment := sqlf.Ff(
+		"#join('#fragment', '\nUNION\n')",
+		sqlf.Fa("SELECT id, 'foo' typ, count FROM foo WHERE id IN (#join('#_id', ', '))"),
+		sqlf.Fa("SELECT id, 'bar' typ, count FROM bar WHERE id IN (#join('#_id', ', '))"),
+	)
+	query, err := fragment.BuildFragment(ctx)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
-	args := ctx.Args()
 	fmt.Println(query)
-	fmt.Println(args)
+	fmt.Println(ctx.Args())
 	// Output:
 	// SELECT id, 'foo' typ, count FROM foo WHERE id IN ($1, $2, $3)
 	// UNION

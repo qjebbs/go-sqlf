@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/qjebbs/go-sqlf/util"
+	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
-func TestArgs(t *testing.T) {
+func TestArgsFlatted(t *testing.T) {
 	type str string
 	strA := str("a")
 	testCases := []struct {
@@ -16,6 +16,7 @@ func TestArgs(t *testing.T) {
 	}{
 		{args: []any{1}, want: []any{1}},
 		{args: []any{[]int{1, 2, 3}}, want: []any{1, 2, 3}},
+		{args: []any{[]int{1, 2}, []int{}, []int{3}}, want: []any{1, 2, 3}},
 		{args: []any{[]string{"a", "b", "c"}}, want: []any{"a", "b", "c"}},
 		{args: []any{[]str{"a", "b", "c"}}, want: []any{str("a"), str("b"), str("c")}},
 		{args: []any{[]*str{&strA}}, want: []any{&strA}},
@@ -34,7 +35,7 @@ func TestArgs(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		got := util.Args(tc.args...)
+		got := util.ArgsFlatted(tc.args...)
 		if !reflect.DeepEqual(tc.want, got) {
 			t.Errorf("want: %s, got: %s", tc.want, got)
 		}

@@ -3,73 +3,45 @@ package sqlf
 // Fragment is the builder for a part of or even the full query, it allows you
 // to write and combine fragments with freedom.
 type Fragment struct {
-	Raw       string      // Raw string support bind vars and preprocessing functions.
-	Args      []any       // Args to be referred by the Raw, e.g.: ?, $1
-	Columns   []*Column   // Columns to be referred by the Raw, e.g.: #c1, #column2
-	Tables    []Table     // Table names / alias to be referred by the Raw, e.g.: #t1, #table2
-	Fragments []*Fragment // Fragments to be referred by the Raw, e.g.: #fragment1, #fragment2
-	Builders  []Builder   // Builders to be referred by the Raw, e.g.: #builder1, #builder2
-
-	Prefix string // Prefix is added before the built fragment only if which is not empty.
-	Suffix string // Suffix is added after the built fragment only if which is not empty.
+	Raw       string            // Raw string support bind vars (?, $1) and preprocessing functions (#join).
+	Args      []any             // Args can be referenced by the Raw, for example: ?, $1
+	Fragments []FragmentBuilder // Fragments can be referenced by the Raw, for example: #f1, #fragment1
+	Prefix    string            // Prefix is added before the fragment only when the fragment is built not empty.
+	Suffix    string            // Suffix is added after the fragment only when the fragment is built not empty.
 }
 
-// AppendArgs appends args to the fragment.
-// Args are used to be referred by the Raw, e.g.: ?, $1
-func (f *Fragment) AppendArgs(args ...any) {
-	f.Args = append(f.Args, args...)
+// WithPrefix sets the prefix which is added before the fragment only when the f is built not empty.
+func (f *Fragment) WithPrefix(prefix string) *Fragment {
+	f.Prefix = prefix
+	return f
 }
 
-// AppendColumns appends columns to the fragment.
-// Columns are used to be referred by the Raw, e.g.: #c1, #column2
-func (f *Fragment) AppendColumns(columns ...*Column) {
-	f.Columns = append(f.Columns, columns...)
+// WithSuffix sets the suffix which is added before the fragment only when the f is built not empty.
+func (f *Fragment) WithSuffix(suffix string) *Fragment {
+	f.Suffix = suffix
+	return f
 }
 
-// AppendTables appends tables to the fragment.
-// Tables are used to be referred by the Raw, e.g.: #t1, #table2
-func (f *Fragment) AppendTables(tables ...Table) {
-	f.Tables = append(f.Tables, tables...)
-}
-
-// AppendFragments appends fragments to the fragment.
-// Fragments are used to be referred by the Raw, e.g.: #fragment1, #fragment2
-func (f *Fragment) AppendFragments(fragments ...*Fragment) {
-	f.Fragments = append(f.Fragments, fragments...)
-}
-
-// AppendBuilders appends builders to the fragment.
-// Builders are used to be referred by the Raw, e.g.: #builder1, #builder2
-func (f *Fragment) AppendBuilders(builders ...Builder) {
-	f.Builders = append(f.Builders, builders...)
-}
-
-// WithArgs replace f.Args with the args
-// Args are used to be referred by the Raw, e.g.: ?, $1
-func (f *Fragment) WithArgs(args ...any) {
+// WithArgs sets the args of f.
+func (f *Fragment) WithArgs(args ...any) *Fragment {
 	f.Args = args
+	return f
 }
 
-// WithColumns replace f.Columns with the columns
-// Columns are used to be referred by the Raw, e.g.: #c1, #column2
-func (f *Fragment) WithColumns(columns ...*Column) {
-	f.Columns = columns
-}
-
-// WithTables replace f.Tables with the tables
-// Tables are used to be referred by the Raw, e.g.: #t1, #table2
-func (f *Fragment) WithTables(tables ...Table) {
-	f.Tables = tables
-}
-
-// WithFragments replace f.Fragments with the fragments
-// Fragments are used to be referred by the Raw, e.g.: #fragment1, #fragment2
-func (f *Fragment) WithFragments(fragments ...*Fragment) {
+// WithFragments sets the fragments of f.
+func (f *Fragment) WithFragments(fragments ...FragmentBuilder) *Fragment {
 	f.Fragments = fragments
+	return f
 }
 
-// WithBuilders replace f.Builders with the builders
-// Builders are used to be referred by the Raw, e.g.: #builder1, #builder2
-func (f *Fragment) WithBuilders(builders ...Builder) {
-	f.Builders = builders
+// AppendArgs appends args to f.
+func (f *Fragment) AppendArgs(args ...any) *Fragment {
+	f.Args = append(f.Args, args...)
+	return f
+}
+
+// AppendFragments appends fragments to f.
+func (f *Fragment) AppendFragments(fragments ...FragmentBuilder) *Fragment {
+	f.Fragments = append(f.Fragments, fragments...)
+	return f
 }

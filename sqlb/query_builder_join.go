@@ -3,11 +3,11 @@ package sqlb
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf"
+	"github.com/qjebbs/go-sqlf/v2"
 )
 
 // From set the from table.
-func (b *QueryBuilder) From(t Table) *QueryBuilder {
+func (b *QueryBuilder) From(t TableAliased) *QueryBuilder {
 	if t.Name == "" {
 		b.pushError(fmt.Errorf("from table is empty"))
 		return b
@@ -32,12 +32,12 @@ func (b *QueryBuilder) From(t Table) *QueryBuilder {
 }
 
 // InnerJoin append a inner join table.
-func (b *QueryBuilder) InnerJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) InnerJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("INNER JOIN", t, on, false)
 }
 
 // LeftJoin append / replace a left join table.
-func (b *QueryBuilder) LeftJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) LeftJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("LEFT JOIN", t, on, false)
 }
 
@@ -59,27 +59,27 @@ func (b *QueryBuilder) LeftJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 // They return the same result, but the second query more efficient.
 // If the join to "bar" is declared with LeftJoinOptional(), *QueryBuilder
 // will trim it if no relative columns referenced in the query, aka Join Elimination.
-func (b *QueryBuilder) LeftJoinOptional(t Table, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) LeftJoinOptional(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("LEFT JOIN", t, on, true)
 }
 
 // RightJoin append / replace a right join table.
-func (b *QueryBuilder) RightJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) RightJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("RIGHT JOIN", t, on, false)
 }
 
 // FullJoin append / replace a full join table.
-func (b *QueryBuilder) FullJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) FullJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("FULL JOIN", t, on, false)
 }
 
 // CrossJoin append / replace a cross join table.
-func (b *QueryBuilder) CrossJoin(t Table) *QueryBuilder {
+func (b *QueryBuilder) CrossJoin(t TableAliased) *QueryBuilder {
 	return b.join("CROSS JOIN", t, nil, false)
 }
 
 // From append or replace a from table.
-func (b *QueryBuilder) join(joinStr string, t Table, on *sqlf.Fragment, optional bool) *QueryBuilder {
+func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, optional bool) *QueryBuilder {
 	if t.Name == "" {
 		b.pushError(fmt.Errorf("join table name is empty"))
 		return b
@@ -94,7 +94,7 @@ func (b *QueryBuilder) join(joinStr string, t Table, on *sqlf.Fragment, optional
 	}
 	if len(b.tables) == 0 {
 		// reserve the first alias for the main table
-		b.tables = append(b.tables, Table{})
+		b.tables = append(b.tables, TableAliased{})
 	}
 	b.tables = append(b.tables, t)
 	b.appliedNames[t.AppliedName()] = t
@@ -112,12 +112,9 @@ func (b *QueryBuilder) join(joinStr string, t Table, on *sqlf.Fragment, optional
 		return b
 	}
 	b.froms[t] = &fromTable{
-		Fragment: &sqlf.Fragment{
-			Raw:       fmt.Sprintf("%s %s ON %s", joinStr, tableAndAlias, on.Raw),
-			Fragments: on.Fragments,
-			Columns:   on.Columns,
-			Args:      on.Args,
-		},
+		Fragment: sqlf.F(fmt.Sprintf("%s %s ON %s", joinStr, tableAndAlias, on.Raw)).
+			WithFragments(on.Fragments...).
+			WithArgs(on.Args...),
 		Optional: optional,
 	}
 	return b

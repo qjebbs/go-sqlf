@@ -3,40 +3,41 @@ package sqlb_test
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf"
-	"github.com/qjebbs/go-sqlf/sqlb"
-	"github.com/qjebbs/go-sqlf/syntax"
+	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/sqlb"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
-func ExampleQueryBuilder_Build() {
+func ExampleQueryBuilder_BuildQuery() {
 	var (
-		foo = sqlb.NewTable("foo", "f")
-		bar = sqlb.NewTable("bar", "b")
+		foo = sqlb.NewTableAliased("foo", "f")
+		bar = sqlb.NewTableAliased("bar", "b")
 	)
 	b := sqlb.NewQueryBuilder().
 		Select(foo.Column("*")).
 		From(foo).
-		InnerJoin(bar, sqlf.Fc(
-			"#c1=#c2",
+		InnerJoin(bar, sqlf.Ff(
+			"#f1=#f2",
 			bar.Column("foo_id"),
 			foo.Column("id"),
 		)).
-		Where(&sqlf.Fragment{
-			Raw:     "(#c1=$1 OR #c2=$1)",
-			Columns: foo.Columns("a", "b"),
-			Args:    []any{1},
-		}).
+		Where(sqlf.F("(#f1=$1 OR #f2=$1)").
+			WithFragments(foo.Column("a"), foo.Column("b")).
+			WithArgs(1),
+		).
 		Where2(bar.Column("c"), "=", 2)
 
-	query, args, err := b.BindVar(syntax.Dollar).Build()
+	query, args, err := b.BindVar(syntax.Dollar).BuildQuery()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)
-	query, args, err = b.BindVar(syntax.Question).Build()
+	query, args, err = b.BindVar(syntax.Question).BuildQuery()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)
@@ -49,8 +50,8 @@ func ExampleQueryBuilder_Build() {
 
 func ExampleQueryBuilder_LeftJoinOptional() {
 	var (
-		foo = sqlb.NewTable("foo", "f")
-		bar = sqlb.NewTable("bar", "b")
+		foo = sqlb.NewTableAliased("foo", "f")
+		bar = sqlb.NewTableAliased("bar", "b")
 	)
 	query, args, err := sqlb.NewQueryBuilder().
 		BindVar(syntax.Dollar).
@@ -58,16 +59,17 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		Select(foo.Column("*")).
 		From(foo).
 		// declare an optional LEFT JOIN
-		LeftJoinOptional(bar, sqlf.Fc(
-			"#c1=#c2",
+		LeftJoinOptional(bar, sqlf.Ff(
+			"#f1=#f2",
 			bar.Column("foo_id"),
 			foo.Column("id"),
 		)).
 		// don't touch any columns of "bar", so that it can be trimmed
 		Where2(foo.Column("id"), ">", 1).
-		Build()
+		BuildQuery()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)
@@ -78,31 +80,34 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 
 func ExampleQueryBuilder_With() {
 	var (
-		foo = sqlb.NewTable("foo", "f")
-		bar = sqlb.NewTable("bar", "b")
-		cte = sqlb.NewTable("bar_type_1", "b1")
+		foo = sqlb.NewTableAliased("foo", "f")
+		bar = sqlb.NewTableAliased("bar", "b")
+		cte = sqlb.NewTableAliased("bar_type_1", "b1")
 	)
 	query, args, err := sqlb.NewQueryBuilder().
 		BindVar(syntax.Dollar).
-		With(cte.Name, &sqlf.Fragment{
-			Raw:     "SELECT * FROM #t1 AS #t2 WHERE #c1=$1",
-			Columns: bar.Columns("type"),
-			Args:    []any{1},
-			Tables:  bar.Names(),
-		}).
+		With(
+			cte.Name,
+			sqlf.F("SELECT * FROM #f1 AS #f2 WHERE #f3=$1").
+				WithFragments(
+					bar.Name, bar.Alias,
+					bar.Column("type"),
+				).
+				WithArgs(1)).
 		Select(
 			foo.Column("*"),
 			cte.Column("*"),
 		).
 		From(foo).
-		LeftJoinOptional(cte, sqlf.Fc(
-			"#c1=#c2",
+		LeftJoinOptional(cte, sqlf.Ff(
+			"#f1=#f2",
 			cte.Column("foo_id"),
 			foo.Column("id"),
 		)).
-		Build()
+		BuildQuery()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)
@@ -112,7 +117,7 @@ func ExampleQueryBuilder_With() {
 }
 
 func ExampleQueryBuilder_Union() {
-	var foo = sqlb.NewTable("foo", "f")
+	var foo = sqlb.NewTableAliased("foo", "f")
 	column := foo.Column("*")
 	query, args, err := sqlb.NewQueryBuilder().
 		BindVar(syntax.Dollar).
@@ -126,9 +131,10 @@ func ExampleQueryBuilder_Union() {
 				WhereIn(foo.Column("id"), []any{2, 3, 4}).
 				Select(column),
 		).
-		Build()
+		BuildQuery()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)

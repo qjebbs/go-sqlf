@@ -1,14 +1,14 @@
 package sqlb
 
 import (
-	"github.com/qjebbs/go-sqlf"
-	"github.com/qjebbs/go-sqlf/util"
+	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
 // Where add a condition.  e.g.:
 //
 //	b.Where(&sqlf.Fragment{
-//		Raw: "#c1 = $1",
+//		Raw: "#f1 = $1",
 //		Columns: t.Columns("id"),
 //		Args: []any{1},
 //	})
@@ -27,33 +27,33 @@ func (b *QueryBuilder) Where(s *sqlf.Fragment) *QueryBuilder {
 // it's  equivalent to:
 //
 //	b.Where(&sqlf.Fragment{
-//		Raw: "#c1=$1",
+//		Raw: "#f1=$1",
 //		Columns: []Column{column},
 //		Args: []any{1},
 //	})
-func (b *QueryBuilder) Where2(column *sqlf.Column, op string, arg any) *QueryBuilder {
-	b.conditions.AppendFragments(&sqlf.Fragment{
-		Raw:     "#c1" + op + "$1",
-		Columns: []*sqlf.Column{column},
-		Args:    []any{arg},
-	})
+func (b *QueryBuilder) Where2(column *Column, op string, arg any) *QueryBuilder {
+	b.conditions.AppendFragments(
+		sqlf.F("#f1" + op + "$1").
+			WithFragments(column).
+			WithArgs(arg),
+	)
 	return b
 }
 
 // WhereIn adds a where IN condition like `t.id IN (1,2,3)`
-func (b *QueryBuilder) WhereIn(column *sqlf.Column, list any) *QueryBuilder {
-	return b.Where(&sqlf.Fragment{
-		Raw:     "#c1 IN (#join('#argDollar', ', '))",
-		Columns: []*sqlf.Column{column},
-		Args:    util.Args(list),
-	})
+func (b *QueryBuilder) WhereIn(column *Column, list any) *QueryBuilder {
+	return b.Where(
+		sqlf.F("#f1 IN (#join('#arg', ', '))").
+			WithFragments(column).
+			WithArgs(util.ArgsFlatted(list)...),
+	)
 }
 
 // WhereNotIn adds a where NOT IN condition like `t.id NOT IN (1,2,3)`
-func (b *QueryBuilder) WhereNotIn(column *sqlf.Column, list any) *QueryBuilder {
-	return b.Where(&sqlf.Fragment{
-		Raw:     "#c1 NOT IN (#join('#argDollar', ', '))",
-		Columns: []*sqlf.Column{column},
-		Args:    util.Args(list),
-	})
+func (b *QueryBuilder) WhereNotIn(column *Column, list any) *QueryBuilder {
+	return b.Where(
+		sqlf.F("#f1 NOT IN (#join('#arg', ', '))").
+			WithFragments(column).
+			WithArgs(util.ArgsFlatted(list)...),
+	)
 }

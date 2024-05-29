@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf"
+	"github.com/qjebbs/go-sqlf/v2"
 )
 
 // QueryAble is the interface for query-able *sql.DB, *sql.Tx, etc.
@@ -20,8 +20,8 @@ type QueryAble interface {
 type NewScanDestFunc[T any] func() (T, []any)
 
 // ScanBuilder is like Scan, but it builds query from sqlf.Builder
-func ScanBuilder[T any](db QueryAble, b sqlf.Builder, fn NewScanDestFunc[T]) ([]T, error) {
-	query, args, err := b.Build()
+func ScanBuilder[T any](db QueryAble, b sqlf.QueryBuilder, fn NewScanDestFunc[T]) ([]T, error) {
+	query, args, err := b.BuildQuery()
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +64,8 @@ func ScanRow(rows *sql.Rows, dest ...any) error {
 }
 
 // CountBuilder is like Count, but it builds query from sqlf.Builder.
-func CountBuilder(db QueryAble, b sqlf.Builder) (count int64, err error) {
-	query, args, err := b.Build()
+func CountBuilder(db QueryAble, b sqlf.QueryBuilder) (count int64, err error) {
+	query, args, err := b.BuildQuery()
 	if err != nil {
 		return 0, err
 	}

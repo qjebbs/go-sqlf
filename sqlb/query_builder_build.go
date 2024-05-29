@@ -5,12 +5,15 @@ import (
 	"log"
 	"strings"
 
-	"github.com/qjebbs/go-sqlf"
-	"github.com/qjebbs/go-sqlf/util"
+	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
-// Build builds the query.
-func (b *QueryBuilder) Build() (query string, args []any, err error) {
+var _ sqlf.QueryBuilder = (*QueryBuilder)(nil)
+var _ sqlf.FragmentBuilder = (*QueryBuilder)(nil)
+
+// BuildQuery builds the query.
+func (b *QueryBuilder) BuildQuery() (query string, args []any, err error) {
 	ctx := sqlf.NewContext()
 	ctx.BindVarStyle = b.bindVarStyle
 	query, err = b.buildInternal(ctx)
@@ -21,8 +24,8 @@ func (b *QueryBuilder) Build() (query string, args []any, err error) {
 	return query, args, nil
 }
 
-// BuildContext builds the query with the context.
-func (b *QueryBuilder) BuildContext(ctx *sqlf.Context) (query string, err error) {
+// BuildFragment implements FragmentBuilder
+func (b *QueryBuilder) BuildFragment(ctx *sqlf.Context) (query string, err error) {
 	return b.buildInternal(ctx)
 }
 
@@ -66,21 +69,21 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	if from != "" {
 		clauses = append(clauses, from)
 	}
-	where, err := b.conditions.BuildContext(ctx)
+	where, err := b.conditions.BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
 	if where != "" {
 		clauses = append(clauses, where)
 	}
-	groupby, err := b.groupbys.BuildContext(ctx)
+	groupby, err := b.groupbys.BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
 	if groupby != "" {
 		clauses = append(clauses, groupby)
 	}
-	order, err := b.orders.BuildContext(ctx)
+	order, err := b.orders.BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -111,7 +114,7 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	return query, nil
 }
 
-func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[Table]bool) (string, error) {
+func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[TableAliased]bool) (string, error) {
 	if len(b.ctes) == 0 {
 		return "", nil
 	}
@@ -120,7 +123,7 @@ func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[Table]bool) (string,
 		if !dep[cte.table] {
 			continue
 		}
-		query, err := cte.BuildContext(ctx)
+		query, err := cte.BuildFragment(ctx)
 		if err != nil {
 			return "", fmt.Errorf("build CTE '%s': %w", cte.table, err)
 		}
@@ -144,11 +147,11 @@ func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
 	} else {
 		b.selects.Prefix = "SELECT"
 	}
-	sel, err := b.selects.BuildContext(ctx)
+	sel, err := b.selects.BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
-	touches, err := b.touches.BuildContext(ctx)
+	touches, err := b.touches.BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -161,7 +164,7 @@ func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
 	return sel + ", " + touches, nil
 }
 
-func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[Table]bool) (string, error) {
+func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (string, error) {
 	tables := make([]string, 0, len(b.tables))
 	for _, t := range b.tables {
 		ft, ok := b.froms[t]
@@ -173,7 +176,7 @@ func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[Table]bool) (string,
 			continue
 		}
 		from := b.froms[t]
-		c, err := from.Fragment.BuildContext(ctx)
+		c, err := from.Fragment.BuildFragment(ctx)
 		if err != nil {
 			return "", fmt.Errorf("build FROM '%s': %w", from.Fragment.Raw, err)
 		}
@@ -185,7 +188,7 @@ func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[Table]bool) (string,
 func (b *QueryBuilder) buildUnion(ctx *sqlf.Context) (string, error) {
 	clauses := make([]string, 0, len(b.unions))
 	for _, union := range b.unions {
-		query, err := union.BuildContext(ctx)
+		query, err := union.BuildFragment(ctx)
 		if err != nil {
 			return "", err
 		}

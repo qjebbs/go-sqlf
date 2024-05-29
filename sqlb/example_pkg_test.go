@@ -1,9 +1,9 @@
 package sqlb_test
 
 import (
-	"github.com/qjebbs/go-sqlf/sqlb"
-	"github.com/qjebbs/go-sqlf/syntax"
-	"github.com/qjebbs/go-sqlf/util"
+	"github.com/qjebbs/go-sqlf/v2/sqlb"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
+	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
 func Example() {
@@ -18,7 +18,7 @@ type UserQueryBuilder struct {
 	*sqlb.QueryBuilder
 }
 
-var Users = sqlb.NewTable("users", "u")
+var Users = sqlb.NewTableAliased("users", "u")
 
 func NewUserQueryBuilder(db util.QueryAble) *UserQueryBuilder {
 	b := sqlb.NewQueryBuilder().

@@ -4,12 +4,15 @@ import (
 	"reflect"
 )
 
-// Args is a help func to create a slice of query args from values, slices and array.
-// it concatenates all values to a single slice, and flattens any slices and arrays in the first level.
-// e.g.
+// ArgsFlatted is a help func to create a slice of query args.
 //
-//	Args(1, []int{2, 3}, []string{"a", "b", "c"}) => []any{1, 2, 3, "a", "b", "c"}
-func Args(valueOrSlices ...any) []any {
+// it accepts values, slices and arrays, and the all 1st depth elements
+// in the slice/array will be extract and concatenated to the returned
+// slice, which is called flattening, e.g.:
+//
+//	ArgsFlatted(1, []int{2, 3}, []string{"a", "b", "c"}) => []any{1, 2, 3, "a", "b", "c"}
+//	ArgsFlatted(1, []int{}, []int{2}) => []any{1, 2}
+func ArgsFlatted(valueOrSlices ...any) []any {
 	args := make([]any, 0, 10)
 	for _, v := range valueOrSlices {
 		args = append(args, argsFrom(v)...)

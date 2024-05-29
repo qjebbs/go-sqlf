@@ -5,19 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/qjebbs/go-sqlf/syntax"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
 var builtInFuncs = FuncMap{
-	"c":           funcColumn,
-	"column":      funcColumn,
-	"t":           funcTable,
-	"table":       funcTable,
-	"fragment":    funcFragment,
-	"builder":     funcBuilder,
-	"argDollar":   funcArgDollar,
-	"argQuestion": funcArgQuestion,
-	"join":        funcJoin,
+	"arg":      funcArg,
+	"f":        funcFragment,
+	"fragment": funcFragment,
+	"join":     funcJoin,
 }
 
 func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (string, error) {
@@ -64,7 +59,7 @@ func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (str
 		calls = append(calls, call)
 	}
 	if len(calls) == 0 {
-		return "", fmt.Errorf("no function in join template '%s' (e.g.: #c, not #c1)", tmpl)
+		return "", fmt.Errorf("no function in join template '%s' (e.g.: #f, not #f1)", tmpl)
 	}
 	start := from
 	if start <= 0 {
@@ -99,26 +94,10 @@ func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (str
 	return b.String(), nil
 }
 
-func funcArgDollar(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Args.Build(ctx.Global, i, syntax.Dollar)
-}
-
-func funcArgQuestion(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Args.Build(ctx.Global, i, syntax.Question)
-}
-
-func funcColumn(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Columns.Build(ctx.Global, i)
-}
-
-func funcTable(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Tables.Build(ctx.Global, i)
+func funcArg(ctx *FragmentContext, i int) (string, error) {
+	return ctx.Args.Build(ctx.Global, i)
 }
 
 func funcFragment(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Fragments.Build(ctx.Global, i)
-}
-
-func funcBuilder(ctx *FragmentContext, i int) (string, error) {
 	return ctx.Builders.Build(ctx.Global, i)
 }

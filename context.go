@@ -3,7 +3,7 @@ package sqlf
 import (
 	"strconv"
 
-	"github.com/qjebbs/go-sqlf/syntax"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
 // Context is the global context shared between all fragments building.
@@ -14,7 +14,7 @@ type Context struct {
 	BindVarStyle syntax.BindVarStyle
 
 	funcs    map[string]*funcInfo
-	argStore []any
+	argStore *[]any
 }
 
 // NewContext returns a new context.
@@ -29,10 +29,16 @@ func NewContext() *Context {
 }
 
 func newEmptyContext() *Context {
+	argStore := make([]any, 0)
 	return &Context{
 		funcs:    make(map[string]*funcInfo),
-		argStore: make([]any, 0),
+		argStore: &argStore,
 	}
+}
+
+func (c *Context) copy() *Context {
+	newCtx := *c
+	return &newCtx
 }
 
 func (c *Context) fn(name string) (*funcInfo, bool) {
@@ -77,18 +83,18 @@ func (c *Context) Funcs(funcs FuncMap) error {
 
 // Args returns the built args of the context.
 func (c *Context) Args() []any {
-	return c.argStore
+	return *c.argStore
 }
 
 // CommitArg commits an built arg to the context and returns the built bindvar.
 // defaultStyle is used only when no style is set in the context and no style is seen before.
-func (c *Context) CommitArg(arg any, defaultStyle syntax.BindVarStyle) string {
-	if c.BindVarStyle == 0 {
-		c.BindVarStyle = defaultStyle
+func (c *Context) CommitArg(arg any) string {
+	if c.BindVarStyle == syntax.Auto {
+		c.BindVarStyle = syntax.Dollar
 	}
-	c.argStore = append(c.argStore, arg)
+	*c.argStore = append(*c.argStore, arg)
 	if c.BindVarStyle == syntax.Question {
 		return "?"
 	}
-	return "$" + strconv.Itoa(len(c.argStore))
+	return "$" + strconv.Itoa(len(*c.argStore))
 }

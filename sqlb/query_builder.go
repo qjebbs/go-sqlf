@@ -3,11 +3,9 @@ package sqlb
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf"
-	"github.com/qjebbs/go-sqlf/syntax"
+	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
-
-var _ sqlf.Builder = (*QueryBuilder)(nil)
 
 // QueryBuilder is the SQL query builder.
 // It's recommended to wrap it with your struct to provide a
@@ -15,20 +13,20 @@ var _ sqlf.Builder = (*QueryBuilder)(nil)
 type QueryBuilder struct {
 	bindVarStyle syntax.BindVarStyle // the bindvar style
 
-	ctes         []*cte               // common table expressions
-	froms        map[Table]*fromTable // the from tables by alias
-	tables       []Table              // the tables in order
-	appliedNames map[sqlf.Table]Table // applied table name mapping, the name is alias, or name if alias is empty
+	ctes         []*cte                      // common table expressions
+	froms        map[TableAliased]*fromTable // the from tables by alias
+	tables       []TableAliased              // the tables in order
+	appliedNames map[Table]TableAliased      // applied table name mapping, the name is alias, or name if alias is empty
 
-	selects    *sqlf.Fragment // select columns and keep values in scanning.
-	touches    *sqlf.Fragment // select columns but drop values in scanning.
-	conditions *sqlf.Fragment // where conditions, joined with AND.
-	orders     *sqlf.Fragment // order by columns, joined with comma.
-	groupbys   *sqlf.Fragment // group by columns, joined with comma.
-	distinct   bool           // select distinct
-	limit      int64          // limit count
-	offset     int64          // offset count
-	unions     []sqlf.Builder // union queries
+	selects    *sqlf.Fragment         // select columns and keep values in scanning.
+	touches    *sqlf.Fragment         // select columns but drop values in scanning.
+	conditions *sqlf.Fragment         // where conditions, joined with AND.
+	orders     *sqlf.Fragment         // order by columns, joined with comma.
+	groupbys   *sqlf.Fragment         // group by columns, joined with comma.
+	distinct   bool                   // select distinct
+	limit      int64                  // limit count
+	offset     int64                  // offset count
+	unions     []sqlf.FragmentBuilder // union queries
 
 	errors []error // errors during building
 
@@ -43,28 +41,13 @@ type fromTable struct {
 // NewQueryBuilder returns a new QueryBuilder.
 func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{
-		froms:        map[Table]*fromTable{},
-		appliedNames: make(map[sqlf.Table]Table),
-		selects: &sqlf.Fragment{
-			Prefix: "SELECT",
-			Raw:    "#join('#column', ', ')",
-		},
-		touches: &sqlf.Fragment{
-			Prefix: "",
-			Raw:    "#join('#fragment', ', ')",
-		},
-		conditions: &sqlf.Fragment{
-			Prefix: "WHERE",
-			Raw:    "#join('#fragment', ' AND ')",
-		},
-		orders: &sqlf.Fragment{
-			Prefix: "ORDER BY",
-			Raw:    "#join('#fragment', ', ')",
-		},
-		groupbys: &sqlf.Fragment{
-			Prefix: "GROUP BY",
-			Raw:    "#join('#fragment', ', ')",
-		},
+		froms:        map[TableAliased]*fromTable{},
+		appliedNames: make(map[Table]TableAliased),
+		selects:      sqlf.F("#join('#fragment', ', ')").WithPrefix("SELECT"),
+		touches:      sqlf.F("#join('#fragment', ', ')"),
+		conditions:   sqlf.F("#join('#fragment', ' AND ')").WithPrefix("WHERE"),
+		orders:       sqlf.F("#join('#fragment', ', ')").WithPrefix("ORDER BY"),
+		groupbys:     sqlf.F("#join('#fragment', ', ')").WithPrefix("GROUP BY"),
 	}
 }
 
@@ -75,11 +58,11 @@ func (b *QueryBuilder) Distinct() *QueryBuilder {
 }
 
 // Select replace the SELECT clause with the columns.
-func (b *QueryBuilder) Select(columns ...*sqlf.Column) *QueryBuilder {
+func (b *QueryBuilder) Select(columns ...*Column) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
 	}
-	b.selects.WithColumns(columns...)
+	b.selects.WithFragments(convertFragmentBuilders(columns)...)
 	return b
 }
 
@@ -106,7 +89,7 @@ var orders = []string{
 }
 
 // OrderBy set the sorting order. the order can be "ASC", "DESC", "ASC NULLS FIRST" or "DESC NULLS LAST"
-func (b *QueryBuilder) OrderBy(column *sqlf.Column, order Order) *QueryBuilder {
+func (b *QueryBuilder) OrderBy(column *Column, order Order) *QueryBuilder {
 	idx := len(b.orders.Fragments) + 1
 	alias := fmt.Sprintf("_order_%d", idx)
 
@@ -115,15 +98,8 @@ func (b *QueryBuilder) OrderBy(column *sqlf.Column, order Order) *QueryBuilder {
 	}
 	orderStr := orders[order]
 	// pq: for SELECT DISTINCT, ORDER BY expressions must appear in select list
-	b.touches.AppendFragments(&sqlf.Fragment{
-		Raw:     "#c1 AS " + alias,
-		Columns: []*sqlf.Column{column},
-	})
-	b.orders.AppendFragments(&sqlf.Fragment{
-		Raw:     fmt.Sprintf("%s %s", alias, orderStr),
-		Columns: nil,
-		Args:    nil,
-	})
+	b.touches.AppendFragments(sqlf.Ff("#f1 AS "+alias, column))
+	b.orders.AppendFragments(sqlf.F(fmt.Sprintf("%s %s", alias, orderStr)))
 	return b
 }
 
@@ -144,18 +120,15 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 }
 
 // GroupBy set the sorting order.
-func (b *QueryBuilder) GroupBy(column *sqlf.Column) *QueryBuilder {
-	b.groupbys.AppendFragments(&sqlf.Fragment{
-		Raw:     "#c1",
-		Columns: []*sqlf.Column{column},
-	})
+func (b *QueryBuilder) GroupBy(column *Column) *QueryBuilder {
+	b.groupbys.AppendFragments(column)
 	return b
 }
 
 // Union unions other query builders, the type of query builders can be
 // *QueryBuilder or any other extended *QueryBuilder types (structs with
 // *QueryBuilder embedded.)
-func (b *QueryBuilder) Union(builders ...sqlf.Builder) *QueryBuilder {
+func (b *QueryBuilder) Union(builders ...sqlf.FragmentBuilder) *QueryBuilder {
 	b.unions = append(b.unions, builders...)
 	return b
 }
