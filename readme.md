@@ -9,16 +9,22 @@ Unlike any other sql builder or ORMs, `Fragment` is the only concept you need to
 Fragment is usually a part of a SQL query, which uses exactly the same syntax as `database/sql`, but provides the ability to combine them in any way.
 
 ```go
-query, args, _ := sqlf.Ff(
-	"SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
-	sqlf.Fa("baz = $1", true),
-	sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),
-).BuildQuery()
-fmt.Println(query)
-fmt.Println(args)
-// Output:
-// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3
-// [true 1 100]
+import (
+	"fmt"
+	"github.com/qjebbs/go-sqlf/v2"
+)
+func Example_basic2() {
+	query, args, _ := sqlf.Ff(
+		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
+		sqlf.Fa("baz = $1", true),
+		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),
+	).BuildQuery(syntax.Dollar)
+	fmt.Println(query)
+	fmt.Println(args)
+	// Output:
+	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3
+	// [true 1 100]
+}
 ```
 
 Explanation:

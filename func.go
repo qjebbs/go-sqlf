@@ -17,6 +17,33 @@ var (
 )
 
 // FuncMap is the type of the map defining the mapping from names to functions.
+//
+// The function names are case sensitive, only letters and underscore are allowed.
+//
+// Allowed function signatures:
+//
+//	func(/* args... */) (string, error)
+//	func(/* args... */) string
+//	func(/* args... */)
+//
+// Allowed argument types:
+//   - number types: int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,float32, float64
+//   - string
+//   - bool
+//   - *sqlf.Context: allowed only as the first argument
+//
+// Here are examples of legal names and function signatures:
+//
+//	funcs := sqlf.FuncMap{
+//		// #number1, #join('#number', ', ')
+//		"number": func(i int) (string, error) {/* ... */},
+//		// #myBuilder1, #join('#myBuilder', ', ')
+//		"myBuilder": func(ctx *sqlf.Context, i int) (string, error)  {/* ... */},
+//		// #string('string')
+//		"string": func(str string) (string, error)  {/* ... */},
+//		// #numbers(1,2)
+//		"numbers": func(ctx *sqlf.Context, a, b int) string  {/* ... */},
+//	}
 type FuncMap map[string]any
 
 type funcInfo struct {

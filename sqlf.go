@@ -7,13 +7,14 @@
 // Unlike any other sql builder or ORMs, Fragment is the only concept
 // you need to learn.
 //
-// Fragment is usually a part of a SQL query, for example, combining main fragment and any number of condition fragments, we can get a complete query.
+// Fragment is usually a part of a SQL query, which uses exactly the same syntax
+// as `database/sql`, but provides the ability to combine them in any way.
 //
 //	query, args, _ := sqlf.Ff(
 //		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
 //		sqlf.Fa("baz = $1", true),
 //		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),
-//	).BuildQuery()
+//	).BuildQuery(syntax.Dollar)
 //	fmt.Println(query)
 //	fmt.Println(args)
 //	// Output:

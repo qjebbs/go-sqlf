@@ -27,10 +27,10 @@ func (p Properties) checkUsage() error {
 }
 
 // NewFragmentProperties creates new properties from FragmentBuilder
-func NewFragmentProperties(builders ...FragmentBuilder) Properties {
+func NewFragmentProperties(fragments ...FragmentBuilder) Properties {
 	r := make(Properties, 0)
-	for _, b := range builders {
-		r = append(r, newDefaultProperty(b))
+	for _, f := range fragments {
+		r = append(r, newDefaultProperty(f))
 	}
 	return r
 }
