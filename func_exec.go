@@ -5,15 +5,15 @@ import (
 	"reflect"
 )
 
-func evalFunction(ctx *FragmentContext, name string, args []any) (string, error) {
-	function, ok := ctx.Global.fn(name)
+func evalFunction(ctx *Context, name string, args []any) (string, error) {
+	function, ok := ctx.fn(name)
 	if !ok {
 		return "", fmt.Errorf("%q is not a defined function", name)
 	}
 	return evalCall(ctx, function, args)
 }
 
-func evalCall(ctx *FragmentContext, f *funcInfo, args []any) (string, error) {
+func evalCall(ctx *Context, f *funcInfo, args []any) (string, error) {
 	// check input args
 	nArgs := len(args)
 	nIn := f.nIn

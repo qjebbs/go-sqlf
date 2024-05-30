@@ -117,14 +117,18 @@ func Example_unalignedJoin() {
 	// this example demonstrates how #join() works between unaligned properties.
 	// it leaves the extra property items (.Args[2:] here) unused, which leads to an error.
 	// to make it work, we use #noUnusedError() to suppress the error.
-	ctx := sqlf.NewContext()
-	ctx.Funcs(sqlf.FuncMap{
-		"noUnusedError": func(ctx *sqlf.FragmentContext) {
-			for i := 2; i < len(ctx.Args); i++ {
-				ctx.Args[i].ReportUsed()
+	ctx, err := sqlf.ContextWithFuncs(sqlf.NewContext(), sqlf.FuncMap{
+		"noUnusedError": func(ctx *sqlf.Context) {
+			args := ctx.Fragment().Args
+			for i := 2; i < len(args); i++ {
+				args[i].ReportUsed()
 			}
 		},
 	})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	foo := sqlb.Table("foo")
 	b := sqlf.F("#noUnusedError() UPDATE foo SET #join('#fragment=#arg', ', ')").
 		WithFragments(foo.AnonymousColumn("bar"), foo.AnonymousColumn("baz")).
@@ -141,15 +145,14 @@ func Example_unalignedJoin() {
 	// [1 2]
 }
 
-func ExampleContext_Funcs() {
+func ExampleContextWithFuncs() {
 	// this example shows how to use Global Args by using
-	// *sqlf.ArgsProperty and custom function, so that we
+	// sqlf.NewArgsProperties and custom function, so that we
 	// don't have to put Args into every fragment, which leads
 	// to a list of redundant args.
-	ctx := sqlf.NewContext()
 	ids := sqlf.NewArgsProperties(1, 2, 3)
-	err := ctx.Funcs(sqlf.FuncMap{
-		"_id": func(i int) (string, error) {
+	ctx, err := sqlf.ContextWithFuncs(sqlf.NewContext(), sqlf.FuncMap{
+		"_id": func(ctx *sqlf.Context, i int) (string, error) {
 			return ids.Build(ctx, i)
 		},
 	})

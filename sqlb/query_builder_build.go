@@ -15,7 +15,7 @@ var _ sqlf.FragmentBuilder = (*QueryBuilder)(nil)
 // BuildQuery builds the query.
 func (b *QueryBuilder) BuildQuery() (query string, args []any, err error) {
 	ctx := sqlf.NewContext()
-	ctx.BindVarStyle = b.bindVarStyle
+	ctx.SetBindVarStyle(b.bindVarStyle)
 	query, err = b.buildInternal(ctx)
 	if err != nil {
 		return "", nil, err

@@ -29,12 +29,12 @@ func (f *Fragment) BuildFragment(ctx *Context) (string, error) {
 	if ctx == nil {
 		return "", fmt.Errorf("nil context")
 	}
-	ctxCur := newFragmentContext(ctx, f)
-	body, err := build(ctxCur, f)
+	ctx = ContextWithFragment(ctx, f)
+	body, err := build(ctx, f)
 	if err != nil {
 		return "", err
 	}
-	if err := ctxCur.CheckUsage(); err != nil {
+	if err := ctx.Fragment().checkUsage(); err != nil {
 		return "", fmt.Errorf("build '%s': %w", f.Raw, err)
 	}
 	body = strings.TrimSpace(body)
@@ -52,7 +52,7 @@ func (f *Fragment) BuildFragment(ctx *Context) (string, error) {
 }
 
 // build builds the fragment
-func build(ctx *FragmentContext, fragment *Fragment) (string, error) {
+func build(ctx *Context, fragment *Fragment) (string, error) {
 	clause, err := syntax.Parse(fragment.Raw)
 	if err != nil {
 		return "", fmt.Errorf("parse '%s': %w", fragment.Raw, err)
@@ -65,20 +65,21 @@ func build(ctx *FragmentContext, fragment *Fragment) (string, error) {
 }
 
 // buildClause builds the parsed clause within current context.
-func buildClause(ctx *FragmentContext, clause *syntax.Clause) (string, error) {
+func buildClause(ctx *Context, clause *syntax.Clause) (string, error) {
 	b := new(strings.Builder)
 	for _, decl := range clause.ExprList {
 		switch expr := decl.(type) {
 		case *syntax.PlainExpr:
 			b.WriteString(expr.Text)
 		case *syntax.BindVarExpr:
-			if expr.Index < 1 || expr.Index > len(ctx.Args) {
+			args := ctx.Fragment().Args
+			if expr.Index < 1 || expr.Index > len(args) {
 				return "", fmt.Errorf("invalid bind var index %d", expr.Index)
 			}
-			if ctx.Global.BindVarStyle == syntax.Auto {
-				ctx.Global.BindVarStyle = expr.Type
+			if ctx.BindVarStyle() == syntax.Auto {
+				ctx.SetBindVarStyle(expr.Type)
 			}
-			s, err := ctx.Args[expr.Index-1].BuildFragment(ctx.Global)
+			s, err := args[expr.Index-1].BuildFragment(ctx)
 			if err != nil {
 				return "", err
 			}

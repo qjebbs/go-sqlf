@@ -1,8 +1,6 @@
 package sqlf
 
 import (
-	"strconv"
-
 	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
@@ -11,10 +9,12 @@ type Context struct {
 	// BindVarStyle overrides bindvar styles of all fragments.
 	// if not set, the first bindvar style encountered when
 	// building is applied.
-	BindVarStyle syntax.BindVarStyle
+	bindVarStyle syntax.BindVarStyle
+	argStore     *[]any
 
+	parent   *Context
 	funcs    map[string]*funcInfo
-	argStore *[]any
+	fragment *FragmentContext
 }
 
 // NewContext returns a new context.
@@ -28,6 +28,18 @@ func NewContext() *Context {
 	return ctx
 }
 
+// BindVarStyle returns the bindvar style of the context.
+func (c *Context) BindVarStyle() syntax.BindVarStyle {
+	return c.Root().bindVarStyle
+}
+
+// SetBindVarStyle sets the bindvar style of the context.
+func (c *Context) SetBindVarStyle(style syntax.BindVarStyle) {
+	c.Root().bindVarStyle = style
+}
+
+// A
+
 func newEmptyContext() *Context {
 	argStore := make([]any, 0)
 	return &Context{
@@ -36,65 +48,16 @@ func newEmptyContext() *Context {
 	}
 }
 
-func (c *Context) copy() *Context {
-	newCtx := *c
-	return &newCtx
-}
-
-func (c *Context) fn(name string) (*funcInfo, bool) {
-	if c == nil || c.funcs == nil {
-		return nil, false
+// Root returns the root context.
+func (c *Context) Root() *Context {
+	root := c
+	for root.parent != nil {
+		root = root.parent
 	}
-	fn, ok := c.funcs[name]
-	return fn, ok
+	return root
 }
 
-// Funcs adds the preprocessing functions to the context.
-//
-// The function name is case sensitive, only letters and underscore are allowed.
-//
-// Allowed function signatures:
-//
-//	func(/* args... */) (string, error)
-//	func(/* args... */) string
-//	func(/* args... */)
-//
-// Allowed argument types:
-//   - number types: int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64,float32, float64
-//   - string
-//   - bool
-//   - *sqlf.FragmentContext: allowed only as the first argument
-//
-// Here are examples of legal names and function signatures:
-//
-//	funcs := sqlf.FuncMap{
-//		// #number1, #join('#number', ', ')
-//		"number": func(i int) (string, error) {/* ... */},
-//		// #myBuilder1, #join('#myBuilder', ', ')
-//		"myBuilder": func(ctx *sqlf.FragmentContext, i int) (string, error)  {/* ... */},
-//		// #string('string')
-//		"string": func(str string) (string, error)  {/* ... */},
-//		// #numbers(1,2)
-//		"numbers": func(ctx *sqlf.FragmentContext, a, b int) string  {/* ... */},
-//	}
-func (c *Context) Funcs(funcs FuncMap) error {
-	return addValueFuncs(c.funcs, funcs)
-}
-
-// Args returns the built args of the context.
-func (c *Context) Args() []any {
-	return *c.argStore
-}
-
-// CommitArg commits an built arg to the context and returns the built bindvar.
-// defaultStyle is used only when no style is set in the context and no style is seen before.
-func (c *Context) CommitArg(arg any) string {
-	if c.BindVarStyle == syntax.Auto {
-		c.BindVarStyle = syntax.Dollar
-	}
-	*c.argStore = append(*c.argStore, arg)
-	if c.BindVarStyle == syntax.Question {
-		return "?"
-	}
-	return "$" + strconv.Itoa(len(*c.argStore))
+// Parent returns the parent context.
+func (c *Context) Parent() *Context {
+	return c.parent
 }

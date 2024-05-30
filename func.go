@@ -13,7 +13,7 @@ var (
 	fmtStringerType  = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
 	reflectValueType = reflect.TypeOf((*reflect.Value)(nil)).Elem()
 
-	contextPointerType = reflect.TypeOf((*FragmentContext)(nil))
+	contextPointerType = reflect.TypeOf((*Context)(nil))
 )
 
 // FuncMap is the type of the map defining the mapping from names to functions.
@@ -27,12 +27,12 @@ type funcInfo struct {
 	nIn            int            // number of arguments, including the variadic one
 	nInFixed       int            // number of fixed arguments, except the variadic one
 	inTypes        []reflect.Type // types of all arguments
-	inContextFirst bool           // if the first argument is *FragmentContext
+	inContextFirst bool           // if the first argument is a context
 
 	nOut     int            // number of outputs
 	outTypes []reflect.Type // types of all outputs
 
-	joinTested bool  // whether the function has been tested for #join()s
+	joinTested bool  // whether the function has been tested for #join()
 	joinError  error // error to return when the function is not compatible with #join()
 }
 
@@ -144,7 +144,7 @@ func goodFunc(f *funcInfo) error {
 			t = t.Elem()
 		}
 		if !goodArgType(t) {
-			return fmt.Errorf("unsupported argument type '%s', allowed: number(int*, uint*, float*), string, bool, *sqlf.FragmentContext(as the first argument only)", t)
+			return fmt.Errorf("unsupported argument type '%s', allowed: number(int*, uint*, float*), string, bool, *sqlf.Context(as the first argument only)", t)
 		}
 	}
 
@@ -167,7 +167,7 @@ func numberType(k reflect.Kind) bool {
 }
 
 func joinCompatibility(f *funcInfo) error {
-	errSig := errors.New("incompatible function signature, expected func(<number>) (string, error) or func(*sqlf.FragmentContext, <number>) (string, error)")
+	errSig := errors.New("incompatible function signature, expected func(<number>) (string, error) or func(*sqlf.Context, <number>) (string, error)")
 	if f.nOut != 2 || f.outTypes[1] != errorType {
 		return errSig
 	}
@@ -194,7 +194,7 @@ func joinCompatibility(f *funcInfo) error {
 	default:
 		return errSig
 	}
-	ctx := newFragmentContext(newEmptyContext(), &Fragment{})
+	ctx := ContextWithFragment(newEmptyContext(), nil)
 	// #join() Assume that the index starts from 1, so 0 is an invalid index,
 	// a compatible function should return ErrInvalidIndex
 	_, err := evalCall(ctx, f, []any{0})

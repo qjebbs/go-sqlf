@@ -15,7 +15,7 @@ var builtInFuncs = FuncMap{
 	"join":     funcJoin,
 }
 
-func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (string, error) {
+func funcJoin(ctx *Context, tmpl, separator string, indexes ...int) (string, error) {
 	var err error
 	var from, to int
 	switch len(indexes) {
@@ -45,7 +45,7 @@ func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (str
 		if !ok {
 			continue
 		}
-		f, ok := ctx.Global.fn(fn.Name)
+		f, ok := ctx.fn(fn.Name)
 		if !ok {
 			return "", fmt.Errorf("unknown function #%s", fn.Name)
 		}
@@ -94,10 +94,10 @@ func funcJoin(ctx *FragmentContext, tmpl, separator string, indexes ...int) (str
 	return b.String(), nil
 }
 
-func funcArg(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Args.Build(ctx.Global, i)
+func funcArg(ctx *Context, i int) (string, error) {
+	return ctx.Fragment().Args.Build(ctx, i)
 }
 
-func funcFragment(ctx *FragmentContext, i int) (string, error) {
-	return ctx.Builders.Build(ctx.Global, i)
+func funcFragment(ctx *Context, i int) (string, error) {
+	return ctx.Fragment().Builders.Build(ctx, i)
 }
