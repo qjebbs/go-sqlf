@@ -10,14 +10,14 @@ Fragment is usually a part of a SQL query, which uses exactly the same syntax as
 
 ```go
 query, args, _ := sqlf.Ff(
-	`SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
+	"SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
 	sqlf.Fa("baz = $1", true),
-	sqlf.Fa("bar BETWEEN ? AND ?)", 1, 100),
+	sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),
 ).BuildQuery()
 fmt.Println(query)
 fmt.Println(args)
 // Output:
-// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3)
+// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3
 // [true 1 100]
 ```
 

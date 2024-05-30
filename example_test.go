@@ -18,30 +18,30 @@ func Example_basic1() {
 		Args: []any{true},
 	}
 	b := &sqlf.Fragment{
-		Raw:  "bar BETWEEN ? AND ?)",
+		Raw:  "bar BETWEEN ? AND ?",
 		Args: []any{1, 100},
 	}
 	query, args, _ := (&sqlf.Fragment{
 		// Similarly, referencing .Fragments results fragments combinations.
-		Raw:       `SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
+		Raw:       "SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
 		Fragments: []sqlf.FragmentBuilder{a, b},
 	}).BuildQuery()
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
-	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3)
+	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3
 	// [true 1 100]
 }
 func Example_basic2() {
 	query, args, _ := sqlf.Ff(
-		`SELECT * FROM foo WHERE #join('#fragment', ' AND ')`,
+		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
 		sqlf.Fa("baz = $1", true),
-		sqlf.Fa("bar BETWEEN ? AND ?)", 1, 100),
+		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),
 	).BuildQuery()
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
-	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3)
+	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3
 	// [true 1 100]
 }
 
