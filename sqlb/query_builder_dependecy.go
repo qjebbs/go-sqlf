@@ -62,11 +62,11 @@ func (b *QueryBuilder) markDependencies(dep map[TableAliased]bool, t Table) erro
 func extractTables(fragments ...sqlf.FragmentBuilder) []Table {
 	tables := []Table{}
 	dict := map[Table]bool{}
-	extractTables2(fragments, &tables, &dict)
+	extractTables2(fragments, &tables, dict)
 	return tables
 }
 
-func extractTables2(fragments []sqlf.FragmentBuilder, tables *[]Table, dict *map[Table]bool) {
+func extractTables2(fragments []sqlf.FragmentBuilder, tables *[]Table, dict map[Table]bool) {
 	for _, f := range fragments {
 		if f == nil {
 			continue
@@ -75,24 +75,32 @@ func extractTables2(fragments []sqlf.FragmentBuilder, tables *[]Table, dict *map
 			extractTables2(fragment.Fragments, tables, dict)
 			continue
 		}
-		if column, ok := f.(*Column); ok {
-			if column.table!="" {
-				if !(*dict)[column.table] {
-					*tables = append(*tables, column.table)
-					(*dict)[column.table] = true
+		if column, ok := f.(*Column); ok && column != nil {
+			if column.table != "" {
+				if !dict[column.table] {
+					collectTable(column.table, tables, dict)
 				}
 			} else {
 				extractTables2(column.fragment.Fragments, tables, dict)
 			}
 			continue
 		}
-		table, ok := f.(Table)
-		if !ok {
+
+		if table, ok := f.(Table); ok {
+			collectTable(table, tables, dict)
 			continue
 		}
-		if !(*dict)[table] {
-			*tables = append(*tables, table)
-			(*dict)[table] = true
+
+		if table, ok := f.(TableAliased); ok {
+			collectTable(table.AppliedName(), tables, dict)
 		}
 	}
+}
+
+func collectTable(t Table, tables *[]Table, dict map[Table]bool) {
+	if dict[t] {
+		return
+	}
+	*tables = append(*tables, t)
+	dict[t] = true
 }
