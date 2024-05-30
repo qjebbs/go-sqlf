@@ -1,5 +1,14 @@
 package sqlb
 
+import "github.com/qjebbs/go-sqlf/v2"
+
+var _ (sqlf.FragmentBuilder) = TableAliased{}
+
+// BuildFragment implements FragmentBuilder
+func (t TableAliased) BuildFragment(_ *sqlf.Context) (query string, err error) {
+	return string(t.AppliedName()), nil
+}
+
 // TableAliased is the table name with alias.
 type TableAliased struct {
 	Name, Alias Table
@@ -40,13 +49,7 @@ func (t TableAliased) Names() []Table {
 // For example:
 //
 //	t := NewTable("table", "t")
-//	// these two are equivalent
-//	t.Column("id")         // "t.id"
-//	t.Expression("#f1.id") // "t.id"
-//
-// If you want to use the column name directly, try:
-//
-//	t.Expressions("id") // "id"
+//	t.Column("id")  // "t.id"
 func (t TableAliased) Column(name string) *Column {
 	return t.AppliedName().Column(name)
 }
@@ -57,13 +60,26 @@ func (t TableAliased) Column(name string) *Column {
 // For example:
 //
 //	t := NewTable("table", "t")
-//	// these two are equivalent
-//	t.Columns("id", "name")              // "t.id", "t.name"
-//	t.Expressions("#f1.id", "#f1.name")  // "t.id", "t.name"
-//
-// If you want to use the column name directly, try:
-//
-//	t.Expressions("id", "name") // "id", "name"
+//	t.Columns("id", "name")   // "t.id", "t.name"
 func (t TableAliased) Columns(names ...string) []*Column {
 	return t.AppliedName().Columns(names...)
+}
+
+// AnonymousColumn returns a anonymous column of the table.
+// For example:
+//
+//	t := NewTable("table", "t")
+//	t.AnonymousColumn("id")  // "id"
+func (t TableAliased) AnonymousColumn(name string) *Column {
+	return t.AppliedName().AnonymousColumn(name)
+}
+
+// AnonymousColumns returns anonymous columns of the table from names.
+//
+// For example:
+//
+//	t := NewTable("table", "t")
+//	t.Columns("id", "name")  // "id", "name"
+func (t TableAliased) AnonymousColumns(names ...string) []*Column {
+	return t.AppliedName().AnonymousColumns(names...)
 }
