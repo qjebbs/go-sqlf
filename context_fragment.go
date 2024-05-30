@@ -23,8 +23,8 @@ func (c *Context) Fragment() *FragmentContext {
 	return nil
 }
 
-// ContextWithFragment returns a new context with the fragment.
-func ContextWithFragment(ctx *Context, f *Fragment) *Context {
+// contextWithFragment returns a new context with the fragment.
+func contextWithFragment(ctx *Context, f *Fragment) *Context {
 	return &Context{
 		parent:   ctx,
 		fragment: newFragmentContext(f),

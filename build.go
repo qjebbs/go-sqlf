@@ -29,7 +29,7 @@ func (f *Fragment) BuildFragment(ctx *Context) (string, error) {
 	if ctx == nil {
 		return "", fmt.Errorf("nil context")
 	}
-	ctx = ContextWithFragment(ctx, f)
+	ctx = contextWithFragment(ctx, f)
 	body, err := build(ctx, f)
 	if err != nil {
 		return "", err

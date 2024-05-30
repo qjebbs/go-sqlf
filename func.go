@@ -221,7 +221,7 @@ func joinCompatibility(f *funcInfo) error {
 	default:
 		return errSig
 	}
-	ctx := ContextWithFragment(newEmptyContext(), nil)
+	ctx := contextWithFragment(newEmptyContext(), nil)
 	// #join() Assume that the index starts from 1, so 0 is an invalid index,
 	// a compatible function should return ErrInvalidIndex
 	_, err := evalCall(ctx, f, []any{0})
