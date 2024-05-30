@@ -43,3 +43,12 @@ func ExprColumn(fragment *sqlf.Fragment) *Column {
 		fragment: fragment,
 	}
 }
+
+// ExprColumns wraps a slice of *Fragment to a slice of *Column.
+func ExprColumns(fragment ...*sqlf.Fragment) []*Column {
+	r := make([]*Column, 0, len(fragment))
+	for _, f := range fragment {
+		r = append(r, ExprColumn(f))
+	}
+	return r
+}
