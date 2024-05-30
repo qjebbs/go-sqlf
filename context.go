@@ -37,16 +37,11 @@ func newEmptyContext() *Context {
 	}
 }
 
-// Root returns the root context.
-func (c *Context) Root() *Context {
+// root returns the root context.
+func (c *Context) root() *Context {
 	root := c
 	for root.parent != nil {
 		root = root.parent
 	}
 	return root
-}
-
-// Parent returns the parent context.
-func (c *Context) Parent() *Context {
-	return c.parent
 }

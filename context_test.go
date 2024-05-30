@@ -1,27 +1,26 @@
-package sqlf_test
+package sqlf
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/qjebbs/go-sqlf/v2"
 	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
 func TestContextWithFragment(t *testing.T) {
 	t.Parallel()
-	fragment := sqlf.Ff(
-		"L1,#f1", sqlf.Ff(
-			"L2,#f1", sqlf.Ff(
-				"L3,#f1", sqlf.Ff("L4,#parents()"),
+	fragment := Ff(
+		"L1,#f1", Ff(
+			"L2,#f1", Ff(
+				"L3,#f1", Ff("L4,#parents()"),
 			),
 		),
 	)
-	ctx := sqlf.NewContext(syntax.Dollar)
-	ctx, err := sqlf.ContextWithFuncs(ctx, sqlf.FuncMap{
-		"parents": func(ctx *sqlf.Context) (string, error) {
+	ctx := NewContext(syntax.Dollar)
+	ctx, err := ContextWithFuncs(ctx, FuncMap{
+		"parents": func(ctx *Context) (string, error) {
 			parents := make([]string, 0)
-			for c := ctx.Parent(); c != nil; c = c.Parent() {
+			for c := ctx.parent; c != nil; c = c.parent {
 				fc := c.Fragment()
 				if fc == nil {
 					continue
