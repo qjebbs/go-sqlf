@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
@@ -44,7 +45,7 @@ func ExampleCountBuilder() {
 		builder sqlf.QueryBuilder
 	)
 	if db != nil && builder != nil {
-		count, err := util.CountBuilder(db, builder)
+		count, err := util.CountBuilder(db, builder, syntax.Dollar)
 		if err != nil {
 			panic(err)
 		}
@@ -79,7 +80,7 @@ func ExampleScanBuilder() {
 			1, 2, 3,
 		)
 		r, err := util.ScanBuilder(
-			db, builder,
+			db, builder, syntax.Dollar,
 			func() (*foo, []any) {
 				r := &foo{}
 				return r, []any{&r.ID, &r.Name}

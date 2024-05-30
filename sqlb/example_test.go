@@ -27,14 +27,14 @@ func ExampleQueryBuilder_BuildQuery() {
 		).
 		Where2(bar.Column("c"), "=", 2)
 
-	query, args, err := b.BindVar(syntax.Dollar).BuildQuery()
+	query, args, err := b.BuildQuery(syntax.Dollar)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)
-	query, args, err = b.BindVar(syntax.Question).BuildQuery()
+	query, args, err = b.BuildQuery(syntax.Question)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -54,7 +54,6 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		bar = sqlb.NewTableAliased("bar", "b")
 	)
 	query, args, err := sqlb.NewQueryBuilder().
-		BindVar(syntax.Dollar).
 		Distinct(). // *QueryBuilder trims optional joins only when SELECT DISTINCT is used.
 		Select(foo.Column("*")).
 		From(foo).
@@ -66,7 +65,7 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		)).
 		// don't touch any columns of "bar", so that it can be trimmed
 		Where2(foo.Column("id"), ">", 1).
-		BuildQuery()
+		BuildQuery(syntax.Dollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -85,7 +84,6 @@ func ExampleQueryBuilder_With() {
 		cte = sqlb.NewTableAliased("bar_type_1", "b1")
 	)
 	query, args, err := sqlb.NewQueryBuilder().
-		BindVar(syntax.Dollar).
 		With(
 			cte.Name,
 			sqlf.F("SELECT * FROM #f1 AS #f2 WHERE #f3=$1").
@@ -104,7 +102,7 @@ func ExampleQueryBuilder_With() {
 			cte.Column("foo_id"),
 			foo.Column("id"),
 		)).
-		BuildQuery()
+		BuildQuery(syntax.Dollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -120,18 +118,16 @@ func ExampleQueryBuilder_Union() {
 	var foo = sqlb.NewTableAliased("foo", "f")
 	column := foo.Column("*")
 	query, args, err := sqlb.NewQueryBuilder().
-		BindVar(syntax.Dollar).
 		Select(column).
 		From(foo).
 		Where2(foo.Column("id"), " = ", 1).
 		Union(
 			sqlb.NewQueryBuilder().
-				BindVar(syntax.Dollar).
 				From(foo).
 				WhereIn(foo.Column("id"), []any{2, 3, 4}).
 				Select(column),
 		).
-		BuildQuery()
+		BuildQuery(syntax.Dollar)
 	if err != nil {
 		fmt.Println(err)
 		return

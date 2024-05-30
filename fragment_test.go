@@ -6,6 +6,7 @@ import (
 
 	"github.com/qjebbs/go-sqlf/v2"
 	"github.com/qjebbs/go-sqlf/v2/sqlb"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
 func TestBuildFragment(t *testing.T) {
@@ -13,6 +14,7 @@ func TestBuildFragment(t *testing.T) {
 	var table, alias sqlb.Table = "table", "t"
 	testCases := []struct {
 		name     string
+		style    syntax.BindVarStyle
 		fragment *sqlf.Fragment
 		want     string
 		wantArgs []any
@@ -25,7 +27,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{},
 		},
 		{
-			name: "#join",
+			name:  "#join",
+			style: syntax.Question,
 			fragment: sqlf.Fa(
 				"?,#join('#arg',',')",
 				1, 2,
@@ -34,7 +37,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{1, 1, 2},
 		},
 		{
-			name: "#join range",
+			name:  "#join range",
+			style: syntax.Dollar,
 			fragment: sqlf.Fa(
 				"$1,#join('#arg',',', 2)",
 				1, 2, 3, 4,
@@ -43,7 +47,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{1, 2, 3, 4},
 		},
 		{
-			name: "#join mixed function and call",
+			name:  "#join mixed function and call",
+			style: syntax.Dollar,
 			fragment: sqlf.F("#join('#f1#arg',',')").
 				WithFragments(sqlf.Fa("p")).
 				WithArgs(1, 2),
@@ -58,7 +63,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{},
 		},
 		{
-			name: "#f and args",
+			name:  "#f and args",
+			style: syntax.Question,
 			fragment: sqlf.F("WHERE #f1=?").
 				WithFragments(alias.Column("id")).
 				WithArgs(nil),
@@ -66,7 +72,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{nil},
 		},
 		{
-			name: "build nil column",
+			name:  "build nil column",
+			style: syntax.Dollar,
 			fragment: sqlf.F("WHERE #f1=$1").
 				WithFragments((*sqlf.Fragment)(nil)).
 				WithArgs(nil),
@@ -74,7 +81,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{nil},
 		},
 		{
-			name: "build complex fragment",
+			name:  "build complex fragment",
+			style: syntax.Dollar,
 			fragment: sqlf.F("WITH t AS (#f1) SELECT #f2,#f3,$1 FROM #f4 AS #f5").
 				WithArgs("foo").
 				WithFragments(
@@ -89,7 +97,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{1, 2, "foo"},
 		},
 		{
-			name: "build complex fragment 2",
+			name:  "build complex fragment 2",
+			style: syntax.Dollar,
 			fragment: sqlf.F("SELECT #join('#f', ', ', 3) FROM #f1 AS #f2").
 				WithFragments(
 					table, alias,
@@ -115,7 +124,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{},
 		},
 		{
-			name: "ref fragment twice",
+			name:  "ref fragment twice",
+			style: syntax.Dollar,
 			fragment: sqlf.F("#f1, #f1").
 				WithFragments(
 					sqlf.F("#join('#arg', ', '), ?").WithArgs(1, 2),
@@ -124,7 +134,8 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{1, 2},
 		},
 		{
-			name: "arg and fragment",
+			name:  "arg and fragment",
+			style: syntax.Question,
 			fragment: sqlf.Fa("? #f1", 1).
 				WithFragments(
 					sqlf.Fa("$1", 2),
@@ -142,7 +153,7 @@ func TestBuildFragment(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
-			ctx := sqlf.NewContext()
+			ctx := sqlf.NewContext(tc.style)
 			got, err := tc.fragment.BuildFragment(ctx)
 			if err != nil {
 				if tc.wantErr {

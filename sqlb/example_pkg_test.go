@@ -22,7 +22,6 @@ var Users = sqlb.NewTableAliased("users", "u")
 
 func NewUserQueryBuilder(db util.QueryAble) *UserQueryBuilder {
 	b := sqlb.NewQueryBuilder().
-		BindVar(syntax.Dollar).
 		Distinct().
 		From(Users)
 	//  .InnerJoin(...).
@@ -38,7 +37,7 @@ func (b *UserQueryBuilder) WithIDs(ids []int64) *UserQueryBuilder {
 
 func (b *UserQueryBuilder) GetUsers() ([]*User, error) {
 	b.Select(Users.Columns("id", "name", "email")...)
-	return util.ScanBuilder[*User](b.QueryAble, b.QueryBuilder, func() (*User, []any) {
+	return util.ScanBuilder[*User](b.QueryAble, b.QueryBuilder, syntax.Dollar, func() (*User, []any) {
 		r := &User{}
 		return r, []interface{}{
 			&r.ID, &r.Name, &r.Email,

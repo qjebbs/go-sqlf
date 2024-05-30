@@ -38,10 +38,12 @@
 //   - You can register custom functions to the build context, see Context.Funcs.
 package sqlf
 
+import "github.com/qjebbs/go-sqlf/v2/syntax"
+
 // QueryBuilder is the interface for sql builders.
 type QueryBuilder interface {
 	// BuildQuery builds and returns the query and args.
-	BuildQuery() (query string, args []any, err error)
+	BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error)
 }
 
 // FragmentBuilder is a builder that builds a fragment.

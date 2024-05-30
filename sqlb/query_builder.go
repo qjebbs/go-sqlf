@@ -4,15 +4,12 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v2"
-	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
 // QueryBuilder is the SQL query builder.
 // It's recommended to wrap it with your struct to provide a
 // more friendly API and improve fragment reusability.
 type QueryBuilder struct {
-	bindVarStyle syntax.BindVarStyle // the bindvar style
-
 	ctes         []*cte                      // common table expressions
 	froms        map[TableAliased]*fromTable // the from tables by alias
 	tables       []TableAliased              // the tables in order
@@ -130,11 +127,5 @@ func (b *QueryBuilder) GroupBy(column *Column) *QueryBuilder {
 // *QueryBuilder embedded.)
 func (b *QueryBuilder) Union(builders ...sqlf.FragmentBuilder) *QueryBuilder {
 	b.unions = append(b.unions, builders...)
-	return b
-}
-
-// BindVar set the bindvar style.
-func (b *QueryBuilder) BindVar(style syntax.BindVarStyle) *QueryBuilder {
-	b.bindVarStyle = style
 	return b
 }

@@ -18,8 +18,9 @@ type Context struct {
 }
 
 // NewContext returns a new context.
-func NewContext() *Context {
+func NewContext(bindVarStyle syntax.BindVarStyle) *Context {
 	ctx := newEmptyContext()
+	ctx.bindVarStyle = bindVarStyle
 	err := addValueFuncs(ctx.funcs, builtInFuncs)
 	if err != nil {
 		// should never happen for builtInFuncs
@@ -27,18 +28,6 @@ func NewContext() *Context {
 	}
 	return ctx
 }
-
-// BindVarStyle returns the bindvar style of the context.
-func (c *Context) BindVarStyle() syntax.BindVarStyle {
-	return c.Root().bindVarStyle
-}
-
-// SetBindVarStyle sets the bindvar style of the context.
-func (c *Context) SetBindVarStyle(style syntax.BindVarStyle) {
-	c.Root().bindVarStyle = style
-}
-
-// A
 
 func newEmptyContext() *Context {
 	argStore := make([]any, 0)

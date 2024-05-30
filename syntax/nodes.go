@@ -41,10 +41,8 @@ type BindVarExpr struct {
 type BindVarStyle int
 
 const (
-	// Auto detect bindvar style, first encountered style will be used.
-	Auto BindVarStyle = iota
 	// Dollar is the type of indexed argument placeholders, e.g.: $1, $2, $3
-	Dollar
+	Dollar BindVarStyle = iota
 	// Question is the type of unindexed argument placeholders, e.g.: ?, ?, ?
 	Question
 )

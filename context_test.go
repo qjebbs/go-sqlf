@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
 func TestContextWithFragment(t *testing.T) {
@@ -16,7 +17,7 @@ func TestContextWithFragment(t *testing.T) {
 			),
 		),
 	)
-	ctx := sqlf.NewContext()
+	ctx := sqlf.NewContext(syntax.Dollar)
 	ctx, err := sqlf.ContextWithFuncs(ctx, sqlf.FuncMap{
 		"parents": func(ctx *sqlf.Context) (string, error) {
 			parents := make([]string, 0)

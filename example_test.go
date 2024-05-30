@@ -5,6 +5,7 @@ import (
 
 	"github.com/qjebbs/go-sqlf/v2"
 	"github.com/qjebbs/go-sqlf/v2/sqlb"
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
 func Example_basic1() {
@@ -25,7 +26,7 @@ func Example_basic1() {
 		// Similarly, referencing .Fragments results fragments combinations.
 		Raw:       "SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
 		Fragments: []sqlf.FragmentBuilder{a, b},
-	}).BuildQuery()
+	}).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -37,7 +38,7 @@ func Example_basic2() {
 		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
 		sqlf.Fa("baz = $1", true),
 		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),
-	).BuildQuery()
+	).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -69,7 +70,7 @@ func Example_select() {
 			WithArgs(true),
 	)
 
-	query, args, err := builder.BuildQuery()
+	query, args, err := builder.BuildQuery(syntax.Dollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -101,7 +102,7 @@ func Example_update() {
 			WithArgs(1),
 	)
 
-	query, args, err := builder.BuildQuery()
+	query, args, err := builder.BuildQuery(syntax.Dollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -117,7 +118,7 @@ func Example_unalignedJoin() {
 	// this example demonstrates how #join() works between unaligned properties.
 	// it leaves the extra property items (.Args[2:] here) unused, which leads to an error.
 	// to make it work, we use #noUnusedError() to suppress the error.
-	ctx, err := sqlf.ContextWithFuncs(sqlf.NewContext(), sqlf.FuncMap{
+	ctx, err := sqlf.ContextWithFuncs(sqlf.NewContext(syntax.Dollar), sqlf.FuncMap{
 		"noUnusedError": func(ctx *sqlf.Context) {
 			args := ctx.Fragment().Args
 			for i := 2; i < len(args); i++ {
@@ -151,7 +152,7 @@ func ExampleContextWithFuncs() {
 	// don't have to put Args into every fragment, which leads
 	// to a list of redundant args.
 	ids := sqlf.NewArgsProperties(1, 2, 3)
-	ctx, err := sqlf.ContextWithFuncs(sqlf.NewContext(), sqlf.FuncMap{
+	ctx, err := sqlf.ContextWithFuncs(sqlf.NewContext(syntax.Dollar), sqlf.FuncMap{
 		"_id": func(ctx *sqlf.Context, i int) (string, error) {
 			return ids.Build(ctx, i)
 		},

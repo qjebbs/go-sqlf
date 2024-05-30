@@ -39,7 +39,7 @@ func (p *defaultProperty) Used() bool {
 // BuildFragment builds the fragment.
 func (p *defaultProperty) BuildFragment(ctx *Context) (string, error) {
 	p.used = true
-	if p.cache == "" || ctx.BindVarStyle() == syntax.Question {
+	if p.cache == "" || ctx.Root().bindVarStyle == syntax.Question {
 		r, err := p.value.BuildFragment(ctx)
 		if err != nil {
 			return "", err

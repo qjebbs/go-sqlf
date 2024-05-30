@@ -16,7 +16,7 @@ func TestQueryBuilder(t *testing.T) {
 		bar   = sqlb.NewTableAliased("bar", "b")
 	)
 	q := sqlb.NewQueryBuilder().
-		BindVar(syntax.Dollar).Distinct().
+		Distinct().
 		With(users.Name, &sqlf.Fragment{
 			Raw:  "SELECT * FROM users WHERE type=$1",
 			Args: []any{"user"},
@@ -37,7 +37,6 @@ func TestQueryBuilder(t *testing.T) {
 		Where2(users.Column("id"), "=", 1).
 		Union(
 			sqlb.NewQueryBuilder().
-				BindVar(syntax.Dollar).
 				Select(foo.Columns("id", "name")...).
 				From(foo).
 				Where(sqlf.F("#f1>$1 AND #f1<$2").
@@ -45,7 +44,7 @@ func TestQueryBuilder(t *testing.T) {
 					WithArgs(10, 20),
 				),
 		)
-	gotQuery, gotArgs, err := q.BuildQuery()
+	gotQuery, gotArgs, err := q.BuildQuery(syntax.Dollar)
 	if err != nil {
 		t.Fatal(err)
 	}

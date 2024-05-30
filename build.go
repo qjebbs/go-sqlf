@@ -11,8 +11,8 @@ var _ FragmentBuilder = (*Fragment)(nil)
 var _ QueryBuilder = (*Fragment)(nil)
 
 // BuildQuery builds the fragment as full query.
-func (f *Fragment) BuildQuery() (query string, args []any, err error) {
-	ctx := NewContext()
+func (f *Fragment) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
+	ctx := NewContext(bindVarStyle)
 	query, err = f.BuildFragment(ctx)
 	if err != nil {
 		return "", nil, err
@@ -75,9 +75,6 @@ func buildClause(ctx *Context, clause *syntax.Clause) (string, error) {
 			args := ctx.Fragment().Args
 			if expr.Index < 1 || expr.Index > len(args) {
 				return "", fmt.Errorf("invalid bind var index %d", expr.Index)
-			}
-			if ctx.BindVarStyle() == syntax.Auto {
-				ctx.SetBindVarStyle(expr.Type)
 			}
 			s, err := args[expr.Index-1].BuildFragment(ctx)
 			if err != nil {
