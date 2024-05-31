@@ -17,11 +17,11 @@ func TestQueryBuilder(t *testing.T) {
 	)
 	q := sqlb.NewQueryBuilder().
 		Distinct().
-		With(users.Name, &sqlf.Fragment{
-			Raw:  "SELECT * FROM users WHERE type=$1",
-			Args: []any{"user"},
-		}).
-		With("xxx", &sqlf.Fragment{Raw: "SELECT 1 AS whatever"}) // should be ignored
+		With(
+			users.Name,
+			sqlf.Fa("SELECT * FROM users WHERE type=$1", "user"),
+		).
+		With("xxx", sqlf.F("SELECT 1 AS whatever")) // should be ignored
 	q.Select(foo.Columns("id", "name")...).
 		From(users).
 		LeftJoinOptional(foo, sqlf.Ff(

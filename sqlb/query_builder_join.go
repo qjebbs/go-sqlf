@@ -23,9 +23,8 @@ func (b *QueryBuilder) From(t TableAliased) *QueryBuilder {
 	}
 	b.appliedNames[t.AppliedName()] = t
 	b.froms[t] = &fromTable{
-		Fragment: &sqlf.Fragment{
-			Raw: tableAndAlias,
-		},
+		Name:     t,
+		Fragment: sqlf.F(tableAndAlias),
 		Optional: false,
 	}
 	return b
@@ -102,19 +101,12 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 	if t.Alias != "" {
 		tableAndAlias = tableAndAlias + " AS " + t.Alias
 	}
-	if on == nil || on.Raw == "" {
-		b.froms[t] = &fromTable{
-			Fragment: &sqlf.Fragment{
-				Raw: fmt.Sprintf("%s %s", joinStr, tableAndAlias),
-			},
-			Optional: optional,
-		}
-		return b
-	}
 	b.froms[t] = &fromTable{
-		Fragment: sqlf.F(fmt.Sprintf("%s %s ON %s", joinStr, tableAndAlias, on.Raw)).
-			WithFragments(on.Fragments...).
-			WithArgs(on.Args...),
+		Name: t,
+		Fragment: sqlf.Ff(
+			fmt.Sprintf("%s %s #f1", joinStr, tableAndAlias),
+			on.WithPrefix("ON"),
+		),
 		Optional: optional,
 	}
 	return b

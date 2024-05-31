@@ -7,11 +7,11 @@ import (
 
 // Where add a condition.  e.g.:
 //
-//	b.Where(&sqlf.Fragment{
-//		Raw: "#f1 = $1",
-//		Columns: t.Columns("id"),
-//		Args: []any{1},
-//	})
+//	b.Where(
+//		sqlf.F("#f1 = $1").
+//			WithFragments(a.Column("id")).
+//			WithArgs(1),
+//	)
 func (b *QueryBuilder) Where(s *sqlf.Fragment) *QueryBuilder {
 	if s == nil {
 		return b
@@ -24,13 +24,13 @@ func (b *QueryBuilder) Where(s *sqlf.Fragment) *QueryBuilder {
 //
 //	b.Where2(column, "=", 1)
 //
-// it's  equivalent to:
+// it's equivalent to:
 //
-//	b.Where(&sqlf.Fragment{
-//		Raw: "#f1=$1",
-//		Columns: []Column{column},
-//		Args: []any{1},
-//	})
+//	b.Where(
+//		sqlf.F("#f1 = $1").
+//			WithFragments(column).
+//			WithArgs(1),
+//	)
 func (b *QueryBuilder) Where2(column *Column, op string, arg any) *QueryBuilder {
 	b.conditions.AppendFragments(
 		sqlf.F("#f1" + op + "$1").

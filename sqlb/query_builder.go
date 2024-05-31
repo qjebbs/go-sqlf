@@ -31,6 +31,7 @@ type QueryBuilder struct {
 }
 
 type fromTable struct {
+	Name     TableAliased
 	Fragment *sqlf.Fragment
 	Optional bool
 }

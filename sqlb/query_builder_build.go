@@ -178,7 +178,7 @@ func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (
 		from := b.froms[t]
 		c, err := from.Fragment.BuildFragment(ctx)
 		if err != nil {
-			return "", fmt.Errorf("build FROM '%s': %w", from.Fragment.Raw, err)
+			return "", fmt.Errorf("build FROM '%s': %w", from.Name, err)
 		}
 		tables = append(tables, c)
 	}
