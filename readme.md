@@ -19,8 +19,8 @@ import (
 func Example_basic() {
 	query, args, _ := sqlf.Ff(
 		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')", // join fragments
-		sqlf.Fa("baz = $1", true),                             // coding just like `database/sql`
-		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // coding just like `database/sql`
+		sqlf.Fa("baz = $1", true),                             // `database/sql` style
+		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // `database/sql` style
 	).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
 	fmt.Println(args)
@@ -40,11 +40,11 @@ Explanation:
 
 | name        | description                      | example                |
 | ----------- | -------------------------------- | ---------------------- |
-| f, fragment | fragment properties at index     | #f1, #fragment1        |
+| f, fragment | fragments at index               | #f1, #fragment1        |
 | join        | Join the template with separator | #join('#f', ' AND ')   |
 |             | Join from index 3 to end         | #join('#f', ',', 3)    |
 |             | Join from index 3 to 6           | #join('#f', ',', 3, 6) |
-| arg         | fragment args at index           | #join('#arg', ',')     |
+| arg         | arguments at index               | #join('#arg', ',')     |
 
 Note:
   - #f1 is equivalent to #f(1), which is a special syntax to call preprocessing functions when an integer (usually an index) is the only argument.

@@ -11,8 +11,8 @@ import (
 func Example_basic() {
 	query, args, _ := sqlf.Ff(
 		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')", // join fragments
-		sqlf.Fa("baz = $1", true),                             // coding just like `database/sql`
-		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // coding just like `database/sql`
+		sqlf.Fa("baz = $1", true),                             // `database/sql` style
+		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // `database/sql` style
 	).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
 	fmt.Println(args)

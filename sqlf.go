@@ -14,8 +14,8 @@
 //
 //	query, args, _ := sqlf.Ff(
 //		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')", // join fragments
-//		sqlf.Fa("baz = $1", true),                             // coding just like `database/sql`
-//		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // coding just like `database/sql`
+//		sqlf.Fa("baz = $1", true),                             // `database/sql` style
+//		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // `database/sql` style
 //	).BuildQuery(syntax.Dollar)
 //	fmt.Println(query)
 //	fmt.Println(args)
@@ -31,14 +31,14 @@
 //
 // # Preprocessing Functions
 //
-//   - f, fragment: fragment properties at index, e.g. #f1
+//   - f, fragment: fragments at index, e.g. #f1
 //   - join: Join the template with separator, e.g. #join('#f', ', '), #join('#arg', ',', 3), #join('#arg', ',', 3, 6)
-//   - arg: fragment args at index, usually used in #join().
+//   - arg: arguments at index, usually used in #join().
 //
 // Note:
 //   - #f1 is equivalent to #f(1), which is a special syntax to call preprocessing functions when an integer (usually an index) is the only argument.
 //   - Expressions in the #join template are functions, not function calls.
-//   - You can register custom functions to the build context, see Context.Funcs.
+//   - You can register custom functions to the build context, see ContextWithFuncs.
 package sqlf
 
 import "github.com/qjebbs/go-sqlf/v2/syntax"
