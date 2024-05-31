@@ -12,7 +12,9 @@ func (c *Context) Args() []any {
 }
 
 // CommitArg commits an built arg to the context and returns the built bindvar.
-// defaultStyle is used only when no style is set in the context and no style is seen before.
+//
+// It's used usually in the implementation of a FragmentBuilder,
+// most users don't need to care about it.
 func (c *Context) CommitArg(arg any) string {
 	root := c.root()
 	*root.argStore = append(*root.argStore, arg)

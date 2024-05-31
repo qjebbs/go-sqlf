@@ -1,6 +1,8 @@
 // Package sqlf focuses only on building SQL queries by combining fragments.
-// Low reusability and scalability are the main challenges we face when
-// writing SQL, the package is designed to solve these problems.
+//
+// The package exports only a few functions and methods, but improves a lot on the
+// reusability and extensibility of SQL, which are the main challenges we encounter
+// when writing SQL.
 //
 // # Fragment
 //
@@ -11,9 +13,9 @@
 // as `database/sql`, but provides the ability to combine them in any way.
 //
 //	query, args, _ := sqlf.Ff(
-//		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
-//		sqlf.Fa("baz = $1", true),
-//		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),
+//		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')", // join fragments
+//		sqlf.Fa("baz = $1", true),                             // coding just like `database/sql`
+//		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // coding just like `database/sql`
 //	).BuildQuery(syntax.Dollar)
 //	fmt.Println(query)
 //	fmt.Println(args)
@@ -23,9 +25,9 @@
 //
 // Explanation:
 //
-//   - We pay attention only to the references inside the fragment, for example, use $1 to refer Fragment.Args[0], or ? to refer Fragment.Args in order.
+//   - We pay attention only to the references inside a fragment, not between fragments.
 //   - #join, #f, etc., are preprocessing functions, which will be explained later.
-//   - See Example (Basic1) for what happend inside a *sqlf.Fragment.
+//   - See Example (DeeperLook) for what happend inside the *sqlf.Fragment.
 //
 // # Preprocessing Functions
 //

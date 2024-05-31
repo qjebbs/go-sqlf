@@ -9,6 +9,8 @@ type Properties []Property
 // it returns ErrInvalidIndex when the i is out of range, which
 // is the required behaviour for a custom #func to be compatible
 // with #join.
+//
+// See examples for ContextWithFuncs() for how to use it.
 func (p Properties) Build(ctx *Context, i int) (string, error) {
 	if i < 1 || i > len(p) {
 		return "", fmt.Errorf("%w: %d", ErrInvalidIndex, i)
@@ -26,7 +28,9 @@ func (p Properties) checkUsage() error {
 	return nil
 }
 
-// NewFragmentProperties creates new properties from FragmentBuilder
+// NewFragmentProperties creates new properties from FragmentBuilder.
+// It's useful for creating global fragment properties shared between fragments,
+// see examples for ContextWithFuncs() for how to use it.
 func NewFragmentProperties(fragments ...FragmentBuilder) Properties {
 	r := make(Properties, 0)
 	for _, f := range fragments {
@@ -35,7 +39,9 @@ func NewFragmentProperties(fragments ...FragmentBuilder) Properties {
 	return r
 }
 
-// NewArgsProperties  creates new properties from args
+// NewArgsProperties  creates new properties from args.
+// It's useful for creating global arg properties shared between fragments,
+// see examples for ContextWithFuncs() for how to use it.
 func NewArgsProperties(args ...any) Properties {
 	r := make(Properties, 0)
 	for _, a := range args {

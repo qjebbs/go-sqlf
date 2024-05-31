@@ -12,9 +12,9 @@ type Context struct {
 	bindVarStyle syntax.BindVarStyle
 	argStore     *[]any
 
-	parent   *Context
-	funcs    map[string]*funcInfo
-	fragment *FragmentContext
+	parent *Context
+	funcs  map[string]*funcInfo
+	frag   *FragmentContext
 }
 
 // NewContext returns a new context.

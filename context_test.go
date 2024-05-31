@@ -21,7 +21,7 @@ func TestContextWithFragment(t *testing.T) {
 		"parents": func(ctx *Context) (string, error) {
 			parents := make([]string, 0)
 			for c := ctx.parent; c != nil; c = c.parent {
-				fc := c.Fragment()
+				fc := c.fragment()
 				if fc == nil {
 					continue
 				}

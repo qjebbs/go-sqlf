@@ -1,6 +1,6 @@
 package sqlf
 
-// Fragment is the builder for a part of or even the full query, it allows you
+// Fragment is the builder for a part of or even a full query, it allows you
 // to write and combine fragments with freedom.
 type Fragment struct {
 	Raw       string            // Raw string support bind vars (?, $1) and preprocessing functions (#join).

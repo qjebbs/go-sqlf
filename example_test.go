@@ -8,8 +8,21 @@ import (
 	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
-func Example_basic1() {
-	// This example is equivalent to Exmaple Basic2 (which is more concise), but
+func Example_basic() {
+	query, args, _ := sqlf.Ff(
+		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')", // join fragments
+		sqlf.Fa("baz = $1", true),                             // coding just like `database/sql`
+		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // coding just like `database/sql`
+	).BuildQuery(syntax.Dollar)
+	fmt.Println(query)
+	fmt.Println(args)
+	// Output:
+	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3
+	// [true 1 100]
+}
+
+func Example_deeperLook() {
+	// This example is equivalent to Exmaple Basic (which is more concise), but
 	// it reveales what happend inside a *sqlf.Fragment.
 
 	// *sqlf.Fragment has two types of properties storage, .Args and .Fragments.
@@ -27,18 +40,6 @@ func Example_basic1() {
 		Raw:       "SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
 		Fragments: []sqlf.FragmentBuilder{a, b},
 	}).BuildQuery(syntax.Dollar)
-	fmt.Println(query)
-	fmt.Println(args)
-	// Output:
-	// SELECT * FROM foo WHERE baz = $1 AND bar BETWEEN $2 AND $3
-	// [true 1 100]
-}
-func Example_basic2() {
-	query, args, _ := sqlf.Ff(
-		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
-		sqlf.Fa("baz = $1", true),
-		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),
-	).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -112,38 +113,6 @@ func Example_update() {
 	// Output:
 	// UPDATE users SET name=$1, email=$2 WHERE id=$3
 	// [alice alice@example.org 1]
-}
-
-func Example_unalignedJoin() {
-	// this example demonstrates how #join() works between unaligned properties.
-	// it leaves the extra property items (.Args[2:] here) unused, which leads to an error.
-	// to make it work, we use #noUnusedError() to suppress the error.
-	ctx, err := sqlf.ContextWithFuncs(sqlf.NewContext(syntax.Dollar), sqlf.FuncMap{
-		"noUnusedError": func(ctx *sqlf.Context) {
-			args := ctx.Fragment().Args
-			for i := 2; i < len(args); i++ {
-				args[i].ReportUsed()
-			}
-		},
-	})
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	foo := sqlb.Table("foo")
-	b := sqlf.F("#noUnusedError() UPDATE foo SET #join('#fragment=#arg', ', ')").
-		WithFragments(foo.AnonymousColumn("bar"), foo.AnonymousColumn("baz")).
-		WithArgs(1, 2, 3, true, false)
-	query, err := b.BuildFragment(ctx)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(query)
-	fmt.Println(ctx.Args())
-	// Output:
-	// UPDATE foo SET bar=$1, baz=$2
-	// [1 2]
 }
 
 func ExampleContextWithFuncs() {

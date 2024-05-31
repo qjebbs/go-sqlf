@@ -34,7 +34,7 @@ func (f *Fragment) BuildFragment(ctx *Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := ctx.Fragment().checkUsage(); err != nil {
+	if err := ctx.fragment().checkUsage(); err != nil {
 		return "", fmt.Errorf("build '%s': %w", f.Raw, err)
 	}
 	body = strings.TrimSpace(body)
@@ -72,7 +72,7 @@ func buildClause(ctx *Context, clause *syntax.Clause) (string, error) {
 		case *syntax.PlainExpr:
 			b.WriteString(expr.Text)
 		case *syntax.BindVarExpr:
-			args := ctx.Fragment().Args
+			args := ctx.fragment().Args
 			if expr.Index < 1 || expr.Index > len(args) {
 				return "", fmt.Errorf("invalid bind var index %d", expr.Index)
 			}

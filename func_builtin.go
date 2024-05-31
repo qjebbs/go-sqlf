@@ -95,9 +95,9 @@ func funcJoin(ctx *Context, tmpl, separator string, indexes ...int) (string, err
 }
 
 func funcArg(ctx *Context, i int) (string, error) {
-	return ctx.Fragment().Args.Build(ctx, i)
+	return ctx.fragment().Args.Build(ctx, i)
 }
 
 func funcFragment(ctx *Context, i int) (string, error) {
-	return ctx.Fragment().Builders.Build(ctx, i)
+	return ctx.fragment().Builders.Build(ctx, i)
 }
