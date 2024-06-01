@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"unicode"
+
+	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
 var (
@@ -221,7 +223,7 @@ func joinCompatibility(f *funcInfo) error {
 	default:
 		return errSig
 	}
-	ctx := contextWithFragment(newEmptyContext(), nil)
+	ctx := contextWithFragment(newEmptyContext(syntax.Question), nil)
 	// #join() Assume that the index starts from 1, so 0 is an invalid index,
 	// a compatible function should return ErrInvalidIndex
 	_, err := evalCall(ctx, f, []any{0})

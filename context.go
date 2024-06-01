@@ -10,7 +10,7 @@ type Context struct {
 	// if not set, the first bindvar style encountered when
 	// building is applied.
 	bindVarStyle syntax.BindVarStyle
-	argStore     *[]any
+	argStore     argStore
 
 	parent *Context
 	funcs  map[string]*funcInfo
@@ -19,7 +19,7 @@ type Context struct {
 
 // NewContext returns a new context.
 func NewContext(bindVarStyle syntax.BindVarStyle) *Context {
-	ctx := newEmptyContext()
+	ctx := newEmptyContext(bindVarStyle)
 	ctx.bindVarStyle = bindVarStyle
 	err := addValueFuncs(ctx.funcs, builtInFuncs)
 	if err != nil {
@@ -29,11 +29,16 @@ func NewContext(bindVarStyle syntax.BindVarStyle) *Context {
 	return ctx
 }
 
-func newEmptyContext() *Context {
-	argStore := make([]any, 0)
+func newEmptyContext(bindVarStyle syntax.BindVarStyle) *Context {
+	var argStore argStore
+	if bindVarStyle == syntax.Dollar {
+		argStore = newDollarArgStore()
+	} else {
+		argStore = newQuestionArgStore()
+	}
 	return &Context{
 		funcs:    make(map[string]*funcInfo),
-		argStore: &argStore,
+		argStore: argStore,
 	}
 }
 

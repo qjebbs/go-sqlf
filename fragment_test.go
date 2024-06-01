@@ -24,7 +24,7 @@ func TestBuildFragment(t *testing.T) {
 			name:     "build nil fragment",
 			fragment: nil,
 			want:     "",
-			wantArgs: []any{},
+			wantArgs: nil,
 		},
 		{
 			name:  "#join",
@@ -47,6 +47,16 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{1, 2, 3, 4},
 		},
 		{
+			name:  "args merging",
+			style: syntax.Dollar,
+			fragment: sqlf.Fa(
+				"#join('#arg',',')",
+				1, 1, 2, 3,
+			),
+			want:     "$1,$1,$2,$3",
+			wantArgs: []any{1, 2, 3},
+		},
+		{
 			name:  "#join mixed function and call",
 			style: syntax.Dollar,
 			fragment: sqlf.F("#join('#f1#arg',',')").
@@ -60,7 +70,7 @@ func TestBuildFragment(t *testing.T) {
 			fragment: sqlf.Ff("WHERE 1=1 #f1").
 				WithFragments(sqlf.F("")),
 			want:     "WHERE 1=1",
-			wantArgs: []any{},
+			wantArgs: nil,
 		},
 		{
 			name:  "#f and args",
@@ -114,14 +124,14 @@ func TestBuildFragment(t *testing.T) {
 			fragment: sqlf.F("#f1").WithPrefix("SELECT").WithSuffix("FOR UPDATE").
 				WithFragments(sqlf.F("")),
 			want:     "",
-			wantArgs: []any{},
+			wantArgs: nil,
 		},
 		{
 			name: "prefix and suffix",
 			fragment: sqlf.F("#f1").WithPrefix("SELECT").WithSuffix("FOR UPDATE").
 				WithFragments(sqlf.F("foo")),
 			want:     "SELECT foo FOR UPDATE",
-			wantArgs: []any{},
+			wantArgs: nil,
 		},
 		{
 			name:  "ref fragment twice",
