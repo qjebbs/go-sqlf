@@ -6,33 +6,38 @@ import (
 	"strings"
 )
 
-// FragmentContext is the context for current fragment building.
-type FragmentContext struct {
-	Fragment *Fragment
-	Args     Properties
-	Builders Properties
-}
-
 // fragment returns the fragment context.
 //
 // it's used usually in the implementation of a FragmentBuilder,
 // most users don't need to care about it.
-func (c *Context) fragment() *FragmentContext {
-	for ctx := c; ctx != nil; ctx = ctx.parent {
-		if c.frag != nil {
-			return c.frag
-		}
+func (c *Context) fragment() (*FragmentContext, bool) {
+	return contextValue(c, func(c *Context) (*FragmentContext, bool) {
+		return c.frag, c.frag != nil
+	})
+}
+
+func (c *Context) mustFragment() (*FragmentContext, error) {
+	fc, ok := c.fragment()
+	if !ok {
+		return nil, errors.New("no fragment context")
 	}
-	return nil
+	return fc, nil
 }
 
 // contextWithFragment returns a new context with the fragment.
 func contextWithFragment(ctx *Context, f *Fragment) *Context {
-	return &Context{
-		parent: ctx,
-		frag:   newFragmentContext(f),
-	}
+	c, _ := contextWith(ctx, func(c *Context) error {
+		c.frag = newFragmentContext(f)
+		return nil
+	})
+	return c
+}
 
+// FragmentContext is the context for current fragment building.
+type FragmentContext struct {
+	Fragment  *Fragment
+	Args      Properties
+	Fragments Properties
 }
 
 func newFragmentContext(f *Fragment) *FragmentContext {
@@ -40,9 +45,9 @@ func newFragmentContext(f *Fragment) *FragmentContext {
 		return &FragmentContext{}
 	}
 	return &FragmentContext{
-		Fragment: f,
-		Args:     NewArgsProperties(f.Args...),
-		Builders: NewFragmentProperties(f.Fragments...),
+		Fragment:  f,
+		Args:      NewArgsProperties(f.Args...),
+		Fragments: NewFragmentProperties(f.Fragments...),
 	}
 }
 
@@ -57,7 +62,7 @@ func (c *FragmentContext) checkUsage() error {
 			"args %s", err.Error(),
 		))
 	}
-	if err := c.Builders.checkUsage(); err != nil {
+	if err := c.Fragments.checkUsage(); err != nil {
 		msgs = append(msgs, fmt.Sprintf(
 			"properties %s", err.Error(),
 		))

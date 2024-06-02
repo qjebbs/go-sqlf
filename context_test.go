@@ -21,8 +21,8 @@ func TestContextWithFragment(t *testing.T) {
 		"parents": func(ctx *Context) (string, error) {
 			parents := make([]string, 0)
 			for c := ctx.parent; c != nil; c = c.parent {
-				fc := c.fragment()
-				if fc == nil {
+				fc, ok := c.fragment()
+				if !ok {
 					continue
 				}
 				parents = append(parents, strings.SplitN(fc.Fragment.Raw, ",", 2)[0])

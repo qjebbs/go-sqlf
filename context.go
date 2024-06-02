@@ -6,9 +6,6 @@ import (
 
 // Context is the global context shared between all fragments building.
 type Context struct {
-	// BindVarStyle overrides bindvar styles of all fragments.
-	// if not set, the first bindvar style encountered when
-	// building is applied.
 	bindVarStyle syntax.BindVarStyle
 	argStore     argStore
 
@@ -40,13 +37,4 @@ func newEmptyContext(bindVarStyle syntax.BindVarStyle) *Context {
 		funcs:    make(map[string]*funcInfo),
 		argStore: argStore,
 	}
-}
-
-// root returns the root context.
-func (c *Context) root() *Context {
-	root := c
-	for root.parent != nil {
-		root = root.parent
-	}
-	return root
 }
