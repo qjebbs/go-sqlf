@@ -118,8 +118,10 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 }
 
 // GroupBy set the sorting order.
-func (b *QueryBuilder) GroupBy(column *Column) *QueryBuilder {
-	b.groupbys.AppendFragments(column)
+func (b *QueryBuilder) GroupBy(columns ...*Column) *QueryBuilder {
+	for _, c := range columns {
+		b.groupbys.AppendFragments(c)
+	}
 	return b
 }
 
