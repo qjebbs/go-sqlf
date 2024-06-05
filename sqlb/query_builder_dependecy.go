@@ -6,7 +6,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v2"
 )
 
-func (b *QueryBuilder) calcDependency() (map[TableAliased]bool, error) {
+func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 	tables := extractTables(
 		b.selects,
 		b.touches,
@@ -14,44 +14,41 @@ func (b *QueryBuilder) calcDependency() (map[TableAliased]bool, error) {
 		b.orders,
 		b.groupbys,
 	)
-	m := make(map[TableAliased]bool)
+	deps := make(map[TableAliased]bool)
 	// first table is the main table and always included
-	m[b.tables[0]] = true
+	deps[b.tables[0].Names] = true
 	for _, table := range tables {
-		err := b.markDependencies(m, table)
+		err := b.collectDepsFromTable(deps, table)
 		if err != nil {
 			return nil, err
 		}
 	}
 	// mark for CTEs
 	for _, t := range b.tables {
-		if b.distinct && b.froms[t].Optional && !m[t] {
+		if b.distinct && t.Optional && !deps[t.Names] {
 			continue
 		}
-		// this could probably mark a CTE table that does not exists, but do no harm.
-		m[NewTableAliased(t.Name, "")] = true
+		if _, ok := b.ctesDict[t.Names.Name]; ok {
+			deps[NewTableAliased(t.Names.Name, "")] = true
+		}
 	}
-	return m, nil
+	return deps, nil
 }
 
-func (b *QueryBuilder) markDependencies(dep map[TableAliased]bool, t Table) error {
-	ta, ok := b.appliedNames[t]
-	if !ok {
-		return fmt.Errorf("table not found: '%s'", t)
-	}
-	from, ok := b.froms[ta]
+func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) error {
+	from, ok := b.tablesDict[t]
 	if !ok {
 		return fmt.Errorf("from undefined: '%s'", t)
 	}
-	if dep[ta] {
+	if dep[from.Names] {
 		return nil
 	}
-	dep[ta] = true
+	dep[from.Names] = true
 	for _, ft := range extractTables(from.Fragment) {
 		if ft == t {
 			continue
 		}
-		err := b.markDependencies(dep, ft)
+		err := b.collectDepsFromTable(dep, ft)
 		if err != nil {
 			return err
 		}

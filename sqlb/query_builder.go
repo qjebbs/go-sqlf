@@ -10,10 +10,11 @@ import (
 // It's recommended to wrap it with your struct to provide a
 // more friendly API and improve fragment reusability.
 type QueryBuilder struct {
-	ctes         []*cte                      // common table expressions
-	froms        map[TableAliased]*fromTable // the from tables by alias
-	tables       []TableAliased              // the tables in order
-	appliedNames map[Table]TableAliased      // applied table name mapping, the name is alias, or name if alias is empty
+	ctes     []*cte         // common table expressions in order
+	ctesDict map[Table]*cte // the ctes by name, not alias
+
+	tables     []*fromTable         // the tables in order
+	tablesDict map[Table]*fromTable // the from tables by alias
 
 	selects    *sqlf.Fragment         // select columns and keep values in scanning.
 	touches    *sqlf.Fragment         // select columns but drop values in scanning.
@@ -31,7 +32,7 @@ type QueryBuilder struct {
 }
 
 type fromTable struct {
-	Name     TableAliased
+	Names    TableAliased
 	Fragment *sqlf.Fragment
 	Optional bool
 }
@@ -39,13 +40,13 @@ type fromTable struct {
 // NewQueryBuilder returns a new QueryBuilder.
 func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{
-		froms:        map[TableAliased]*fromTable{},
-		appliedNames: make(map[Table]TableAliased),
-		selects:      sqlf.F("#join('#fragment', ', ')").WithPrefix("SELECT"),
-		touches:      sqlf.F("#join('#fragment', ', ')"),
-		conditions:   sqlf.F("#join('#fragment', ' AND ')").WithPrefix("WHERE"),
-		orders:       sqlf.F("#join('#fragment', ', ')").WithPrefix("ORDER BY"),
-		groupbys:     sqlf.F("#join('#fragment', ', ')").WithPrefix("GROUP BY"),
+		ctesDict:   make(map[Table]*cte),
+		tablesDict: make(map[Table]*fromTable),
+		selects:    sqlf.F("#join('#fragment', ', ')").WithPrefix("SELECT"),
+		touches:    sqlf.F("#join('#fragment', ', ')"),
+		conditions: sqlf.F("#join('#fragment', ' AND ')").WithPrefix("WHERE"),
+		orders:     sqlf.F("#join('#fragment', ', ')").WithPrefix("ORDER BY"),
+		groupbys:   sqlf.F("#join('#fragment', ', ')").WithPrefix("GROUP BY"),
 	}
 }
 

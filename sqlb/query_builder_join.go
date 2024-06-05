@@ -16,17 +16,17 @@ func (b *QueryBuilder) From(t TableAliased) *QueryBuilder {
 	if t.Alias != "" {
 		tableAndAlias = tableAndAlias + " AS " + string(t.Alias)
 	}
-	if len(b.tables) == 0 {
-		b.tables = append(b.tables, t)
-	} else {
-		b.tables[0] = t
-	}
-	b.appliedNames[t.AppliedName()] = t
-	b.froms[t] = &fromTable{
-		Name:     t,
+	table := &fromTable{
+		Names:    t,
 		Fragment: sqlf.F(tableAndAlias),
 		Optional: false,
 	}
+	if len(b.tables) == 0 {
+		b.tables = append(b.tables, table)
+	} else {
+		b.tables[0] = table
+	}
+	b.tablesDict[t.AppliedName()] = table
 	return b
 }
 
@@ -83,7 +83,7 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 		b.pushError(fmt.Errorf("join table name is empty"))
 		return b
 	}
-	if _, ok := b.froms[t]; ok {
+	if _, ok := b.tablesDict[t.AppliedName()]; ok {
 		if t.Alias == "" {
 			b.pushError(fmt.Errorf("table [%s] is already joined", t.Name))
 			return b
@@ -93,21 +93,21 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 	}
 	if len(b.tables) == 0 {
 		// reserve the first alias for the main table
-		b.tables = append(b.tables, TableAliased{})
+		b.tables = append(b.tables, &fromTable{})
 	}
-	b.tables = append(b.tables, t)
-	b.appliedNames[t.AppliedName()] = t
 	tableAndAlias := t.Name
 	if t.Alias != "" {
 		tableAndAlias = tableAndAlias + " AS " + t.Alias
 	}
-	b.froms[t] = &fromTable{
-		Name: t,
+	table := &fromTable{
+		Names: t,
 		Fragment: sqlf.Ff(
 			fmt.Sprintf("%s %s #f1", joinStr, tableAndAlias),
 			on.WithPrefix("ON"),
 		),
 		Optional: optional,
 	}
+	b.tables = append(b.tables, table)
+	b.tablesDict[t.AppliedName()] = table
 	return b
 }

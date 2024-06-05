@@ -44,7 +44,7 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	}
 	clauses := make([]string, 0)
 
-	dep, err := b.calcDependency()
+	dep, err := b.collectDependencies()
 	if err != nil {
 		return "", err
 	}
@@ -167,18 +167,12 @@ func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
 func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (string, error) {
 	tables := make([]string, 0, len(b.tables))
 	for _, t := range b.tables {
-		ft, ok := b.froms[t]
-		if !ok {
-			// should not happen
-			return "", fmt.Errorf("table '%s' not found", t)
-		}
-		if b.distinct && ft.Optional && !dep[t] {
+		if b.distinct && t.Optional && !dep[t.Names] {
 			continue
 		}
-		from := b.froms[t]
-		c, err := from.Fragment.BuildFragment(ctx)
+		c, err := t.Fragment.BuildFragment(ctx)
 		if err != nil {
-			return "", fmt.Errorf("build FROM '%s': %w", from.Name, err)
+			return "", fmt.Errorf("build FROM '%s': %w", t.Names, err)
 		}
 		tables = append(tables, c)
 	}
