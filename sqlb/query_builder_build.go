@@ -120,19 +120,19 @@ func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[TableAliased]bool) (
 	}
 	clauses := make([]string, 0, len(b.ctes))
 	for _, cte := range b.ctes {
-		if !dep[cte.table] {
+		if !dep[NewTableAliased(cte.name, "")] {
 			continue
 		}
 		query, err := cte.BuildFragment(ctx)
 		if err != nil {
-			return "", fmt.Errorf("build CTE '%s': %w", cte.table, err)
+			return "", fmt.Errorf("build CTE '%s': %w", cte.name, err)
 		}
 		if query == "" {
 			continue
 		}
 		clauses = append(clauses, fmt.Sprintf(
 			"%s AS (%s)",
-			cte.table.Name, query,
+			cte.name, query,
 		))
 	}
 	if len(clauses) == 0 {

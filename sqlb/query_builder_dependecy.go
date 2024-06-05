@@ -6,6 +6,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v2"
 )
 
+// collectDependencies collects the dependencies of the tables.
 func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 	tables := extractTables(
 		b.selects,
@@ -28,11 +29,28 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 		if b.distinct && t.Optional && !deps[t.Names] {
 			continue
 		}
-		if _, ok := b.ctesDict[t.Names.Name]; ok {
-			deps[NewTableAliased(t.Names.Name, "")] = true
+		if cte, ok := b.ctesDict[t.Names.Name]; ok {
+			b.collectDepsFromCTE(deps, cte)
 		}
 	}
 	return deps, nil
+}
+
+func (b *QueryBuilder) collectDepsFromCTE(deps map[TableAliased]bool, cte *cte) error {
+	key := NewTableAliased(cte.name, "")
+	if deps[key] {
+		return nil
+	}
+	deps[key] = true
+	for _, dep := range cte.deps {
+		if cte, ok := b.ctesDict[dep]; ok {
+			err := b.collectDepsFromCTE(deps, cte)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) error {
