@@ -77,20 +77,20 @@ func (b *QueryBuilder) CrossJoin(t TableAliased) *QueryBuilder {
 	return b.join("CROSS JOIN", t, nil, false)
 }
 
-// From append or replace a from table.
+// join append or replace a join table.
 func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, optional bool) *QueryBuilder {
 	if t.Name == "" {
 		b.pushError(fmt.Errorf("join table name is empty"))
 		return b
 	}
-	if _, ok := b.tablesDict[t.AppliedName()]; ok {
-		if t.Alias == "" {
-			b.pushError(fmt.Errorf("table [%s] is already joined", t.Name))
-			return b
-		}
-		b.pushError(fmt.Errorf("table [%s AS %s] is already joined", t.Name, t.Alias))
-		return b
-	}
+	// if _, ok := b.tablesDict[t.AppliedName()]; ok {
+	// 	if t.Alias == "" {
+	// 		b.pushError(fmt.Errorf("table [%s] is already joined", t.Name))
+	// 		return b
+	// 	}
+	// 	b.pushError(fmt.Errorf("table [%s AS %s] is already joined", t.Name, t.Alias))
+	// 	return b
+	// }
 	if len(b.tables) == 0 {
 		// reserve the first alias for the main table
 		b.tables = append(b.tables, &fromTable{})
@@ -106,6 +106,10 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 			on.WithPrefix("ON"),
 		),
 		Optional: optional,
+	}
+	if target, replacing := b.tablesDict[t.AppliedName()]; replacing {
+		*target = *table
+		return b
 	}
 	b.tables = append(b.tables, table)
 	b.tablesDict[t.AppliedName()] = table
