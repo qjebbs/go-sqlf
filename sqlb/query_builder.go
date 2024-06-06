@@ -1,8 +1,6 @@
 package sqlb
 
 import (
-	"fmt"
-
 	"github.com/qjebbs/go-sqlf/v2"
 )
 
@@ -19,7 +17,7 @@ type QueryBuilder struct {
 	selects    *sqlf.Fragment         // select columns and keep values in scanning.
 	touches    *sqlf.Fragment         // select columns but drop values in scanning.
 	conditions *sqlf.Fragment         // where conditions, joined with AND.
-	orders     *sqlf.Fragment         // order by columns, joined with comma.
+	orders     []*orderItem           // order by columns, joined with comma.
 	groupbys   *sqlf.Fragment         // group by columns, joined with comma.
 	distinct   bool                   // select distinct
 	limit      int64                  // limit count
@@ -45,7 +43,6 @@ func NewQueryBuilder() *QueryBuilder {
 		selects:    sqlf.F("#join('#fragment', ', ')").WithPrefix("SELECT"),
 		touches:    sqlf.F("#join('#fragment', ', ')"),
 		conditions: sqlf.F("#join('#fragment', ' AND ')").WithPrefix("WHERE"),
-		orders:     sqlf.F("#join('#fragment', ', ')").WithPrefix("ORDER BY"),
 		groupbys:   sqlf.F("#join('#fragment', ', ')").WithPrefix("GROUP BY"),
 	}
 }
@@ -62,43 +59,6 @@ func (b *QueryBuilder) Select(columns ...*Column) *QueryBuilder {
 		return b
 	}
 	b.selects.WithFragments(convertFragmentBuilders(columns)...)
-	return b
-}
-
-// Order is the sorting order.
-type Order uint
-
-// orders
-const (
-	Asc Order = iota
-	AscNullsFirst
-	AscNullsLast
-	Desc
-	DescNullsFirst
-	DescNullsLast
-)
-
-var orders = []string{
-	"ASC",
-	"ASC NULLS FIRST",
-	"ASC NULLS LAST",
-	"DESC",
-	"DESC NULLS FIRST",
-	"DESC NULLS LAST",
-}
-
-// OrderBy set the sorting order. the order can be "ASC", "DESC", "ASC NULLS FIRST" or "DESC NULLS LAST"
-func (b *QueryBuilder) OrderBy(column *Column, order Order) *QueryBuilder {
-	idx := len(b.orders.Fragments) + 1
-	alias := fmt.Sprintf("_order_%d", idx)
-
-	if order > DescNullsLast {
-		b.pushError(fmt.Errorf("invalid order: %d", order))
-	}
-	orderStr := orders[order]
-	// pq: for SELECT DISTINCT, ORDER BY expressions must appear in select list
-	b.touches.AppendFragments(sqlf.Ff("#f1 AS "+alias, column))
-	b.orders.AppendFragments(sqlf.F(fmt.Sprintf("%s %s", alias, orderStr)))
 	return b
 }
 

@@ -8,13 +8,17 @@ import (
 
 // collectDependencies collects the dependencies of the tables.
 func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
-	tables := extractTables(
+	builders := []sqlf.FragmentBuilder{
 		b.selects,
 		b.touches,
 		b.conditions,
-		b.orders,
 		b.groupbys,
-	)
+	}
+	for _, order := range b.orders {
+		builders = append(builders, order.column)
+	}
+
+	tables := extractTables(builders...)
 	deps := make(map[TableAliased]bool)
 	// first table is the main table and always included
 	deps[b.tables[0].Names] = true

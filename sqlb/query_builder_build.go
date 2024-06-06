@@ -57,11 +57,9 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 		clauses = append(clauses, sq)
 	}
 
-	sel, err := b.buildSelects(ctx)
-	if err != nil {
-		return "", err
-	}
-	clauses = append(clauses, sel)
+	// reserve a position for select
+	selectAt := len(clauses)
+	clauses = append(clauses, "")
 	from, err := b.buildFrom(ctx, dep)
 	if err != nil {
 		return "", err
@@ -83,7 +81,7 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	if groupby != "" {
 		clauses = append(clauses, groupby)
 	}
-	order, err := b.orders.BuildFragment(ctx)
+	order, err := b.buildOrders(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -96,6 +94,12 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	if b.offset > 0 {
 		clauses = append(clauses, fmt.Sprintf(`OFFSET %d`, b.offset))
 	}
+	// select must build order, because buildOrders may add columns to touches
+	sel, err := b.buildSelects(ctx)
+	if err != nil {
+		return "", err
+	}
+	clauses[selectAt] = sel
 	query := strings.TrimSpace(strings.Join(clauses, " "))
 	if len(b.unions) > 0 {
 		union, err := b.buildUnion(ctx)
