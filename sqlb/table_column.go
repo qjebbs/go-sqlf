@@ -7,15 +7,21 @@ import (
 var _ sqlf.FragmentBuilder = (*Column)(nil)
 
 // Column is a Column of a table.
+// There are two ways to make columns:
+//
+//	foo := sqlb.NewTableAliased("foo", "f")
+//	foo.Column("id") // "f.id"
+//	sqlb.ExprColumn(sqlf.Ff("COALESCE(#f1.id,0)", foo)) // "COALESCE(f.id,0)"
 type Column struct {
 	fragment *sqlf.Fragment
+
+	table Table
 	// Important: to simplify column building, we use preBuildColumn(),
 	// so there's no table values assigned to the value of fragment field.
 	// but QueryBuilder.calcDependency() requies the info.
 	//
 	// so in this case, we store table here, calcDependency() don't extract
 	// table from 'fragment' if it see a non-empty table here.
-	table Table
 }
 
 // BuildFragment implements FragmentBuilder
@@ -31,13 +37,21 @@ func (c *Column) BuildFragment(ctx *sqlf.Context) (query string, err error) {
 //
 //	t := sqlb.NewTableAliased("foo", "f")
 //	sqlb.NewQueryBuilder().Select(
-//		sqlb.ExprColumn(sqlf.Fp(
+//		sqlb.ExprColumn(sqlf.Ff(
+//			"COALESCE(#f1.id,0)",
+//			t,
+//		)),
+//		sqlb.ExprColumn(sqlf.Ff(
 //			"#f1 > #f2 AS larger",
 //			t.Column("bar"),
 //			t.Column("baz"),
 //		)),
 //	)
-//	// SELECT f.bar > f.baz AS larger ...
+//	// SELECT COALESCE(f.id,0), f.bar > f.baz AS larger ...
+//
+// Make sure all Tables are explicitly specified for the 'fragment' argument
+// of sqlb.ExprColumn(), because they're required by *sqlb.QueryBuilder to
+// calculate the table dependencies.
 func ExprColumn(fragment *sqlf.Fragment) *Column {
 	return &Column{
 		fragment: fragment,
