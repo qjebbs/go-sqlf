@@ -19,6 +19,7 @@ type QueryBuilder struct {
 	conditions *sqlf.Fragment         // where conditions, joined with AND.
 	orders     []*orderItem           // order by columns, joined with comma.
 	groupbys   *sqlf.Fragment         // group by columns, joined with comma.
+	havings    *sqlf.Fragment         // where conditions, joined with AND.
 	distinct   bool                   // select distinct
 	limit      int64                  // limit count
 	offset     int64                  // offset count
@@ -44,6 +45,7 @@ func NewQueryBuilder() *QueryBuilder {
 		touches:    sqlf.F("#join('#fragment', ', ')"),
 		conditions: sqlf.F("#join('#fragment', ' AND ')").WithPrefix("WHERE"),
 		groupbys:   sqlf.F("#join('#fragment', ', ')").WithPrefix("GROUP BY"),
+		havings:    sqlf.F("#join('#fragment', ' AND ')").WithPrefix("HAVING"),
 	}
 }
 

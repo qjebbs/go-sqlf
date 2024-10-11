@@ -80,6 +80,13 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	}
 	if groupby != "" {
 		clauses = append(clauses, groupby)
+		having, err := b.havings.BuildFragment(ctx)
+		if err != nil {
+			return "", err
+		}
+		if having != "" {
+			clauses = append(clauses, having)
+		}
 	}
 	order, err := b.buildOrders(ctx)
 	if err != nil {
