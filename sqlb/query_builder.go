@@ -55,6 +55,12 @@ func (b *QueryBuilder) Distinct() *QueryBuilder {
 	return b
 }
 
+// Indistinct unset the flag for SELECT DISTINCT.
+func (b *QueryBuilder) Indistinct() *QueryBuilder {
+	b.distinct = false
+	return b
+}
+
 // Select replace the SELECT clause with the columns.
 func (b *QueryBuilder) Select(columns ...*Column) *QueryBuilder {
 	if len(columns) == 0 {
