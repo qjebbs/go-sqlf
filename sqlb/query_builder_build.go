@@ -178,7 +178,7 @@ func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
 func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (string, error) {
 	tables := make([]string, 0, len(b.tables))
 	for _, t := range b.tables {
-		if b.distinct && t.Optional && !dep[t.Names] {
+		if t.Optional && !dep[t.Names] {
 			continue
 		}
 		c, err := t.Fragment.BuildFragment(ctx)

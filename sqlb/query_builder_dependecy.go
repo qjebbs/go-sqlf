@@ -31,7 +31,7 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 	}
 	// mark for CTEs
 	for _, t := range b.tables {
-		if b.distinct && t.Optional && !deps[t.Names] {
+		if (b.distinct || len(b.havings.Fragments) > 0) && t.Optional && !deps[t.Names] {
 			continue
 		}
 		if cte, ok := b.ctesDict[t.Names.Name]; ok {

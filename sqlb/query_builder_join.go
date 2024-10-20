@@ -47,15 +47,18 @@ func (b *QueryBuilder) LeftJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder
 //   - Make sure all columns referenced in the query are reflected in
 //     *sqlf.Fragment.Columns, so that the *QueryBuilder can calculate the dependency
 //     correctly.
-//   - Make sure it's used with the SELECT DISTINCT statement, otherwise it works
+//   - Make sure it's used with the SELECT DISTINCT or GROUP BY statement, otherwise it works
 //     exactly the same as LeftJoin().
 //
-// Consider the following two queries:
+// Consider the following two group of queries:
 //
-//	SELECT DISTINCT foo.* FROM foo LEFT JOIN bar ON foo.id = bar.foo_id
-//	SELECT DISTINCT foo.* FROM foo
+//	SELECT DISTINCT foo.id FROM foo LEFT JOIN bar ON foo.id = bar.foo_id
+//	SELECT foo.id FROM foo LEFT JOIN bar ON foo.id = bar.foo_id GROUP BY foo.id
 //
-// They return the same result, but the second query more efficient.
+//	SELECT DISTINCT foo.id FROM foo
+//	SELECT foo.id FROM foo GROUP BY foo.id
+//
+// They queries return the same result between groups, but the second group ones are more efficient.
 // If the join to "bar" is declared with LeftJoinOptional(), *QueryBuilder
 // will trim it if no relative columns referenced in the query, aka Join Elimination.
 func (b *QueryBuilder) LeftJoinOptional(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
