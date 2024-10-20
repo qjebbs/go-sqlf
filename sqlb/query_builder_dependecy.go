@@ -13,6 +13,7 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 		b.touches,
 		b.conditions,
 		b.groupbys,
+		b.havings,
 	}
 	for _, order := range b.orders {
 		builders = append(builders, order.column)
