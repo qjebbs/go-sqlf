@@ -4,8 +4,8 @@ import "github.com/qjebbs/go-sqlf/v3"
 
 var _ (sqlf.Builder) = TableAliased{}
 
-// BuildFragment implements FragmentBuilder
-func (t TableAliased) BuildFragment(_ *sqlf.Context) (query string, err error) {
+// Build implements sqlf.Builder
+func (t TableAliased) Build(_ *sqlf.Context) (query string, err error) {
 	return string(t.AppliedName()), nil
 }
 

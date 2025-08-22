@@ -11,8 +11,8 @@ var _ (sqlf.Builder) = Table("")
 // Table is a table identifier, it can be a table name or an alias.
 type Table string
 
-// BuildFragment implements FragmentBuilder
-func (t Table) BuildFragment(_ *sqlf.Context) (query string, err error) {
+// Build implements sqlf.Builder
+func (t Table) Build(_ *sqlf.Context) (query string, err error) {
 	return string(t), nil
 }
 

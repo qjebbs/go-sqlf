@@ -33,10 +33,10 @@ func (p *defaultProperty) Used() bool {
 	return p.used
 }
 
-// BuildFragment builds the fragment.
-func (p *defaultProperty) BuildFragment(ctx *Context) (string, error) {
+// Build builds the fragment.
+func (p *defaultProperty) Build(ctx *Context) (string, error) {
 	p.used = true
-	return p.value.BuildFragment(ctx)
+	return p.value.Build(ctx)
 }
 
 func newArgProperty(value any) *defaultProperty {
@@ -49,8 +49,8 @@ type argBuilder struct {
 	any
 }
 
-// BuildFragment implements FragmentBuilder
-func (c *argBuilder) BuildFragment(ctx *Context) (query string, err error) {
+// Build implements FragmentBuilder
+func (c *argBuilder) Build(ctx *Context) (query string, err error) {
 	built := ctx.CommitArg(c.any)
 	return built, nil
 }

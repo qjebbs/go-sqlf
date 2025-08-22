@@ -1,12 +1,9 @@
 package util_test
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 
-	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
@@ -37,84 +34,4 @@ func ExampleInterpolate() {
 	fmt.Println(interpolated)
 	// Output:
 	// SELECT * FROM foo WHERE status = 'ok' AND created_at > '1970-01-01 08:00:00'
-}
-
-func ExampleCountBuilder() {
-	var (
-		db      *sql.DB
-		builder sqlf.QueryBuilder
-	)
-	if db != nil && builder != nil {
-		count, err := util.CountBuilder(db, builder, syntax.Dollar)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(count)
-	}
-	// Output:
-	//
-}
-
-func ExampleCount() {
-	var db *sql.DB
-	if db != nil {
-		count, err := util.Count(db, "SELECT * FROM foo", nil)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(count)
-	}
-	// Output:
-	//
-}
-
-func ExampleScanBuilder() {
-	type foo struct {
-		ID   int64
-		Name string
-	}
-	var db *sql.DB
-	if db != nil {
-		builder := sqlf.F(
-			"SELECT id, name FROM foo WHERE id IN (#join('#arg', ', '))",
-			1, 2, 3,
-		)
-		r, err := util.ScanBuilder(
-			db, builder, syntax.Dollar,
-			func() (*foo, []any) {
-				r := &foo{}
-				return r, []any{&r.ID, &r.Name}
-			},
-		)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(r)
-	}
-	// Output:
-	//
-}
-
-func ExampleScan() {
-	type foo struct {
-		ID   int64
-		Name string
-	}
-	var db *sql.DB
-	if db != nil {
-		query := "SELECT id, name FROM foo LIMIT 10"
-		r, err := util.Scan(
-			db, query, nil,
-			func() (*foo, []any) {
-				r := &foo{}
-				return r, []any{&r.ID, &r.Name}
-			},
-		)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(r)
-	}
-	// Output:
-	//
 }

@@ -16,7 +16,7 @@ import "github.com/qjebbs/go-sqlf/v3"
 // when cteB references with a same identifier as cteA, we cannot tell
 // if cteA is self-contained by cteB, or cteB requires cteA, without
 // semantic analysis. Not to mention that cteB could be any type
-// implementing FragmentBuilder, and it's impossible to determine.
+// implementing sqlf.Builder, and it's impossible to determine.
 
 // With adds a fragment as common table expression,
 // the built query of s should be a subquery,

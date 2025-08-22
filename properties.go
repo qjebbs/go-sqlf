@@ -20,19 +20,6 @@ func newProperties(args ...any) properties {
 	return r
 }
 
-// Build builds the propery at i.
-// it returns ErrInvalidIndex when the i is out of range, which
-// is the required behaviour for a custom #func to be compatible
-// with #join.
-//
-// See examples for ContextWithFuncs() for how to use it.
-func (p properties) Build(ctx *Context, i int) (string, error) {
-	if i < 1 || i > len(p) {
-		return "", fmt.Errorf("%w: %d", ErrInvalidIndex, i)
-	}
-	return p[i-1].BuildFragment(ctx)
-}
-
 // checkUsage checks if all properties are used.
 func (p properties) checkUsage() error {
 	for i, prop := range p {

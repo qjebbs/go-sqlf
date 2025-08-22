@@ -3,7 +3,6 @@ package sqlb_test
 import (
 	"github.com/qjebbs/go-sqlf/v3/sqlb"
 	"github.com/qjebbs/go-sqlf/v3/syntax"
-	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
 func Example() {
@@ -14,13 +13,13 @@ func Example() {
 
 // Wrap with your own build to provide more friendly APIs.
 type UserQueryBuilder struct {
-	util.QueryAble
+	sqlb.QueryAble
 	*sqlb.QueryBuilder
 }
 
 var Users = sqlb.NewTableAliased("users", "u")
 
-func NewUserQueryBuilder(db util.QueryAble) *UserQueryBuilder {
+func NewUserQueryBuilder(db sqlb.QueryAble) *UserQueryBuilder {
 	b := sqlb.NewQueryBuilder().
 		Distinct().
 		From(Users)
@@ -37,7 +36,7 @@ func (b *UserQueryBuilder) WithIDs(ids []int64) *UserQueryBuilder {
 
 func (b *UserQueryBuilder) GetUsers() ([]*User, error) {
 	b.Select(Users.Columns("id", "name", "email")...)
-	return util.ScanBuilder(b.QueryAble, b.QueryBuilder, syntax.Dollar, func() (*User, []any) {
+	return sqlb.ScanBuilder(b.QueryAble, b.QueryBuilder, syntax.Dollar, func() (*User, []any) {
 		r := &User{}
 		return r, []interface{}{
 			&r.ID, &r.Name, &r.Email,

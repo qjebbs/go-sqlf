@@ -6,10 +6,13 @@ when writing SQL.
 
 ## Fragment
 
-Unlike any other sql builder or ORMs, `Fragment` is the only concept you need to learn.
+Unlike any other sql builder or ORMs, `*Fragment` is the only concept you need to learn.
 
-Fragment is usually a part of a SQL query, which uses exactly the same syntax as 
-`database/sql`, but provides the ability to combine them in any way.
+A `*Fragment` is usually part of a SQL query, which has exactly the same bind 
+var (`?` / `$n`) syntax as `database/sql`, but more than that, it allows you 
+to bind other fragment builders.
+
+The `*Fragment` is usually created by `sqlf.F()`.
 
 ```go
 import (
@@ -17,10 +20,13 @@ import (
 	"github.com/qjebbs/go-sqlf/v3"
 )
 func Example_basic() {
-	query, args, _ := sqlf.Ff(
-		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')", // join fragments
-		sqlf.Fa("baz = $1", true),                             // `database/sql` style
-		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // `database/sql` style
+	query, args, _ := sqlf.F(
+		"SELECT * FROM foo WHERE ?",
+		sqlf.Join(
+			" AND "
+			sqlf.F("baz = $1", true),             
+			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
+		),
 	).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
 	fmt.Println(args)
@@ -29,29 +35,6 @@ func Example_basic() {
 	// [true 1 100]
 }
 ```
-
-Explanation:
-
-- We pay attention only to the references inside a fragment, not between fragments.
-- `#join`, `#arg`, `#f`, etc., are preprocessing functions, which will be explained later.
-- See `Example_deeperLook` of [example_test.go](./example_test.go) for what happend inside the *sqlf.Fragment.
-
-## Preprocessing Functions
-
-| name        | description                      | example                |
-| ----------- | -------------------------------- | ---------------------- |
-| f, fragment | fragments at index               | #f1, #fragment1        |
-| join        | Join the template with separator | #join('#f', ' AND ')   |
-|             | Join from index 3 to end         | #join('#f', ',', 3)    |
-|             | Join from index 3 to 6           | #join('#f', ',', 3, 6) |
-| arg         | arguments at index               | #join('#arg', ',')     |
-
-Note:
-  - #f1 is equivalent to #f(1), which is a special syntax to call preprocessing functions when an integer (usually an index) is the only argument.
-  - Expressions in the #join template are functions, not function calls.
-
-See Example `ContextWithFuncs` of [example_test.go](./example_test.go) for how to 
-register custom preprocessing functions, and implementing global arguments/fragments.
 
 ## QueryBuilder
 

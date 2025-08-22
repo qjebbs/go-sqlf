@@ -68,5 +68,5 @@ func (b *QueryBuilder) buildOrders(ctx *sqlf.Context) (string, error) {
 		"ORDER BY",
 		sqlf.Join(", ", builders...),
 	)
-	return f.BuildFragment(ctx)
+	return f.Build(ctx)
 }

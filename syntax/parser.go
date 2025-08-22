@@ -82,18 +82,18 @@ func (p *parser) bindVarExpr() (Expr, error) {
 		if p.bindVarStyle == 0 {
 			p.bindVarStyle = t
 		}
-		// if p.bindVarStyle != t {
-		// 	return nil, p.syntaxError("mixed bindvar styles")
-		// }
+		if p.bindVarStyle != t {
+			return nil, p.syntaxError("mixed bindvar styles")
+		}
 	case "?":
 		t = Question
 		p.bindVarIndex++
 		if p.bindVarStyle == 0 {
 			p.bindVarStyle = t
 		}
-		// if p.bindVarStyle != t {
-		// 	return nil, p.syntaxError("mixed bindvar styles")
-		// }
+		if p.bindVarStyle != t {
+			return nil, p.syntaxError("mixed bindvar styles")
+		}
 	}
 	index := p.bindVarIndex
 	if t != Question {

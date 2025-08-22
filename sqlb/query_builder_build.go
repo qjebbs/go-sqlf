@@ -10,7 +10,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
-var _ sqlf.QueryBuilder = (*QueryBuilder)(nil)
+var _ Builder = (*QueryBuilder)(nil)
 var _ sqlf.Builder = (*QueryBuilder)(nil)
 
 // BuildQuery builds the query.
@@ -24,8 +24,8 @@ func (b *QueryBuilder) BuildQuery(bindVarStyle syntax.BindVarStyle) (query strin
 	return query, args, nil
 }
 
-// BuildFragment implements FragmentBuilder
-func (b *QueryBuilder) BuildFragment(ctx *sqlf.Context) (query string, err error) {
+// Build implements sqlf.Builder
+func (b *QueryBuilder) Build(ctx *sqlf.Context) (query string, err error) {
 	return b.buildInternal(ctx)
 }
 
@@ -70,7 +70,7 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	where, err := sqlf.Prefix(
 		"WHERE",
 		sqlf.Join(" AND ", util.Ttoa(b.conditions)...),
-	).BuildFragment(ctx)
+	).Build(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +80,7 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	groupby, err := sqlf.Prefix(
 		"GROUP BY",
 		sqlf.Join(", ", util.Ttoa(b.groupbys)...),
-	).BuildFragment(ctx)
+	).Build(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +89,7 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 		having, err := sqlf.Prefix(
 			"HAVING",
 			sqlf.Join(" AND ", util.Ttoa(b.havings)...),
-		).BuildFragment(ctx)
+		).Build(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -143,7 +143,7 @@ func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[TableAliased]bool) (
 		if !dep[NewTableAliased(cte.name, "")] {
 			continue
 		}
-		query, err := cte.BuildFragment(ctx)
+		query, err := cte.Build(ctx)
 		if err != nil {
 			return "", fmt.Errorf("build CTE '%s': %w", cte.name, err)
 		}
@@ -169,11 +169,11 @@ func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
 	sel, err := sqlf.Prefix(
 		prefix,
 		sqlf.Join(", ", util.Ttoa(b.selects)...),
-	).BuildFragment(ctx)
+	).Build(ctx)
 	if err != nil {
 		return "", err
 	}
-	touches, err := sqlf.Join(", ", util.Ttoa(b.touches)...).BuildFragment(ctx)
+	touches, err := sqlf.Join(", ", util.Ttoa(b.touches)...).Build(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -192,7 +192,7 @@ func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (
 		if (b.distinct || len(b.groupbys) > 0) && t.Optional && !dep[t.Names] {
 			continue
 		}
-		c, err := t.Fragment.BuildFragment(ctx)
+		c, err := t.Fragment.Build(ctx)
 		if err != nil {
 			return "", fmt.Errorf("build FROM '%s': %w", t.Names, err)
 		}
@@ -204,7 +204,7 @@ func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (
 func (b *QueryBuilder) buildUnion(ctx *sqlf.Context) (string, error) {
 	clauses := make([]string, 0, len(b.unions))
 	for _, union := range b.unions {
-		query, err := union.BuildFragment(ctx)
+		query, err := union.Build(ctx)
 		if err != nil {
 			return "", err
 		}

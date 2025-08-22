@@ -11,11 +11,11 @@ import (
 
 func Example_basic() {
 	query, args, _ := sqlf.F(
-		"SELECT * FROM foo WHERE ?", // join fragments
+		"SELECT * FROM foo WHERE ?",
 		sqlf.Join(
 			" AND ",
-			sqlf.F("baz = $1", true),              // `database/sql` style
-			sqlf.F("bar BETWEEN ? AND ?", 1, 100), // `database/sql` style
+			sqlf.F("baz = $1", true),
+			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
 		),
 	).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
@@ -93,7 +93,7 @@ func Example_insert() {
 	// [alice alice@example.org bob bob@example.org]
 }
 
-var _ sqlf.QueryBuilder = (*insertBuilder)(nil)
+var _ sqlb.Builder = (*insertBuilder)(nil)
 
 type insertBuilder struct {
 	table  sqlb.Table

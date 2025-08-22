@@ -8,7 +8,6 @@ import (
 )
 
 var _ Builder = (*Fragment)(nil)
-var _ QueryBuilder = (*Fragment)(nil)
 
 // BuildQuery builds the fragment as full query.
 func (f *Fragment) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
@@ -17,7 +16,7 @@ func (f *Fragment) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, a
 
 func _buildBuilder(b Builder, bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
 	ctx := NewContext(bindVarStyle)
-	query, err = b.BuildFragment(ctx)
+	query, err = b.Build(ctx)
 	if err != nil {
 		return "", nil, err
 	}
@@ -25,8 +24,8 @@ func _buildBuilder(b Builder, bindVarStyle syntax.BindVarStyle) (query string, a
 	return query, args, nil
 }
 
-// BuildFragment builds the fragment with context.
-func (f *Fragment) BuildFragment(ctx *Context) (string, error) {
+// Build builds the fragment with context.
+func (f *Fragment) Build(ctx *Context) (string, error) {
 	if f == nil {
 		return "", nil
 	}
@@ -87,7 +86,7 @@ func buildClause(ctx *Context, clause *syntax.Clause) (string, error) {
 			if expr.Index < 1 || expr.Index > len(fc.Args) {
 				return "", fmt.Errorf("invalid bind var index %d", expr.Index)
 			}
-			s, err := fc.Args[expr.Index-1].BuildFragment(ctx)
+			s, err := fc.Args[expr.Index-1].Build(ctx)
 			if err != nil {
 				return "", err
 			}

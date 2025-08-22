@@ -24,9 +24,9 @@ type Column struct {
 	// table from 'fragment' if it see a non-empty table here.
 }
 
-// BuildFragment implements FragmentBuilder
-func (c *Column) BuildFragment(ctx *sqlf.Context) (query string, err error) {
-	return c.fragment.BuildFragment(ctx)
+// Build implements sqlf.Builder
+func (c *Column) Build(ctx *sqlf.Context) (query string, err error) {
+	return c.fragment.Build(ctx)
 }
 
 // ExprColumn wraps a *Fragment of column expression to a *Column.

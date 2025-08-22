@@ -2,15 +2,13 @@ package sqlf
 
 import (
 	"strings"
-
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 // Join creates a new fragment builder that joins the given arguments with the specified separator.
 //
 // An arg could be either a sql arg or fragment builder.
 func Join(sep string, args ...any) Builder {
-	return Fn(func(ctx *Context) (string, error) {
+	return fn(func(ctx *Context) (string, error) {
 		if len(args) == 0 {
 			return "", nil
 		}
@@ -20,7 +18,7 @@ func Join(sep string, args ...any) Builder {
 			if i > 0 {
 				sb.WriteString(sep)
 			}
-			r, err := p.BuildFragment(ctx)
+			r, err := p.Build(ctx)
 			if err != nil {
 				return "", err
 			}
@@ -32,8 +30,8 @@ func Join(sep string, args ...any) Builder {
 
 // Prefix creates a new fragment builder that prefixes the given builder if it's built not empty.
 func Prefix(prefix string, b Builder) Builder {
-	return Fn(func(ctx *Context) (query string, err error) {
-		query, err = b.BuildFragment(ctx)
+	return fn(func(ctx *Context) (query string, err error) {
+		query, err = b.Build(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -44,25 +42,19 @@ func Prefix(prefix string, b Builder) Builder {
 	})
 }
 
-// Fn creates a new fragment builder with the fn function.
-func Fn(fn func(ctx *Context) (query string, err error)) Builder {
+// fn creates a new fragment builder with the fn function.
+func fn(fn func(ctx *Context) (query string, err error)) Builder {
 	return &builder{
 		fn: fn,
 	}
 }
 
 var _ Builder = (*builder)(nil)
-var _ QueryBuilder = (*builder)(nil)
 
 type builder struct {
 	fn func(ctx *Context) (query string, err error)
 }
 
-func (b *builder) BuildFragment(ctx *Context) (string, error) {
+func (b *builder) Build(ctx *Context) (string, error) {
 	return b.fn(ctx)
-}
-
-// BuildQuery builds the fragment as full query.
-func (b *builder) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
-	return _buildBuilder(b, bindVarStyle)
 }

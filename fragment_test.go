@@ -87,7 +87,7 @@ func TestBuildFragment(t *testing.T) {
 			style: syntax.Dollar,
 			fragment: sqlf.F(
 				"$1, $1",
-				sqlf.F("?, ?, $1", 1, 2),
+				sqlf.F("$1, $2, $1", 1, 2),
 			),
 			want:     "$1, $2, $1, $1, $2, $1",
 			wantArgs: []any{1, 2},
@@ -98,7 +98,7 @@ func TestBuildFragment(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
 			ctx := sqlf.NewContext(tc.style)
-			got, err := tc.fragment.BuildFragment(ctx)
+			got, err := tc.fragment.Build(ctx)
 			if err != nil {
 				if tc.wantErr {
 					return

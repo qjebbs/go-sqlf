@@ -1,11 +1,11 @@
-package util
+package sqlb
 
 import (
 	"database/sql"
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf/v3"
 	"github.com/qjebbs/go-sqlf/v3/syntax"
+	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
 // QueryAble is the interface for query-able *sql.DB, *sql.Tx, etc.
@@ -21,7 +21,7 @@ type QueryAble interface {
 type NewScanDestFunc[T any] func() (T, []any)
 
 // ScanBuilder is like Scan, but it builds query from sqlf.Builder
-func ScanBuilder[T any](db QueryAble, b sqlf.QueryBuilder, bindVarStyle syntax.BindVarStyle, fn NewScanDestFunc[T]) ([]T, error) {
+func ScanBuilder[T any](db QueryAble, b Builder, bindVarStyle syntax.BindVarStyle, fn NewScanDestFunc[T]) ([]T, error) {
 	query, args, err := b.BuildQuery(bindVarStyle)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func ScanRow(rows *sql.Rows, dest ...any) error {
 }
 
 // CountBuilder is like Count, but it builds query from sqlf.Builder.
-func CountBuilder(db QueryAble, b sqlf.QueryBuilder, bindVarStyle syntax.BindVarStyle) (count int64, err error) {
+func CountBuilder(db QueryAble, b Builder, bindVarStyle syntax.BindVarStyle) (count int64, err error) {
 	query, args, err := b.BuildQuery(bindVarStyle)
 	if err != nil {
 		return 0, err
@@ -81,7 +81,7 @@ func Count(db QueryAble, query string, args []any) (count int64, err error) {
 		return 0, nil
 	}
 	if err != nil {
-		query, _ := Interpolate(query, args)
+		query, _ := util.Interpolate(query, args)
 		return 0, fmt.Errorf("%w: %s", err, query)
 	}
 	return count, nil
