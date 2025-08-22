@@ -30,6 +30,20 @@ func Join(sep string, args ...any) Builder {
 	})
 }
 
+// Prefix creates a new fragment builder that prefixes the given builder if it's built not empty.
+func Prefix(prefix string, b Builder) Builder {
+	return Fn(func(ctx *Context) (query string, err error) {
+		query, err = b.BuildFragment(ctx)
+		if err != nil {
+			return "", err
+		}
+		if query == "" {
+			return "", nil
+		}
+		return prefix + " " + query, nil
+	})
+}
+
 // Fn creates a new fragment builder with the fn function.
 func Fn(fn func(ctx *Context) (query string, err error)) Builder {
 	return &builder{

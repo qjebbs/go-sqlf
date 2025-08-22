@@ -2,7 +2,6 @@ package sqlb
 
 import (
 	"github.com/qjebbs/go-sqlf/v2"
-	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
 // QueryBuilder is the SQL query builder.
@@ -15,16 +14,16 @@ type QueryBuilder struct {
 	tables     []*fromTable         // the tables in order
 	tablesDict map[Table]*fromTable // the from tables by alias
 
-	selects    *sqlf.Fragment // select columns and keep values in scanning.
-	touches    *sqlf.Fragment // select columns but drop values in scanning.
-	conditions *sqlf.Fragment // where conditions, joined with AND.
-	orders     []*orderItem   // order by columns, joined with comma.
-	groupbys   *sqlf.Fragment // group by columns, joined with comma.
-	havings    *sqlf.Fragment // where conditions, joined with AND.
-	distinct   bool           // select distinct
-	limit      int64          // limit count
-	offset     int64          // offset count
-	unions     []sqlf.Builder // union queries
+	selects    []*Column        // select columns and keep values in scanning.
+	touches    []*Column        // select columns but drop values in scanning.
+	conditions []*sqlf.Fragment // where conditions, joined with AND.
+	orders     []*orderItem     // order by columns, joined with comma.
+	groupbys   []*Column        // group by columns, joined with comma.
+	havings    []*sqlf.Fragment // where conditions, joined with AND.
+	distinct   bool             // select distinct
+	limit      int64            // limit count
+	offset     int64            // offset count
+	unions     []sqlf.Builder   // union queries
 
 	errors []error // errors during building
 
@@ -42,11 +41,6 @@ func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{
 		ctesDict:   make(map[Table]*cte),
 		tablesDict: make(map[Table]*fromTable),
-		selects:    sqlf.F("#join('#fragment', ', ')").WithPrefix("SELECT"),
-		touches:    sqlf.F("#join('#fragment', ', ')"),
-		conditions: sqlf.F("#join('#fragment', ' AND ')").WithPrefix("WHERE"),
-		groupbys:   sqlf.F("#join('#fragment', ', ')").WithPrefix("GROUP BY"),
-		havings:    sqlf.F("#join('#fragment', ' AND ')").WithPrefix("HAVING"),
 	}
 }
 
@@ -67,7 +61,7 @@ func (b *QueryBuilder) Select(columns ...*Column) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
 	}
-	b.selects.WithArgs(util.Ttoa(columns)...)
+	b.selects = append(b.selects, columns...)
 	return b
 }
 
@@ -89,7 +83,7 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 
 // GroupBy set the sorting order.
 func (b *QueryBuilder) GroupBy(columns ...*Column) *QueryBuilder {
-	b.groupbys.AppendArgs(util.Ttoa(columns)...)
+	b.groupbys = append(b.groupbys, columns...)
 	return b
 }
 

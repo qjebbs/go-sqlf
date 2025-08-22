@@ -37,7 +37,7 @@ func (b *UserQueryBuilder) WithIDs(ids []int64) *UserQueryBuilder {
 
 func (b *UserQueryBuilder) GetUsers() ([]*User, error) {
 	b.Select(Users.Columns("id", "name", "email")...)
-	return util.ScanBuilder[*User](b.QueryAble, b.QueryBuilder, syntax.Dollar, func() (*User, []any) {
+	return util.ScanBuilder(b.QueryAble, b.QueryBuilder, syntax.Dollar, func() (*User, []any) {
 		r := &User{}
 		return r, []interface{}{
 			&r.ID, &r.Name, &r.Email,

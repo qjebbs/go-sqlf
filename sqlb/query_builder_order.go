@@ -40,15 +40,15 @@ func (b *QueryBuilder) OrderBy(column *Column, order Order) *QueryBuilder {
 }
 
 func (b *QueryBuilder) buildOrders(ctx *sqlf.Context) (string, error) {
-	f := sqlf.F("#join('#fragment', ', ')").WithPrefix("ORDER BY")
+	builders := make([]any, 0, len(b.orders))
 	for i, item := range b.orders {
 		if item.order > DescNullsLast {
 			b.pushError(fmt.Errorf("invalid order: %d", item.order))
 			continue
 		}
 		if !b.distinct {
-			f.AppendArgs(sqlf.F(
-				"#f1 "+orders[item.order],
+			builders = append(builders, sqlf.F(
+				"? "+orders[item.order],
 				item.column,
 			))
 			continue
@@ -56,10 +56,17 @@ func (b *QueryBuilder) buildOrders(ctx *sqlf.Context) (string, error) {
 		// pq: for SELECT DISTINCT, ORDER BY expressions must appear in select list
 		alias := fmt.Sprintf("_order_%d", i+1)
 		orderStr := orders[item.order]
-		b.touches.AppendArgs(sqlf.F("#f1 AS "+alias, item.column))
-		f.AppendArgs(sqlf.F(
+		b.touches = append(
+			b.touches,
+			ExprColumn(sqlf.F("? AS "+alias, item.column)),
+		)
+		builders = append(builders, sqlf.F(
 			fmt.Sprintf("%s %s", alias, orderStr),
 		))
 	}
+	f := sqlf.Prefix(
+		"ORDER BY",
+		sqlf.Join(", ", builders...),
+	)
 	return f.BuildFragment(ctx)
 }

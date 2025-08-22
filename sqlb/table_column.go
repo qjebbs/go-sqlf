@@ -11,7 +11,7 @@ var _ sqlf.Builder = (*Column)(nil)
 //
 //	foo := sqlb.NewTableAliased("foo", "f")
 //	foo.Column("id") // "f.id"
-//	sqlb.ExprColumn(sqlf.Ff("COALESCE(#f1.id,0)", foo)) // "COALESCE(f.id,0)"
+//	sqlb.ExprColumn(sqlf.Ff("COALESCE(?.id,0)", foo)) // "COALESCE(f.id,0)"
 type Column struct {
 	fragment *sqlf.Fragment
 
@@ -38,11 +38,11 @@ func (c *Column) BuildFragment(ctx *sqlf.Context) (query string, err error) {
 //	t := sqlb.NewTableAliased("foo", "f")
 //	sqlb.NewQueryBuilder().Select(
 //		sqlb.ExprColumn(sqlf.Ff(
-//			"COALESCE(#f1.id,0)",
+//			"COALESCE(?.id,0)",
 //			t,
 //		)),
 //		sqlb.ExprColumn(sqlf.Ff(
-//			"#f1 > #f2 AS larger",
+//			"? > ? AS larger",
 //			t.Column("bar"),
 //			t.Column("baz"),
 //		)),

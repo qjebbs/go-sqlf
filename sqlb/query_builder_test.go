@@ -25,12 +25,12 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 	q.Select(foo.Columns("id", "name")...).
 		From(users).
 		LeftJoinOptional(foo, sqlf.F(
-			"#f1=#f2",
+			"?=?",
 			foo.Column("user_id"),
 			users.Column("id"),
 		)).
 		LeftJoinOptional(bar, sqlf.F( // not referenced, should be ignored
-			"#f1=#f2",
+			"?=?",
 			bar.Column("user_id"),
 			users.Column("id"),
 		)).
@@ -39,10 +39,10 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 			sqlb.NewQueryBuilder().
 				Select(foo.Columns("id", "name")...).
 				From(foo).
-				Where(sqlf.F("#f1>$1 AND #f1<$2").
-					WithArgs(foo.Column("id")).
-					AppendArgs(10, 20),
-				),
+				Where(sqlf.F(
+					"$1>$2 AND $1<$3",
+					foo.Column("id"), 10, 20,
+				)),
 		)
 	gotQuery, gotArgs, err := q.BuildQuery(syntax.Dollar)
 	if err != nil {
@@ -67,17 +67,17 @@ func TestQueryBuilderGroupbyElimination(t *testing.T) {
 	q := sqlb.NewQueryBuilder().
 		With(
 			baz.Name,
-			sqlf.Fa("SELECT * FROM baz WHERE type=$1", "user"),
+			sqlf.F("SELECT * FROM baz WHERE type=$1", "user"),
 		)
 	q.Select(foo.Columns("id", "bar")...).
 		From(foo).
-		LeftJoinOptional(baz, sqlf.Ff(
-			"#f1=#f2",
+		LeftJoinOptional(baz, sqlf.F(
+			"?=?",
 			foo.Column("baz_id"),
 			baz.Column("id"),
 		)).
-		LeftJoinOptional(bar, sqlf.Ff( // not referenced, should be ignored
-			"#f1=#f2",
+		LeftJoinOptional(bar, sqlf.F( // not referenced, should be ignored
+			"?=?",
 			bar.Column("baz_id"),
 			baz.Column("id"),
 		)).

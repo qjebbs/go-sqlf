@@ -67,20 +67,29 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	if from != "" {
 		clauses = append(clauses, from)
 	}
-	where, err := b.conditions.BuildFragment(ctx)
+	where, err := sqlf.Prefix(
+		"WHERE",
+		sqlf.Join(" AND ", util.Ttoa(b.conditions)...),
+	).BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
 	if where != "" {
 		clauses = append(clauses, where)
 	}
-	groupby, err := b.groupbys.BuildFragment(ctx)
+	groupby, err := sqlf.Prefix(
+		"GROUP BY",
+		sqlf.Join(", ", util.Ttoa(b.groupbys)...),
+	).BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
 	if groupby != "" {
 		clauses = append(clauses, groupby)
-		having, err := b.havings.BuildFragment(ctx)
+		having, err := sqlf.Prefix(
+			"HAVING",
+			sqlf.Join(" AND ", util.Ttoa(b.havings)...),
+		).BuildFragment(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -153,16 +162,18 @@ func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[TableAliased]bool) (
 }
 
 func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
+	prefix := "SELECT"
 	if b.distinct {
-		b.selects.Prefix = "SELECT DISTINCT"
-	} else {
-		b.selects.Prefix = "SELECT"
+		prefix = "SELECT DISTINCT"
 	}
-	sel, err := b.selects.BuildFragment(ctx)
+	sel, err := sqlf.Prefix(
+		prefix,
+		sqlf.Join(", ", util.Ttoa(b.selects)...),
+	).BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
-	touches, err := b.touches.BuildFragment(ctx)
+	touches, err := sqlf.Join(", ", util.Ttoa(b.touches)...).BuildFragment(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -178,7 +189,7 @@ func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
 func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (string, error) {
 	tables := make([]string, 0, len(b.tables))
 	for _, t := range b.tables {
-		if (b.distinct || len(b.groupbys.Fragments) > 0) && t.Optional && !dep[t.Names] {
+		if (b.distinct || len(b.groupbys) > 0) && t.Optional && !dep[t.Names] {
 			continue
 		}
 		c, err := t.Fragment.BuildFragment(ctx)

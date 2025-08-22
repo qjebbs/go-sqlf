@@ -8,15 +8,13 @@ import (
 // Having add a condition.  e.g.:
 //
 //	b.Having(
-//		sqlf.F("#f1 = $1").
-//			WithFragments(a.Column("id")).
-//			WithArgs(1),
+//		sqlf.F("? = ?", a.Column("id"), 1),
 //	)
 func (b *QueryBuilder) Having(s *sqlf.Fragment) *QueryBuilder {
 	if s == nil {
 		return b
 	}
-	b.havings.AppendArgs(s)
+	b.havings = append(b.havings, s)
 	return b
 }
 
@@ -27,15 +25,12 @@ func (b *QueryBuilder) Having(s *sqlf.Fragment) *QueryBuilder {
 // it's equivalent to:
 //
 //	b.Having(
-//		sqlf.F("#f1 = $1").
-//			WithFragments(column).
-//			WithArgs(1),
+//		sqlf.F("? = ?", column, 1),
 //	)
 func (b *QueryBuilder) Having2(column *Column, op string, arg any) *QueryBuilder {
-	b.havings.AppendArgs(
-		sqlf.F("#f1" + op + "$1").
-			WithArgs(column).
-			AppendArgs(arg),
+	b.havings = append(
+		b.havings,
+		sqlf.F("?"+op+"?", column, arg),
 	)
 	return b
 }
@@ -43,17 +38,21 @@ func (b *QueryBuilder) Having2(column *Column, op string, arg any) *QueryBuilder
 // HavingIn adds a where IN condition like `t.id IN (1,2,3)`
 func (b *QueryBuilder) HavingIn(column *Column, list any) *QueryBuilder {
 	return b.Having(
-		sqlf.F("#f1 IN (#join('#arg', ', '))").
-			WithArgs(column).
-			AppendArgs(util.ArgsFlatted(list)...),
+		sqlf.F(
+			"? IN (?)",
+			column,
+			sqlf.Join(", ", util.ArgsFlatted(list)...),
+		),
 	)
 }
 
 // HavingNotIn adds a where NOT IN condition like `t.id NOT IN (1,2,3)`
 func (b *QueryBuilder) HavingNotIn(column *Column, list any) *QueryBuilder {
 	return b.Having(
-		sqlf.F("#f1 NOT IN (#join('#arg', ', '))").
-			WithArgs(column).
-			AppendArgs(util.ArgsFlatted(list)...),
+		sqlf.F(
+			"? NOT IN (?)",
+			column,
+			sqlf.Join(", ", util.ArgsFlatted(list)...),
+		),
 	)
 }

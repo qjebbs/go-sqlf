@@ -105,7 +105,7 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 	table := &fromTable{
 		Names: t,
 		Fragment: sqlf.F(
-			fmt.Sprintf("%s %s #f1", joinStr, tableAndAlias),
+			fmt.Sprintf("%s %s ?", joinStr, tableAndAlias),
 			on.WithPrefix("ON"),
 		),
 		Optional: optional,

@@ -4,17 +4,18 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
 // collectDependencies collects the dependencies of the tables.
 func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
-	builders := []any{
+	builders := util.ArgsFlatted(
 		b.selects,
 		b.touches,
 		b.conditions,
 		b.groupbys,
 		b.havings,
-	}
+	)
 	for _, order := range b.orders {
 		builders = append(builders, order.column)
 	}
@@ -31,7 +32,7 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 	}
 	// mark for CTEs
 	for _, t := range b.tables {
-		if (b.distinct || len(b.groupbys.Args) > 0) && t.Optional && !deps[t.Names] {
+		if (b.distinct || len(b.groupbys) > 0) && t.Optional && !deps[t.Names] {
 			continue
 		}
 		if cte, ok := b.ctesDict[t.Names.Name]; ok {
