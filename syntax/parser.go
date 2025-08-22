@@ -3,7 +3,6 @@ package syntax
 import (
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 // Parse parses the input and returns the list of expressions.
@@ -61,11 +60,6 @@ L:
 				return err
 			}
 			p.c.ExprList = append(p.c.ExprList, d)
-		case _Hash:
-			err := p.funcExpr()
-			if err != nil {
-				return err
-			}
 		case _Plain:
 			p.c.ExprList = append(p.c.ExprList, &PlainExpr{
 				Text: p.token.lit,
@@ -120,90 +114,4 @@ func (p *parser) bindVarExpr() (Expr, error) {
 		Index: index,
 		expr:  expr{node{pos}},
 	}, nil
-}
-
-func (p *parser) funcExpr() error {
-	pos := p.token.pos
-	if err := p.want(_Name); err != nil {
-		return err
-	}
-	nameToken := p.token
-	p.NextToken()
-	switch p.token.typ {
-	case _Lparen:
-		args := make([]any, 0)
-		for {
-			if !p.got(_Literal) {
-				if p.token.typ != _Rparen {
-					return p.syntaxError("unexpected token " + string(p.token.typ) + ", want args")
-				}
-				break
-			}
-			if p.token.bad {
-				return p.syntaxError("bad argument: " + p.token.lit)
-			}
-			switch p.token.kind {
-			case _NilLit:
-				args = append(args, nil)
-			case _BoolLit:
-				args = append(args, p.token.lit == "true")
-			case _NumberLit:
-				val, err := strconv.ParseFloat(p.token.lit, 64)
-				if err != nil {
-					return p.syntaxError(err.Error())
-				}
-				args = append(args, val)
-			case _StringLit:
-				arg := strings.ReplaceAll(p.token.lit[1:len(p.token.lit)-1], "''", "'")
-				args = append(args, arg)
-			default:
-				return p.syntaxError("unexpected token " + string(p.token.typ))
-			}
-			if !p.got(_Comma) {
-				break
-			}
-		}
-		if p.token.typ != _Rparen {
-			return p.syntaxError("unexpected token " + string(p.token.typ) + ", want )")
-		}
-		p.c.ExprList = append(
-			p.c.ExprList,
-			&FuncCallExpr{
-				Name: nameToken.lit,
-				Args: args,
-				expr: expr{node{pos}},
-			},
-		)
-	case _Literal:
-		if p.token.kind != _NumberLit {
-			return p.syntaxError("unexpected '" + p.token.lit + "', want index")
-		}
-		val, err := strconv.ParseFloat(p.token.lit, 64)
-		if err != nil {
-			return p.syntaxError(err.Error())
-		}
-		p.c.ExprList = append(
-			p.c.ExprList,
-			&FuncCallExpr{
-				Name: nameToken.lit,
-				Args: []any{val},
-				expr: expr{node{pos}},
-			},
-		)
-	default:
-		// EOF or _Plain
-		p.c.ExprList = append(
-			p.c.ExprList,
-			&FuncExpr{
-				Name: nameToken.lit,
-				expr: expr{node{pos}},
-			},
-			&PlainExpr{
-				Text: p.token.lit,
-				expr: expr{node{p.token.pos}},
-			},
-		)
-	}
-
-	return nil
 }

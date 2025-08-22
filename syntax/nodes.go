@@ -47,19 +47,6 @@ const (
 	Question
 )
 
-// FuncCallExpr is the function calling declaration.
-type FuncCallExpr struct {
-	Name string
-	Args []any // number (float64, int, uint...), string, bool, nil
-	expr
-}
-
-// FuncExpr is the function declaration.
-type FuncExpr struct {
-	Name string
-	expr
-}
-
 // PlainExpr is the plain text declaration.
 type PlainExpr struct {
 	Text string

@@ -6,23 +6,18 @@ import (
 
 // Context is the global context shared between all fragments building.
 type Context struct {
+	parent *Context
+
 	bindVarStyle syntax.BindVarStyle
 	argStore     argStore
 
-	parent *Context
-	funcs  map[string]*funcInfo
-	frag   *FragmentContext
+	frag *fragmentContext
 }
 
 // NewContext returns a new context.
 func NewContext(bindVarStyle syntax.BindVarStyle) *Context {
 	ctx := newEmptyContext(bindVarStyle)
 	ctx.bindVarStyle = bindVarStyle
-	err := addValueFuncs(ctx.funcs, builtInFuncs)
-	if err != nil {
-		// should never happen for builtInFuncs
-		panic(err)
-	}
 	return ctx
 }
 
@@ -34,7 +29,6 @@ func newEmptyContext(bindVarStyle syntax.BindVarStyle) *Context {
 		argStore = newQuestionArgStore()
 	}
 	return &Context{
-		funcs:    make(map[string]*funcInfo),
 		argStore: argStore,
 	}
 }

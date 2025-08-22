@@ -10,13 +10,13 @@ import (
 //
 // it's used usually in the implementation of a FragmentBuilder,
 // most users don't need to care about it.
-func (c *Context) fragment() (*FragmentContext, bool) {
-	return contextValue(c, func(c *Context) (*FragmentContext, bool) {
+func (c *Context) fragment() (*fragmentContext, bool) {
+	return contextValue(c, func(c *Context) (*fragmentContext, bool) {
 		return c.frag, c.frag != nil
 	})
 }
 
-func (c *Context) mustFragment() (*FragmentContext, error) {
+func (c *Context) mustFragment() (*fragmentContext, error) {
 	fc, ok := c.fragment()
 	if !ok {
 		return nil, errors.New("no fragment context")
@@ -33,24 +33,24 @@ func contextWithFragment(ctx *Context, f *Fragment) *Context {
 	return c
 }
 
-// FragmentContext is the context for current fragment building.
-type FragmentContext struct {
+// fragmentContext is the context for current fragment building.
+type fragmentContext struct {
 	Fragment *Fragment
-	Args     Properties
+	Args     properties
 }
 
-func newFragmentContext(f *Fragment) *FragmentContext {
+func newFragmentContext(f *Fragment) *fragmentContext {
 	if f == nil {
-		return &FragmentContext{}
+		return &fragmentContext{}
 	}
-	return &FragmentContext{
+	return &fragmentContext{
 		Fragment: f,
-		Args:     NewArgsProperties(f.Args...),
+		Args:     newProperties(f.Args...),
 	}
 }
 
 // checkUsage checks if all args and properties are used.
-func (c *FragmentContext) checkUsage() error {
+func (c *fragmentContext) checkUsage() error {
 	if c == nil {
 		return nil
 	}

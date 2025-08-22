@@ -37,28 +37,10 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			raw: "$1'#c11#t111#fragment1111'",
+			raw: "$1'?,?,$1'",
 			want: []Expr{
 				&BindVarExpr{Type: Dollar, Index: 1, expr: newExpr(1, 1)},
-				&PlainExpr{Text: "'#c11#t111#fragment1111'", expr: newExpr(1, 3)},
-			},
-		},
-		{
-			raw: "#join('#c=#argDollar', ',')",
-			want: []Expr{
-				&FuncCallExpr{
-					Name: "join",
-					Args: []any{"#c=#argDollar", ","},
-					expr: newExpr(1, 1),
-				},
-			},
-		},
-		{
-			raw: "#c1#t1#fragment1",
-			want: []Expr{
-				&FuncCallExpr{Name: "c", Args: []any{float64(1)}, expr: newExpr(1, 1)},
-				&FuncCallExpr{Name: "t", Args: []any{float64(1)}, expr: newExpr(1, 4)},
-				&FuncCallExpr{Name: "fragment", Args: []any{float64(1)}, expr: newExpr(1, 7)},
+				&PlainExpr{Text: "'?,?,$1'", expr: newExpr(1, 3)},
 			},
 		},
 	}

@@ -26,7 +26,7 @@ func ScanBuilder[T any](db QueryAble, b sqlf.QueryBuilder, bindVarStyle syntax.B
 	if err != nil {
 		return nil, err
 	}
-	return Scan[T](db, query, args, fn)
+	return Scan(db, query, args, fn)
 }
 
 // Scan scans query rows with scanner

@@ -12,8 +12,12 @@ var _ QueryBuilder = (*Fragment)(nil)
 
 // BuildQuery builds the fragment as full query.
 func (f *Fragment) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
+	return _buildBuilder(f, bindVarStyle)
+}
+
+func _buildBuilder(b Builder, bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
 	ctx := NewContext(bindVarStyle)
-	query, err = f.BuildFragment(ctx)
+	query, err = b.BuildFragment(ctx)
 	if err != nil {
 		return "", nil, err
 	}
@@ -88,14 +92,6 @@ func buildClause(ctx *Context, clause *syntax.Clause) (string, error) {
 				return "", err
 			}
 			b.WriteString(s)
-		case *syntax.FuncCallExpr:
-			s, err := evalFunction(ctx, expr.Name, expr.Args)
-			if err != nil {
-				return "", err
-			}
-			b.WriteString(s)
-		case *syntax.FuncExpr:
-			return "", fmt.Errorf("unexpected function value at %s, forgot to call it?", expr.Pos())
 		default:
 			return "", fmt.Errorf("unknown expression type %T", expr)
 		}

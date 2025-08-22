@@ -15,46 +15,16 @@ func TestBuildFragment(t *testing.T) {
 	testCases := []struct {
 		name     string
 		style    syntax.BindVarStyle
-		fragment *sqlf.Fragment
+		fragment sqlf.Builder
 		want     string
 		wantArgs []any
 		wantErr  bool
 	}{
 		{
 			name:     "build nil fragment",
-			fragment: nil,
+			fragment: (*sqlf.Fragment)(nil),
 			want:     "",
 			wantArgs: nil,
-		},
-		{
-			name:  "#join",
-			style: syntax.Question,
-			fragment: sqlf.F(
-				"?,#join('#arg',',')",
-				1, 2,
-			),
-			want:     "?,?,?",
-			wantArgs: []any{1, 1, 2},
-		},
-		{
-			name:  "#join range",
-			style: syntax.Dollar,
-			fragment: sqlf.F(
-				"$1,#join('#arg',',', 2)",
-				1, 2, 3, 4,
-			),
-			want:     "$1,$2,$3,$4",
-			wantArgs: []any{1, 2, 3, 4},
-		},
-		{
-			name:  "args merging",
-			style: syntax.Dollar,
-			fragment: sqlf.F(
-				"#join('#arg',',')",
-				1, 1, 2, 3,
-			),
-			want:     "$1,$1,$2,$3",
-			wantArgs: []any{1, 2, 3},
 		},
 		{
 			name:     "fragment arg",
@@ -63,7 +33,7 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: nil,
 		},
 		{
-			name:  "#f and args",
+			name:  "builder and args",
 			style: syntax.Question,
 			fragment: sqlf.F(
 				"WHERE ?=?",
@@ -100,19 +70,6 @@ func TestBuildFragment(t *testing.T) {
 			want:     "WITH t AS (SELECT * FROM table AS t WHERE t.id > $1) SELECT t.id,t.id=$2,$3 FROM table AS t",
 			wantArgs: []any{1, 2, "foo"},
 		},
-		// {
-		// 	name:  "build complex fragment 2",
-		// 	style: syntax.Dollar,
-		// 	fragment: sqlf.F("SELECT #join('#f', ', ', 3) FROM #f1 AS #f2").
-		// 		WithFragments(
-		// 			table, alias,
-		// 			alias.Column("id"),
-		// 			sqlf.F("#f1.id=$1").WithFragments(alias).WithArgs(1),
-		// 			alias.Column("name"),
-		// 		),
-		// 	want:     "SELECT t.id, t.id=$1, t.name FROM table AS t",
-		// 	wantArgs: []any{1},
-		// },
 		{
 			name:     "prefix and suffix",
 			fragment: sqlf.F("").WithPrefix("SELECT").WithSuffix("FOR UPDATE"),

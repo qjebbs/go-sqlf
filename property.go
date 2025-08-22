@@ -1,7 +1,7 @@
 package sqlf
 
-// Property is the interface for properties.
-type Property interface {
+// property is the interface for properties.
+type property interface {
 	Builder
 	// Used reports if the property is used.
 	Used() bool
@@ -9,15 +9,15 @@ type Property interface {
 	ReportUsed()
 }
 
-var _ Property = (*defaultProperty)(nil)
+var _ property = (*defaultProperty)(nil)
 
 type defaultProperty struct {
 	value Builder
 	used  bool
 }
 
-// newDefaultProperty returns a new property.
-func newDefaultProperty(value Builder) *defaultProperty {
+// newBuilderProperty returns a new property.
+func newBuilderProperty(value Builder) *defaultProperty {
 	return &defaultProperty{
 		value: value,
 	}
@@ -37,4 +37,20 @@ func (p *defaultProperty) Used() bool {
 func (p *defaultProperty) BuildFragment(ctx *Context) (string, error) {
 	p.used = true
 	return p.value.BuildFragment(ctx)
+}
+
+func newArgProperty(value any) *defaultProperty {
+	return newBuilderProperty(&argBuilder{value})
+}
+
+var _ Builder = (*argBuilder)(nil)
+
+type argBuilder struct {
+	any
+}
+
+// BuildFragment implements FragmentBuilder
+func (c *argBuilder) BuildFragment(ctx *Context) (query string, err error) {
+	built := ctx.CommitArg(c.any)
+	return built, nil
 }
