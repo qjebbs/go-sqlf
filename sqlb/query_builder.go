@@ -19,7 +19,7 @@ type QueryBuilder struct {
 	conditions []sqlf.Builder // where conditions, joined with AND.
 	orders     []*orderItem   // order by columns, joined with comma.
 	groupbys   []*Column      // group by columns, joined with comma.
-	havings    []sqlf.Builder // where conditions, joined with AND.
+	havings    []sqlf.Builder // having conditions, joined with AND.
 	distinct   bool           // select distinct
 	limit      int64          // limit count
 	offset     int64          // offset count

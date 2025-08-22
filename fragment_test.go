@@ -55,6 +55,17 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{nil},
 		},
 		{
+			name:  "args merging",
+			style: syntax.Dollar,
+			fragment: sqlf.F(
+				"WHERE foo=? AND bar IN (?)",
+				1,
+				sqlf.Join(",", 1, 2, 3),
+			),
+			want:     "WHERE foo=$1 AND bar IN ($1,$2,$3)",
+			wantArgs: []any{1, 2, 3},
+		},
+		{
 			name:  "build complex fragment",
 			style: syntax.Dollar,
 			fragment: sqlf.F(

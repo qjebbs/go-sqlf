@@ -11,12 +11,8 @@ var _ Builder = (*Fragment)(nil)
 
 // BuildQuery builds the fragment as full query.
 func (f *Fragment) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
-	return _buildBuilder(f, bindVarStyle)
-}
-
-func _buildBuilder(b Builder, bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
 	ctx := NewContext(bindVarStyle)
-	query, err = b.Build(ctx)
+	query, err = f.Build(ctx)
 	if err != nil {
 		return "", nil, err
 	}

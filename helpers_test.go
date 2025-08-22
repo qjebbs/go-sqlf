@@ -26,15 +26,10 @@ func TestBuildFragmentFn(t *testing.T) {
 			wantArgs: []any{1, 2},
 		},
 		{
-			name:  "args merging",
-			style: syntax.Dollar,
-			builder: sqlf.F(
-				"WHERE foo=? AND bar IN (?)",
-				1,
-				sqlf.Join(",", 1, 2, 3),
-			),
-			want:     "WHERE foo=$1 AND bar IN ($1,$2,$3)",
-			wantArgs: []any{1, 2, 3},
+			name:    "prefix",
+			style:   syntax.Dollar,
+			builder: sqlf.Prefix("WHERE", sqlf.F("1=1")),
+			want:    "WHERE 1=1",
 		},
 	}
 	for _, tc := range testCases {
