@@ -1,8 +1,8 @@
 package util
 
 import (
-	"github.com/qjebbs/go-sqlf/v2"
-	"github.com/qjebbs/go-sqlf/v2/syntax"
+	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 // Build builds the SQL query and arguments from the given fragment builder.

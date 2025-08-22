@@ -3,7 +3,7 @@ package sqlf
 import (
 	"strings"
 
-	"github.com/qjebbs/go-sqlf/v2/syntax"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 // Join creates a new fragment builder that joins the given arguments with the specified separator.

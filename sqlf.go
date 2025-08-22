@@ -41,7 +41,7 @@
 //   - You can register custom functions to the build context, see ContextWithFuncs.
 package sqlf
 
-import "github.com/qjebbs/go-sqlf/v2/syntax"
+import "github.com/qjebbs/go-sqlf/v3/syntax"
 
 // QueryBuilder is the interface for sql builders.
 type QueryBuilder interface {

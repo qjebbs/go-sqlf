@@ -1,7 +1,7 @@
 package sqlf
 
 import (
-	"github.com/qjebbs/go-sqlf/v2/syntax"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 // Context is the global context shared between all fragments building.

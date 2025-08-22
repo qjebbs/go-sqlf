@@ -1,6 +1,6 @@
 package sqlb
 
-import "github.com/qjebbs/go-sqlf/v2"
+import "github.com/qjebbs/go-sqlf/v3"
 
 var _ (sqlf.Builder) = TableAliased{}
 

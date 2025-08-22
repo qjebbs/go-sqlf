@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/qjebbs/go-sqlf/v2"
-	"github.com/qjebbs/go-sqlf/v2/sqlb"
-	"github.com/qjebbs/go-sqlf/v2/syntax"
+	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v3/sqlb"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 func TestBuildFragment(t *testing.T) {

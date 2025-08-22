@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf/v2"
-	"github.com/qjebbs/go-sqlf/v2/syntax"
+	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 // QueryAble is the interface for query-able *sql.DB, *sql.Tx, etc.

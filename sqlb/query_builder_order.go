@@ -3,7 +3,7 @@ package sqlb
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v3"
 )
 
 // Order is the sorting order.

@@ -3,9 +3,9 @@ package sqlb_test
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf/v2"
-	"github.com/qjebbs/go-sqlf/v2/sqlb"
-	"github.com/qjebbs/go-sqlf/v2/syntax"
+	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v3/sqlb"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 func ExampleQueryBuilder_BuildQuery() {

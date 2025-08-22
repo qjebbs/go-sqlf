@@ -5,9 +5,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/qjebbs/go-sqlf/v2"
-	"github.com/qjebbs/go-sqlf/v2/syntax"
-	"github.com/qjebbs/go-sqlf/v2/util"
+	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
+	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
 var _ sqlf.QueryBuilder = (*QueryBuilder)(nil)

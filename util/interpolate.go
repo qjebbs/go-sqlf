@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/qjebbs/go-sqlf/v2/syntax"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 // InterpolateOption is the option of Interpolate.

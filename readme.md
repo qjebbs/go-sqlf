@@ -14,7 +14,7 @@ Fragment is usually a part of a SQL query, which uses exactly the same syntax as
 ```go
 import (
 	"fmt"
-	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v3"
 )
 func Example_basic() {
 	query, args, _ := sqlf.Ff(
