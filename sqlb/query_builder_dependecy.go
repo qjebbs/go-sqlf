@@ -4,8 +4,24 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v3/syntax"
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
+
+type depTablesKey struct{}
+
+func contextWithDeps(ctx *sqlf.Context, deps map[Table]bool) *sqlf.Context {
+	ctx.WithValue(depTablesKey{}, deps)
+	return ctx
+}
+
+func depsFromContext(ctx *sqlf.Context) map[Table]bool {
+	dep := ctx.Value(depTablesKey{})
+	if dep == nil {
+		return nil
+	}
+	return dep.(map[Table]bool)
+}
 
 // collectDependencies collects the dependencies of the tables.
 func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
@@ -20,35 +36,46 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 		builders = append(builders, order.column)
 	}
 
-	tables := extractTables(builders...)
+	tables, err := extractTables(builders)
+	if err != nil {
+		return nil, fmt.Errorf("collect dependencies: %w", err)
+	}
 	deps := make(map[TableAliased]bool)
 	// first table is the main table and always included
 	deps[b.tables[0].Names] = true
-	for _, table := range tables {
+	for table := range tables {
 		err := b.collectDepsFromTable(deps, table)
 		if err != nil {
 			return nil, err
 		}
 	}
 	// mark for CTEs
+	depsCTE := make(map[TableAliased]bool)
 	for _, t := range b.tables {
 		if (b.distinct || len(b.groupbys) > 0) && t.Optional && !deps[t.Names] {
 			continue
 		}
-		if cte, ok := b.ctesDict[t.Names.Name]; ok {
-			b.collectDepsFromCTE(deps, cte)
+		if cte, ok := b.ctesDict[t.Names.AppliedName()]; ok {
+			b.collectDepsFromCTE(depsCTE, cte)
 		}
+	}
+	for cte := range depsCTE {
+		deps[cte] = true
 	}
 	return deps, nil
 }
 
 func (b *QueryBuilder) collectDepsFromCTE(deps map[TableAliased]bool, cte *cte) error {
-	key := NewTableAliased(cte.name, "")
+	key := cte.name
 	if deps[key] {
 		return nil
 	}
 	deps[key] = true
-	for _, dep := range cte.deps {
+	tables, err := extractTables([]any{cte.Builder})
+	if err != nil {
+		return fmt.Errorf("collect dependencies of CTE %q: %w", cte.name, err)
+	}
+	for dep := range tables {
 		if cte, ok := b.ctesDict[dep]; ok {
 			err := b.collectDepsFromCTE(deps, cte)
 			if err != nil {
@@ -68,7 +95,11 @@ func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) 
 		return nil
 	}
 	dep[from.Names] = true
-	for _, ft := range extractTables(from.Fragment) {
+	tables, err := extractTables(from.Fragment.Args)
+	if err != nil {
+		return fmt.Errorf("collect dependencies of table %q: %w", from.Names.Name, err)
+	}
+	for ft := range tables {
 		if ft == t {
 			continue
 		}
@@ -80,48 +111,12 @@ func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) 
 	return nil
 }
 
-func extractTables(fragments ...any) []Table {
-	tables := []Table{}
-	dict := map[Table]bool{}
-	extractTables2(fragments, &tables, dict)
-	return tables
-}
-
-func extractTables2(fragments []any, tables *[]Table, dict map[Table]bool) {
-	for _, f := range fragments {
-		if f == nil {
-			continue
-		}
-		if fragment, ok := f.(*sqlf.Fragment); ok {
-			extractTables2(fragment.Args, tables, dict)
-			continue
-		}
-		if column, ok := f.(*Column); ok && column != nil {
-			if column.table != "" {
-				if !dict[column.table] {
-					collectTable(column.table, tables, dict)
-				}
-			} else {
-				extractTables2(column.fragment.Args, tables, dict)
-			}
-			continue
-		}
-
-		if table, ok := f.(Table); ok {
-			collectTable(table, tables, dict)
-			continue
-		}
-
-		if table, ok := f.(TableAliased); ok {
-			collectTable(table.AppliedName(), tables, dict)
-		}
+func extractTables(args []any) (map[Table]bool, error) {
+	tables := make(map[Table]bool)
+	ctx := contextWithDeps(sqlf.NewContext(syntax.Dollar), tables)
+	_, err := sqlf.Join(";", args...).Build(ctx)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func collectTable(t Table, tables *[]Table, dict map[Table]bool) {
-	if dict[t] {
-		return
-	}
-	*tables = append(*tables, t)
-	dict[t] = true
+	return tables, nil
 }

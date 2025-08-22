@@ -40,27 +40,19 @@ func (b *QueryBuilder) LeftJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder
 	return b.join("LEFT JOIN", t, on, false)
 }
 
-// LeftJoinOptional append / replace a left join table, and mark it as optional.
+// LeftJoinOptional appends or replaces a LEFT JOIN table and marks it as optional.
+// The optional join will be removed if no columns from the joined table are referenced
+// in the query, such as in SELECT DISTINCT or GROUP BY statements.
 //
-// CAUSION:
+// !!! To ensure dependencies are collected as expected, do not hard-code table names.
+// Always build tables using Table or TableAliased. For example:
 //
-//   - Make sure all columns referenced in the query are reflected in
-//     *sqlf.Fragment.Columns, so that the *QueryBuilder can calculate the dependency
-//     correctly.
-//   - Make sure it's used with the SELECT DISTINCT or GROUP BY statement, otherwise it works
-//     exactly the same as LeftJoin().
+//	// GOOD: The dependency of foo will be collected.
+//	foo := Table("foo")
+//	b.SELECT(sqlf.F("?.id", foo))
 //
-// Consider the following two group of queries:
-//
-//	SELECT DISTINCT foo.id FROM foo LEFT JOIN bar ON foo.id = bar.foo_id
-//	SELECT foo.id FROM foo LEFT JOIN bar ON foo.id = bar.foo_id GROUP BY foo.id
-//
-//	SELECT DISTINCT foo.id FROM foo
-//	SELECT foo.id FROM foo GROUP BY foo.id
-//
-// They queries return the same result between groups, but the second group ones are more efficient.
-// If the join to "bar" is declared with LeftJoinOptional(), *QueryBuilder
-// will trim it if no relative columns referenced in the query, aka Join Elimination.
+//	// BAD: The dependency of foo will NOT be collected.
+//	b.SELECT(sqlf.F("foo.id"))
 func (b *QueryBuilder) LeftJoinOptional(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("LEFT JOIN", t, on, true)
 }

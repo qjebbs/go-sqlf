@@ -140,7 +140,7 @@ func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[TableAliased]bool) (
 	}
 	clauses := make([]string, 0, len(b.ctes))
 	for _, cte := range b.ctes {
-		if !dep[NewTableAliased(cte.name, "")] {
+		if !dep[cte.name] {
 			continue
 		}
 		query, err := cte.Build(ctx)
@@ -152,7 +152,7 @@ func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[TableAliased]bool) (
 		}
 		clauses = append(clauses, fmt.Sprintf(
 			"%s AS (%s)",
-			cte.name, query,
+			cte.name.Name, query,
 		))
 	}
 	if len(clauses) == 0 {

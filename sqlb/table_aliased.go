@@ -1,12 +1,14 @@
 package sqlb
 
-import "github.com/qjebbs/go-sqlf/v3"
+import (
+	"github.com/qjebbs/go-sqlf/v3"
+)
 
 var _ (sqlf.Builder) = TableAliased{}
 
 // Build implements sqlf.Builder
-func (t TableAliased) Build(_ *sqlf.Context) (query string, err error) {
-	return string(t.AppliedName()), nil
+func (t TableAliased) Build(ctx *sqlf.Context) (query string, err error) {
+	return t.AppliedName().Build(ctx)
 }
 
 // TableAliased is the table name with alias.

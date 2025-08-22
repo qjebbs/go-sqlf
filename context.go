@@ -10,6 +10,7 @@ type Context struct {
 
 	bindVarStyle syntax.BindVarStyle
 	argStore     argStore
+	values       map[any]any
 
 	frag *fragmentContext
 }
@@ -30,5 +31,6 @@ func newEmptyContext(bindVarStyle syntax.BindVarStyle) *Context {
 	}
 	return &Context{
 		argStore: argStore,
+		values:   make(map[any]any),
 	}
 }

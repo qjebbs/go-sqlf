@@ -12,16 +12,22 @@ import (
 func TestQueryBuilderDistinctElimination(t *testing.T) {
 	var (
 		users = sqlb.NewTableAliased("users", "u")
+		locs  = sqlb.NewTableAliased("locs", "l")
 		foo   = sqlb.NewTableAliased("foo", "f")
 		bar   = sqlb.NewTableAliased("bar", "b")
 	)
 	q := sqlb.NewQueryBuilder().
 		Distinct().
+		With(sqlb.NewTableAliased("xxx", ""), sqlf.F("SELECT 1 AS whatever")). // should be ignored
+		With(locs, sqlf.F("SELECT user_id AS id, loc FROM user_locs WHERE country_code = ?", "cn")).
 		With(
-			users.Name,
-			sqlf.F("SELECT * FROM users WHERE type=$1", "user"),
-		).
-		With("xxx", sqlf.F("SELECT 1 AS whatever")) // should be ignored
+			users,
+			// CTE references another
+			sqlf.F("SELECT * FROM ? AS ? INNER JOIN ? AS ? ON ?=?",
+				users.Name, users.Alias, locs.Name, locs.Alias,
+				users.Column("id"), locs.Column("id"),
+			),
+		)
 	q.Select(foo.Columns("id", "name")...).
 		From(users).
 		LeftJoinOptional(foo, sqlf.F(
@@ -33,23 +39,13 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 			"?=?",
 			bar.Column("user_id"),
 			users.Column("id"),
-		)).
-		Where2(users.Column("id"), "=", 1).
-		Union(
-			sqlb.NewQueryBuilder().
-				Select(foo.Columns("id", "name")...).
-				From(foo).
-				Where(sqlf.F(
-					"$1>$2 AND $1<$3",
-					foo.Column("id"), 10, 20,
-				)),
-		)
+		))
 	gotQuery, gotArgs, err := q.BuildQuery(syntax.Dollar)
 	if err != nil {
 		t.Fatal(err)
 	}
-	wantQuery := "With users AS (SELECT * FROM users WHERE type=$1) SELECT DISTINCT f.id, f.name FROM users AS u LEFT JOIN foo AS f ON f.user_id=u.id WHERE u.id=$2 UNION (SELECT f.id, f.name FROM foo AS f WHERE f.id>$3 AND f.id<$4)"
-	wantArgs := []any{"user", 1, 10, 20}
+	wantQuery := "With locs AS (SELECT user_id AS id, loc FROM user_locs WHERE country_code = $1), users AS (SELECT * FROM users AS u INNER JOIN locs AS l ON u.id=l.id) SELECT DISTINCT f.id, f.name FROM users AS u LEFT JOIN foo AS f ON f.user_id=u.id"
+	wantArgs := []any{"cn"}
 	if wantQuery != gotQuery {
 		t.Errorf("got:\n%s\nwant:\n%s", gotQuery, wantQuery)
 	}
@@ -66,7 +62,7 @@ func TestQueryBuilderGroupbyElimination(t *testing.T) {
 	)
 	q := sqlb.NewQueryBuilder().
 		With(
-			baz.Name,
+			baz,
 			sqlf.F("SELECT * FROM baz WHERE type=$1", "user"),
 		)
 	q.Select(foo.Columns("id", "bar")...).

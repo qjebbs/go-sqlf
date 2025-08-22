@@ -1,8 +1,6 @@
 package sqlb
 
 import (
-	"fmt"
-
 	"github.com/qjebbs/go-sqlf/v3"
 )
 
@@ -12,7 +10,12 @@ var _ (sqlf.Builder) = Table("")
 type Table string
 
 // Build implements sqlf.Builder
-func (t Table) Build(_ *sqlf.Context) (query string, err error) {
+func (t Table) Build(ctx *sqlf.Context) (query string, err error) {
+	deps := depsFromContext(ctx)
+	if deps != nil {
+		// collecting
+		deps[t] = true
+	}
 	return string(t), nil
 }
 
@@ -25,19 +28,9 @@ func (t Table) Build(_ *sqlf.Context) (query string, err error) {
 //	t.Column("id")  // "t.id"
 func (t Table) Column(name string) *Column {
 	return &Column{
-		fragment: sqlf.F(preBuildColumn(t, name)),
-		table:    t,
+		fragment:       sqlf.F("?."+name, t),
+		anonymousTable: t,
 	}
-}
-
-func preBuildColumn(t Table, name string) string {
-	if name == "" {
-		return ""
-	}
-	if t == "" {
-		return name
-	}
-	return fmt.Sprintf("%s.%s", t, name)
 }
 
 // Columns returns columns of the table from names.
@@ -62,8 +55,8 @@ func (t Table) Columns(names ...string) []*Column {
 //	t.AnonymousColumn("id")  // "id"
 func (t Table) AnonymousColumn(name string) *Column {
 	return &Column{
-		fragment: sqlf.F(name),
-		table:    t,
+		fragment:       sqlf.F(name),
+		anonymousTable: t,
 	}
 }
 

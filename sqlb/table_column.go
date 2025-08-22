@@ -15,17 +15,20 @@ var _ sqlf.Builder = (*Column)(nil)
 type Column struct {
 	fragment *sqlf.Fragment
 
-	table Table
-	// Important: to simplify column building, we use preBuildColumn(),
-	// so there's no table values assigned to the value of fragment field.
-	// but QueryBuilder.calcDependency() requies the info.
-	//
-	// so in this case, we store table here, calcDependency() don't extract
-	// table from 'fragment' if it see a non-empty table here.
+	// the table of the anonymous column, set only for anonymous columns
+	anonymousTable Table
 }
 
 // Build implements sqlf.Builder
 func (c *Column) Build(ctx *sqlf.Context) (query string, err error) {
+	// force build the table of the anonymous column,
+	// so that its table dependency is tracked
+	if c.anonymousTable != "" {
+		_, err = c.anonymousTable.Build(ctx)
+		if err != nil {
+			return
+		}
+	}
 	return c.fragment.Build(ctx)
 }
 
