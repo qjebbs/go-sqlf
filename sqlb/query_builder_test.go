@@ -9,7 +9,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
-func TestQueryBuilder(t *testing.T) {
+func TestQueryBuilderDistinctElimination(t *testing.T) {
 	var (
 		users = sqlb.NewTableAliased("users", "u")
 		foo   = sqlb.NewTableAliased("foo", "f")
@@ -50,6 +50,45 @@ func TestQueryBuilder(t *testing.T) {
 	}
 	wantQuery := "With users AS (SELECT * FROM users WHERE type=$1) SELECT DISTINCT f.id, f.name FROM users AS u LEFT JOIN foo AS f ON f.user_id=u.id WHERE u.id=$2 UNION (SELECT f.id, f.name FROM foo AS f WHERE f.id>$3 AND f.id<$4)"
 	wantArgs := []any{"user", 1, 10, 20}
+	if wantQuery != gotQuery {
+		t.Errorf("got:\n%s\nwant:\n%s", gotQuery, wantQuery)
+	}
+	if !reflect.DeepEqual(wantArgs, gotArgs) {
+		t.Errorf("want:\n%v\ngot:\n%v", wantArgs, gotArgs)
+	}
+}
+
+func TestQueryBuilderGroupbyElimination(t *testing.T) {
+	var (
+		foo = sqlb.NewTableAliased("foo", "f")
+		bar = sqlb.NewTableAliased("bar", "b")
+		baz = sqlb.NewTableAliased("baz", "z")
+	)
+	q := sqlb.NewQueryBuilder().
+		With(
+			baz.Name,
+			sqlf.Fa("SELECT * FROM baz WHERE type=$1", "user"),
+		)
+	q.Select(foo.Columns("id", "bar")...).
+		From(foo).
+		LeftJoinOptional(baz, sqlf.Ff(
+			"#f1=#f2",
+			foo.Column("baz_id"),
+			baz.Column("id"),
+		)).
+		LeftJoinOptional(bar, sqlf.Ff( // not referenced, should be ignored
+			"#f1=#f2",
+			bar.Column("baz_id"),
+			baz.Column("id"),
+		)).
+		Where2(foo.Column("id"), "=", 1).
+		GroupBy(foo.Column("id"))
+	gotQuery, gotArgs, err := q.BuildQuery(syntax.Dollar)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantQuery := "SELECT f.id, f.bar FROM foo AS f WHERE f.id=$1 GROUP BY f.id"
+	wantArgs := []any{1}
 	if wantQuery != gotQuery {
 		t.Errorf("got:\n%s\nwant:\n%s", gotQuery, wantQuery)
 	}
