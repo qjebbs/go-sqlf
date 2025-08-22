@@ -10,7 +10,7 @@ import (
 //	b.Having(
 //		sqlf.F("? = ?", a.Column("id"), 1),
 //	)
-func (b *QueryBuilder) Having(s *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) Having(s sqlf.Builder) *QueryBuilder {
 	if s == nil {
 		return b
 	}

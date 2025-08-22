@@ -10,7 +10,7 @@ import (
 //	b.Where(
 //		sqlf.F("? = ?", a.Column("id"), 1),
 //	)
-func (b *QueryBuilder) Where(s *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) Where(s sqlf.Builder) *QueryBuilder {
 	if s == nil {
 		return b
 	}

@@ -14,16 +14,16 @@ type QueryBuilder struct {
 	tables     []*fromTable         // the tables in order
 	tablesDict map[Table]*fromTable // the from tables by alias
 
-	selects    []*Column        // select columns and keep values in scanning.
-	touches    []*Column        // select columns but drop values in scanning.
-	conditions []*sqlf.Fragment // where conditions, joined with AND.
-	orders     []*orderItem     // order by columns, joined with comma.
-	groupbys   []*Column        // group by columns, joined with comma.
-	havings    []*sqlf.Fragment // where conditions, joined with AND.
-	distinct   bool             // select distinct
-	limit      int64            // limit count
-	offset     int64            // offset count
-	unions     []sqlf.Builder   // union queries
+	selects    []*Column      // select columns and keep values in scanning.
+	touches    []*Column      // select columns but drop values in scanning.
+	conditions []sqlf.Builder // where conditions, joined with AND.
+	orders     []*orderItem   // order by columns, joined with comma.
+	groupbys   []*Column      // group by columns, joined with comma.
+	havings    []sqlf.Builder // where conditions, joined with AND.
+	distinct   bool           // select distinct
+	limit      int64          // limit count
+	offset     int64          // offset count
+	unions     []sqlf.Builder // union queries
 
 	errors []error // errors during building
 
