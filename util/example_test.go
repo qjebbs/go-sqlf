@@ -75,7 +75,7 @@ func ExampleScanBuilder() {
 	}
 	var db *sql.DB
 	if db != nil {
-		builder := sqlf.Fa(
+		builder := sqlf.F(
 			"SELECT id, name FROM foo WHERE id IN (#join('#arg', ', '))",
 			1, 2, 3,
 		)

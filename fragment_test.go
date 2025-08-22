@@ -29,7 +29,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name:  "#join",
 			style: syntax.Question,
-			fragment: sqlf.Fa(
+			fragment: sqlf.F(
 				"?,#join('#arg',',')",
 				1, 2,
 			),
@@ -39,7 +39,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name:  "#join range",
 			style: syntax.Dollar,
-			fragment: sqlf.Fa(
+			fragment: sqlf.F(
 				"$1,#join('#arg',',', 2)",
 				1, 2, 3, 4,
 			),
@@ -49,7 +49,7 @@ func TestBuildFragment(t *testing.T) {
 		{
 			name:  "args merging",
 			style: syntax.Dollar,
-			fragment: sqlf.Fa(
+			fragment: sqlf.F(
 				"#join('#arg',',')",
 				1, 1, 2, 3,
 			),
@@ -57,106 +57,83 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{1, 2, 3},
 		},
 		{
-			name:  "#join mixed function and call",
-			style: syntax.Dollar,
-			fragment: sqlf.F("#join('#f1#arg',',')").
-				WithFragments(sqlf.Fa("p")).
-				WithArgs(1, 2),
-			want:     "p$1,p$2",
-			wantArgs: []any{1, 2},
-		},
-		{
-			name: "#f",
-			fragment: sqlf.Ff("WHERE 1=1 #f1").
-				WithFragments(sqlf.F("")),
+			name:     "fragment arg",
+			fragment: sqlf.F("WHERE 1=1 ?", sqlf.F("")),
 			want:     "WHERE 1=1",
 			wantArgs: nil,
 		},
 		{
 			name:  "#f and args",
 			style: syntax.Question,
-			fragment: sqlf.F("WHERE #f1=?").
-				WithFragments(alias.Column("id")).
-				WithArgs(nil),
+			fragment: sqlf.F(
+				"WHERE ?=?",
+				alias.Column("id"),
+				nil,
+			),
 			want:     "WHERE t.id=?",
 			wantArgs: []any{nil},
 		},
 		{
 			name:  "build nil column",
 			style: syntax.Dollar,
-			fragment: sqlf.F("WHERE #f1=$1").
-				WithFragments((*sqlf.Fragment)(nil)).
-				WithArgs(nil),
+			fragment: sqlf.F(
+				"WHERE ?=?",
+				(*sqlf.Fragment)(nil),
+				nil,
+			),
 			want:     "WHERE =$1",
 			wantArgs: []any{nil},
 		},
 		{
 			name:  "build complex fragment",
 			style: syntax.Dollar,
-			fragment: sqlf.F("WITH t AS (#f1) SELECT #f2,#f3,$1 FROM #f4 AS #f5").
-				WithArgs("foo").
-				WithFragments(
-					sqlf.F("SELECT * FROM #f1 AS #f2 WHERE #f3 > $1").
-						WithArgs(1).
-						WithFragments(table, alias, alias.Column("id")),
-					alias.Column("id"),
-					sqlf.F("#f1.id=$1").WithFragments(alias).WithArgs(2),
-					table, alias,
+			fragment: sqlf.F(
+				"WITH t AS (?) SELECT ?,?,? FROM ? AS ?",
+				sqlf.F(
+					"SELECT * FROM ? AS ? WHERE ? > ?",
+					table, alias, alias.Column("id"), 1,
 				),
+				alias.Column("id"),
+				sqlf.F("?.id=?", alias, 2),
+				"foo", table, alias,
+			),
 			want:     "WITH t AS (SELECT * FROM table AS t WHERE t.id > $1) SELECT t.id,t.id=$2,$3 FROM table AS t",
 			wantArgs: []any{1, 2, "foo"},
 		},
+		// {
+		// 	name:  "build complex fragment 2",
+		// 	style: syntax.Dollar,
+		// 	fragment: sqlf.F("SELECT #join('#f', ', ', 3) FROM #f1 AS #f2").
+		// 		WithFragments(
+		// 			table, alias,
+		// 			alias.Column("id"),
+		// 			sqlf.F("#f1.id=$1").WithFragments(alias).WithArgs(1),
+		// 			alias.Column("name"),
+		// 		),
+		// 	want:     "SELECT t.id, t.id=$1, t.name FROM table AS t",
+		// 	wantArgs: []any{1},
+		// },
 		{
-			name:  "build complex fragment 2",
-			style: syntax.Dollar,
-			fragment: sqlf.F("SELECT #join('#f', ', ', 3) FROM #f1 AS #f2").
-				WithFragments(
-					table, alias,
-					alias.Column("id"),
-					sqlf.F("#f1.id=$1").WithFragments(alias).WithArgs(1),
-					alias.Column("name"),
-				),
-			want:     "SELECT t.id, t.id=$1, t.name FROM table AS t",
-			wantArgs: []any{1},
-		},
-		{
-			name: "prefix and suffix",
-			fragment: sqlf.F("#f1").WithPrefix("SELECT").WithSuffix("FOR UPDATE").
-				WithFragments(sqlf.F("")),
+			name:     "prefix and suffix",
+			fragment: sqlf.F("").WithPrefix("SELECT").WithSuffix("FOR UPDATE"),
 			want:     "",
 			wantArgs: nil,
 		},
 		{
-			name: "prefix and suffix",
-			fragment: sqlf.F("#f1").WithPrefix("SELECT").WithSuffix("FOR UPDATE").
-				WithFragments(sqlf.F("foo")),
+			name:     "prefix and suffix",
+			fragment: sqlf.F("foo").WithPrefix("SELECT").WithSuffix("FOR UPDATE"),
 			want:     "SELECT foo FOR UPDATE",
 			wantArgs: nil,
 		},
 		{
 			name:  "ref fragment twice",
 			style: syntax.Dollar,
-			fragment: sqlf.F("#f1, #f1").
-				WithFragments(
-					sqlf.F("#join('#arg', ', '), ?").WithArgs(1, 2),
-				),
+			fragment: sqlf.F(
+				"$1, $1",
+				sqlf.F("?, ?, $1", 1, 2),
+			),
 			want:     "$1, $2, $1, $1, $2, $1",
 			wantArgs: []any{1, 2},
-		},
-		{
-			name:  "arg and fragment",
-			style: syntax.Question,
-			fragment: sqlf.Fa("? #f1", 1).
-				WithFragments(
-					sqlf.Fa("$1", 2),
-				),
-			want:     "? ?",
-			wantArgs: []any{1, 2},
-		},
-		{
-			name:     "mixed bindvar style",
-			fragment: sqlf.Fa("?, $1", nil),
-			wantErr:  true,
 		},
 	}
 	for _, tc := range testCases {

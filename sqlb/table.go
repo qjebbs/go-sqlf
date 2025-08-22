@@ -6,7 +6,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v2"
 )
 
-var _ (sqlf.FragmentBuilder) = Table("")
+var _ (sqlf.Builder) = Table("")
 
 // Table is a table identifier, it can be a table name or an alias.
 type Table string

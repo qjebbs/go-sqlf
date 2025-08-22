@@ -47,7 +47,7 @@ func (b *QueryBuilder) buildOrders(ctx *sqlf.Context) (string, error) {
 			continue
 		}
 		if !b.distinct {
-			f.AppendFragments(sqlf.Ff(
+			f.AppendArgs(sqlf.F(
 				"#f1 "+orders[item.order],
 				item.column,
 			))
@@ -56,8 +56,8 @@ func (b *QueryBuilder) buildOrders(ctx *sqlf.Context) (string, error) {
 		// pq: for SELECT DISTINCT, ORDER BY expressions must appear in select list
 		alias := fmt.Sprintf("_order_%d", i+1)
 		orderStr := orders[item.order]
-		b.touches.AppendFragments(sqlf.Ff("#f1 AS "+alias, item.column))
-		f.AppendFragments(sqlf.F(
+		b.touches.AppendArgs(sqlf.F("#f1 AS "+alias, item.column))
+		f.AppendArgs(sqlf.F(
 			fmt.Sprintf("%s %s", alias, orderStr),
 		))
 	}

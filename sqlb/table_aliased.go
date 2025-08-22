@@ -2,7 +2,7 @@ package sqlb
 
 import "github.com/qjebbs/go-sqlf/v2"
 
-var _ (sqlf.FragmentBuilder) = TableAliased{}
+var _ (sqlf.Builder) = TableAliased{}
 
 // BuildFragment implements FragmentBuilder
 func (t TableAliased) BuildFragment(_ *sqlf.Context) (query string, err error) {

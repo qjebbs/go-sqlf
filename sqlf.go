@@ -49,8 +49,8 @@ type QueryBuilder interface {
 	BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error)
 }
 
-// FragmentBuilder is a builder that builds a fragment.
-type FragmentBuilder interface {
+// Builder is a builder that builds a fragment.
+type Builder interface {
 	// BuildFragment builds as a fragment with the context.
 	// The args should be committed to the ctx if any.
 	BuildFragment(ctx *Context) (query string, err error)

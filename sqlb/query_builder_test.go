@@ -19,17 +19,17 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 		Distinct().
 		With(
 			users.Name,
-			sqlf.Fa("SELECT * FROM users WHERE type=$1", "user"),
+			sqlf.F("SELECT * FROM users WHERE type=$1", "user"),
 		).
 		With("xxx", sqlf.F("SELECT 1 AS whatever")) // should be ignored
 	q.Select(foo.Columns("id", "name")...).
 		From(users).
-		LeftJoinOptional(foo, sqlf.Ff(
+		LeftJoinOptional(foo, sqlf.F(
 			"#f1=#f2",
 			foo.Column("user_id"),
 			users.Column("id"),
 		)).
-		LeftJoinOptional(bar, sqlf.Ff( // not referenced, should be ignored
+		LeftJoinOptional(bar, sqlf.F( // not referenced, should be ignored
 			"#f1=#f2",
 			bar.Column("user_id"),
 			users.Column("id"),
@@ -40,8 +40,8 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 				Select(foo.Columns("id", "name")...).
 				From(foo).
 				Where(sqlf.F("#f1>$1 AND #f1<$2").
-					WithFragments(foo.Column("id")).
-					WithArgs(10, 20),
+					WithArgs(foo.Column("id")).
+					AppendArgs(10, 20),
 				),
 		)
 	gotQuery, gotArgs, err := q.BuildQuery(syntax.Dollar)

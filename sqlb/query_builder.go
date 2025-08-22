@@ -2,6 +2,7 @@ package sqlb
 
 import (
 	"github.com/qjebbs/go-sqlf/v2"
+	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
 // QueryBuilder is the SQL query builder.
@@ -14,16 +15,16 @@ type QueryBuilder struct {
 	tables     []*fromTable         // the tables in order
 	tablesDict map[Table]*fromTable // the from tables by alias
 
-	selects    *sqlf.Fragment         // select columns and keep values in scanning.
-	touches    *sqlf.Fragment         // select columns but drop values in scanning.
-	conditions *sqlf.Fragment         // where conditions, joined with AND.
-	orders     []*orderItem           // order by columns, joined with comma.
-	groupbys   *sqlf.Fragment         // group by columns, joined with comma.
-	havings    *sqlf.Fragment         // where conditions, joined with AND.
-	distinct   bool                   // select distinct
-	limit      int64                  // limit count
-	offset     int64                  // offset count
-	unions     []sqlf.FragmentBuilder // union queries
+	selects    *sqlf.Fragment // select columns and keep values in scanning.
+	touches    *sqlf.Fragment // select columns but drop values in scanning.
+	conditions *sqlf.Fragment // where conditions, joined with AND.
+	orders     []*orderItem   // order by columns, joined with comma.
+	groupbys   *sqlf.Fragment // group by columns, joined with comma.
+	havings    *sqlf.Fragment // where conditions, joined with AND.
+	distinct   bool           // select distinct
+	limit      int64          // limit count
+	offset     int64          // offset count
+	unions     []sqlf.Builder // union queries
 
 	errors []error // errors during building
 
@@ -66,7 +67,7 @@ func (b *QueryBuilder) Select(columns ...*Column) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
 	}
-	b.selects.WithFragments(convertFragmentBuilders(columns)...)
+	b.selects.WithArgs(util.Ttoa(columns)...)
 	return b
 }
 
@@ -88,16 +89,14 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 
 // GroupBy set the sorting order.
 func (b *QueryBuilder) GroupBy(columns ...*Column) *QueryBuilder {
-	for _, c := range columns {
-		b.groupbys.AppendFragments(c)
-	}
+	b.groupbys.AppendArgs(util.Ttoa(columns)...)
 	return b
 }
 
 // Union unions other query builders, the type of query builders can be
 // *QueryBuilder or any other extended *QueryBuilder types (structs with
 // *QueryBuilder embedded.)
-func (b *QueryBuilder) Union(builders ...sqlf.FragmentBuilder) *QueryBuilder {
+func (b *QueryBuilder) Union(builders ...sqlf.Builder) *QueryBuilder {
 	b.unions = append(b.unions, builders...)
 	return b
 }

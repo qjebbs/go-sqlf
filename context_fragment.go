@@ -35,9 +35,8 @@ func contextWithFragment(ctx *Context, f *Fragment) *Context {
 
 // FragmentContext is the context for current fragment building.
 type FragmentContext struct {
-	Fragment  *Fragment
-	Args      Properties
-	Fragments Properties
+	Fragment *Fragment
+	Args     Properties
 }
 
 func newFragmentContext(f *Fragment) *FragmentContext {
@@ -45,9 +44,8 @@ func newFragmentContext(f *Fragment) *FragmentContext {
 		return &FragmentContext{}
 	}
 	return &FragmentContext{
-		Fragment:  f,
-		Args:      NewArgsProperties(f.Args...),
-		Fragments: NewFragmentProperties(f.Fragments...),
+		Fragment: f,
+		Args:     NewArgsProperties(f.Args...),
 	}
 }
 
@@ -60,11 +58,6 @@ func (c *FragmentContext) checkUsage() error {
 	if err := c.Args.checkUsage(); err != nil {
 		msgs = append(msgs, fmt.Sprintf(
 			"args %s", err.Error(),
-		))
-	}
-	if err := c.Fragments.checkUsage(); err != nil {
-		msgs = append(msgs, fmt.Sprintf(
-			"properties %s", err.Error(),
 		))
 	}
 	if len(msgs) > 0 {

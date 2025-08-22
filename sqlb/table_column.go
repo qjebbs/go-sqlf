@@ -4,7 +4,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v2"
 )
 
-var _ sqlf.FragmentBuilder = (*Column)(nil)
+var _ sqlf.Builder = (*Column)(nil)
 
 // Column is a Column of a table.
 // There are two ways to make columns:

@@ -16,14 +16,14 @@ func ExampleQueryBuilder_BuildQuery() {
 	b := sqlb.NewQueryBuilder().
 		Select(foo.Column("*")).
 		From(foo).
-		InnerJoin(bar, sqlf.Ff(
+		InnerJoin(bar, sqlf.F(
 			"#f1=#f2",
 			bar.Column("foo_id"),
 			foo.Column("id"),
 		)).
 		Where(sqlf.F("(#f1=$1 OR #f2=$1)").
-			WithFragments(foo.Column("a"), foo.Column("b")).
-			WithArgs(1),
+			WithArgs(foo.Column("a"), foo.Column("b")).
+			AppendArgs(1),
 		).
 		Where2(bar.Column("c"), "=", 2)
 
@@ -58,7 +58,7 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		Select(foo.Column("*")).
 		From(foo).
 		// declare an optional LEFT JOIN
-		LeftJoinOptional(bar, sqlf.Ff(
+		LeftJoinOptional(bar, sqlf.F(
 			"#f1=#f2",
 			bar.Column("foo_id"),
 			foo.Column("id"),
@@ -87,17 +87,17 @@ func ExampleQueryBuilder_With() {
 		With(
 			cte.Name,
 			sqlf.F("SELECT * FROM #f1 AS #f2 WHERE #f3=$1").
-				WithFragments(
+				WithArgs(
 					bar.Name, bar.Alias,
 					bar.Column("type"),
 				).
-				WithArgs(1)).
+				AppendArgs(1)).
 		Select(
 			foo.Column("*"),
 			cte.Column("*"),
 		).
 		From(foo).
-		LeftJoinOptional(cte, sqlf.Ff(
+		LeftJoinOptional(cte, sqlf.F(
 			"#f1=#f2",
 			cte.Column("foo_id"),
 			foo.Column("id"),

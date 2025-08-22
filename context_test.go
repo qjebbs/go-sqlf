@@ -9,10 +9,10 @@ import (
 
 func TestContextWithFragment(t *testing.T) {
 	t.Parallel()
-	fragment := Ff(
-		"L1,#f1", Ff(
-			"L2,#f1", Ff(
-				"L3,#f1", Ff("L4,#parents()"),
+	fragment := F(
+		"L1,#f1", F(
+			"L2,#f1", F(
+				"L3,#f1", F("L4,#parents()"),
 			),
 		),
 	)

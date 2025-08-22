@@ -2,7 +2,7 @@ package sqlf
 
 // Property is the interface for properties.
 type Property interface {
-	FragmentBuilder
+	Builder
 	// Used reports if the property is used.
 	Used() bool
 	// ReportUsed marks current property as used
@@ -12,12 +12,12 @@ type Property interface {
 var _ Property = (*defaultProperty)(nil)
 
 type defaultProperty struct {
-	value FragmentBuilder
+	value Builder
 	used  bool
 }
 
 // newDefaultProperty returns a new property.
-func newDefaultProperty(value FragmentBuilder) *defaultProperty {
+func newDefaultProperty(value Builder) *defaultProperty {
 	return &defaultProperty{
 		value: value,
 	}

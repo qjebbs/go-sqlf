@@ -11,7 +11,7 @@ import (
 )
 
 var _ sqlf.QueryBuilder = (*QueryBuilder)(nil)
-var _ sqlf.FragmentBuilder = (*QueryBuilder)(nil)
+var _ sqlf.Builder = (*QueryBuilder)(nil)
 
 // BuildQuery builds the query.
 func (b *QueryBuilder) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {

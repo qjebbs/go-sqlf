@@ -16,7 +16,7 @@ func (b *QueryBuilder) Having(s *sqlf.Fragment) *QueryBuilder {
 	if s == nil {
 		return b
 	}
-	b.havings.AppendFragments(s)
+	b.havings.AppendArgs(s)
 	return b
 }
 
@@ -32,10 +32,10 @@ func (b *QueryBuilder) Having(s *sqlf.Fragment) *QueryBuilder {
 //			WithArgs(1),
 //	)
 func (b *QueryBuilder) Having2(column *Column, op string, arg any) *QueryBuilder {
-	b.havings.AppendFragments(
+	b.havings.AppendArgs(
 		sqlf.F("#f1" + op + "$1").
-			WithFragments(column).
-			WithArgs(arg),
+			WithArgs(column).
+			AppendArgs(arg),
 	)
 	return b
 }
@@ -44,8 +44,8 @@ func (b *QueryBuilder) Having2(column *Column, op string, arg any) *QueryBuilder
 func (b *QueryBuilder) HavingIn(column *Column, list any) *QueryBuilder {
 	return b.Having(
 		sqlf.F("#f1 IN (#join('#arg', ', '))").
-			WithFragments(column).
-			WithArgs(util.ArgsFlatted(list)...),
+			WithArgs(column).
+			AppendArgs(util.ArgsFlatted(list)...),
 	)
 }
 
@@ -53,7 +53,7 @@ func (b *QueryBuilder) HavingIn(column *Column, list any) *QueryBuilder {
 func (b *QueryBuilder) HavingNotIn(column *Column, list any) *QueryBuilder {
 	return b.Having(
 		sqlf.F("#f1 NOT IN (#join('#arg', ', '))").
-			WithFragments(column).
-			WithArgs(util.ArgsFlatted(list)...),
+			WithArgs(column).
+			AppendArgs(util.ArgsFlatted(list)...),
 	)
 }

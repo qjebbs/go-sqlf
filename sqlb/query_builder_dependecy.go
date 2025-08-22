@@ -8,7 +8,7 @@ import (
 
 // collectDependencies collects the dependencies of the tables.
 func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
-	builders := []sqlf.FragmentBuilder{
+	builders := []any{
 		b.selects,
 		b.touches,
 		b.conditions,
@@ -31,7 +31,7 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 	}
 	// mark for CTEs
 	for _, t := range b.tables {
-		if (b.distinct || len(b.groupbys.Fragments) > 0) && t.Optional && !deps[t.Names] {
+		if (b.distinct || len(b.groupbys.Args) > 0) && t.Optional && !deps[t.Names] {
 			continue
 		}
 		if cte, ok := b.ctesDict[t.Names.Name]; ok {
@@ -79,20 +79,20 @@ func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) 
 	return nil
 }
 
-func extractTables(fragments ...sqlf.FragmentBuilder) []Table {
+func extractTables(fragments ...any) []Table {
 	tables := []Table{}
 	dict := map[Table]bool{}
 	extractTables2(fragments, &tables, dict)
 	return tables
 }
 
-func extractTables2(fragments []sqlf.FragmentBuilder, tables *[]Table, dict map[Table]bool) {
+func extractTables2(fragments []any, tables *[]Table, dict map[Table]bool) {
 	for _, f := range fragments {
 		if f == nil {
 			continue
 		}
 		if fragment, ok := f.(*sqlf.Fragment); ok {
-			extractTables2(fragment.Fragments, tables, dict)
+			extractTables2(fragment.Args, tables, dict)
 			continue
 		}
 		if column, ok := f.(*Column); ok && column != nil {
@@ -101,7 +101,7 @@ func extractTables2(fragments []sqlf.FragmentBuilder, tables *[]Table, dict map[
 					collectTable(column.table, tables, dict)
 				}
 			} else {
-				extractTables2(column.fragment.Fragments, tables, dict)
+				extractTables2(column.fragment.Args, tables, dict)
 			}
 			continue
 		}

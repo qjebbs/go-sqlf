@@ -16,7 +16,7 @@ func (b *QueryBuilder) Where(s *sqlf.Fragment) *QueryBuilder {
 	if s == nil {
 		return b
 	}
-	b.conditions.AppendFragments(s)
+	b.conditions.AppendArgs(s)
 	return b
 }
 
@@ -32,9 +32,9 @@ func (b *QueryBuilder) Where(s *sqlf.Fragment) *QueryBuilder {
 //			WithArgs(1),
 //	)
 func (b *QueryBuilder) Where2(column *Column, op string, arg any) *QueryBuilder {
-	b.conditions.AppendFragments(
+	b.conditions.AppendArgs(
 		sqlf.F("#f1" + op + "$1").
-			WithFragments(column).
+			AppendArgs(column).
 			WithArgs(arg),
 	)
 	return b
@@ -44,8 +44,8 @@ func (b *QueryBuilder) Where2(column *Column, op string, arg any) *QueryBuilder 
 func (b *QueryBuilder) WhereIn(column *Column, list any) *QueryBuilder {
 	return b.Where(
 		sqlf.F("#f1 IN (#join('#arg', ', '))").
-			WithFragments(column).
-			WithArgs(util.ArgsFlatted(list)...),
+			WithArgs(column).
+			AppendArgs(util.ArgsFlatted(list)...),
 	)
 }
 
@@ -53,7 +53,7 @@ func (b *QueryBuilder) WhereIn(column *Column, list any) *QueryBuilder {
 func (b *QueryBuilder) WhereNotIn(column *Column, list any) *QueryBuilder {
 	return b.Where(
 		sqlf.F("#f1 NOT IN (#join('#arg', ', '))").
-			WithFragments(column).
-			WithArgs(util.ArgsFlatted(list)...),
+			WithArgs(column).
+			AppendArgs(util.ArgsFlatted(list)...),
 	)
 }

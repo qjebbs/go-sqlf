@@ -7,7 +7,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v2/syntax"
 )
 
-var _ FragmentBuilder = (*Fragment)(nil)
+var _ Builder = (*Fragment)(nil)
 var _ QueryBuilder = (*Fragment)(nil)
 
 // BuildQuery builds the fragment as full query.

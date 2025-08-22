@@ -24,11 +24,11 @@ import "github.com/qjebbs/go-sqlf/v2"
 //
 // CTE dependencies are not automatically calculated, since it's
 // not possible to do so without semantic analysis.
-func (b *QueryBuilder) With(name Table, builder sqlf.FragmentBuilder, deps ...Table) *QueryBuilder {
+func (b *QueryBuilder) With(name Table, builder sqlf.Builder, deps ...Table) *QueryBuilder {
 	cte := &cte{
-		name:            name,
-		deps:            deps,
-		FragmentBuilder: builder,
+		name:    name,
+		deps:    deps,
+		Builder: builder,
 	}
 	b.ctes = append(b.ctes, cte)
 	b.ctesDict[name] = cte
@@ -38,5 +38,5 @@ func (b *QueryBuilder) With(name Table, builder sqlf.FragmentBuilder, deps ...Ta
 type cte struct {
 	name Table
 	deps []Table
-	sqlf.FragmentBuilder
+	sqlf.Builder
 }

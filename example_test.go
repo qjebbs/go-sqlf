@@ -9,10 +9,10 @@ import (
 )
 
 func Example_basic() {
-	query, args, _ := sqlf.Ff(
+	query, args, _ := sqlf.F(
 		"SELECT * FROM foo WHERE #join('#fragment', ' AND ')", // join fragments
-		sqlf.Fa("baz = $1", true),                             // `database/sql` style
-		sqlf.Fa("bar BETWEEN ? AND ?", 1, 100),                // `database/sql` style
+		sqlf.F("baz = $1", true),                              // `database/sql` style
+		sqlf.F("bar BETWEEN ? AND ?", 1, 100),                 // `database/sql` style
 	).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
 	fmt.Println(args)
@@ -37,8 +37,8 @@ func Example_deeperLook() {
 	}
 	query, args, _ := (&sqlf.Fragment{
 		// Similarly, referencing .Fragments results fragments combinations.
-		Raw:       "SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
-		Fragments: []sqlf.FragmentBuilder{a, b},
+		Raw:  "SELECT * FROM foo WHERE #join('#fragment', ' AND ')",
+		Args: []any{a, b},
 	}).BuildQuery(syntax.Dollar)
 	fmt.Println(query)
 	fmt.Println(args)
@@ -48,26 +48,26 @@ func Example_deeperLook() {
 }
 
 func Example_select() {
-	selects := sqlf.Ff("SELECT #join('#fragment', ', ')")
-	from := sqlf.Ff("FROM #f1")
-	where := sqlf.Ff("#join('#fragment', ' AND ')").WithPrefix("WHERE")
-	builder := sqlf.Ff("#join('#fragment', ' ')", selects, from, where)
+	selects := sqlf.F("SELECT #join('#fragment', ', ')")
+	from := sqlf.F("FROM #f1")
+	where := sqlf.F("#join('#fragment', ' AND ')").WithPrefix("WHERE")
+	builder := sqlf.F("#join('#fragment', ' ')", selects, from, where)
 
 	var users sqlb.Table = "users"
-	selects.WithFragments(
+	selects.WithArgs(
 		users.AnonymousColumn("id"),
 		users.AnonymousColumn("name"),
 		users.AnonymousColumn("email"),
 	)
-	from.WithFragments(users)
-	where.WithFragments(
+	from.WithArgs(users)
+	where.WithArgs(
 		sqlf.F("#f1 IN (#join('#arg', ', '))").
-			WithFragments(users.AnonymousColumn("id")).
+			WithArgs(users.AnonymousColumn("id")).
 			WithArgs(1, 2, 3),
 	)
-	where.AppendFragments(
+	where.AppendArgs(
 		sqlf.F("#f1 = $1").
-			WithFragments(users.AnonymousColumn("active")).
+			WithArgs(users.AnonymousColumn("active")).
 			WithArgs(true),
 	)
 
@@ -85,21 +85,21 @@ func Example_select() {
 
 func Example_update() {
 	// consider wrapping it with your own builder to provide a more friendly APIs
-	update := sqlf.Fa("UPDATE #f1")
-	fieldValues := sqlf.Fa("SET #join('#fragment=#arg', ', ')")
-	where := sqlf.Fa("#join('#fragment', ' AND ')").WithPrefix("WHERE")
-	builder := sqlf.Ff("#join('#fragment', ' ')", update, fieldValues, where)
+	update := sqlf.F("UPDATE #f1")
+	fieldValues := sqlf.F("SET #join('#fragment=#arg', ', ')")
+	where := sqlf.F("#join('#fragment', ' AND ')").WithPrefix("WHERE")
+	builder := sqlf.F("#join('#fragment', ' ')", update, fieldValues, where)
 
 	var users sqlb.Table = "users"
-	update.WithFragments(users)
-	fieldValues.WithFragments(
+	update.WithArgs(users)
+	fieldValues.WithArgs(
 		users.AnonymousColumn("name"),
 		users.AnonymousColumn("email"),
 	)
 	fieldValues.WithArgs("alice", "alice@example.org")
-	where.AppendFragments(
+	where.AppendArgs(
 		sqlf.F("#f1=$1").
-			WithFragments(users.AnonymousColumn("id")).
+			WithArgs(users.AnonymousColumn("id")).
 			WithArgs(1),
 	)
 
@@ -130,10 +130,10 @@ func ExampleContextWithFuncs() {
 		fmt.Println(err)
 		return
 	}
-	fragment := sqlf.Ff(
+	fragment := sqlf.F(
 		"#join('#fragment', '\nUNION\n')",
-		sqlf.Fa("SELECT id, 'foo' typ, count FROM foo WHERE id IN (#join('#_id', ', '))"),
-		sqlf.Fa("SELECT id, 'bar' typ, count FROM bar WHERE id IN (#join('#_id', ', '))"),
+		sqlf.F("SELECT id, 'foo' typ, count FROM foo WHERE id IN (#join('#_id', ', '))"),
+		sqlf.F("SELECT id, 'bar' typ, count FROM bar WHERE id IN (#join('#_id', ', '))"),
 	)
 	query, err := fragment.BuildFragment(ctx)
 	if err != nil {
