@@ -10,7 +10,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v2/util"
 )
 
-func ExampleArgs() {
+func ExampleArgsFlatted() {
 	print := func(v any) {
 		fmt.Printf("%#v\n", v)
 	}
