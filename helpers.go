@@ -15,12 +15,16 @@ func Join(sep string, args ...any) Builder {
 		var sb strings.Builder
 		props := newProperties(args...)
 		for i, p := range props {
-			if i > 0 {
-				sb.WriteString(sep)
-			}
 			r, err := p.Build(ctx)
 			if err != nil {
 				return "", err
+			}
+			r = strings.TrimSpace(r)
+			if r == "" {
+				continue
+			}
+			if i > 0 {
+				sb.WriteString(sep)
 			}
 			sb.WriteString(r)
 		}
