@@ -56,7 +56,13 @@ func (b *QueryBuilder) Indistinct() *QueryBuilder {
 	return b
 }
 
-// Select replace the SELECT clause with the columns.
+// SelectReplace replace the columns in the SELECT clause.
+func (b *QueryBuilder) SelectReplace(columns ...*Column) *QueryBuilder {
+	b.selects = columns
+	return b
+}
+
+// Select append the SELECT clause with the columns.
 func (b *QueryBuilder) Select(columns ...*Column) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
