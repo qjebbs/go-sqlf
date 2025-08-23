@@ -46,6 +46,34 @@ func Prefix(prefix string, b Builder) Builder {
 	})
 }
 
+// Suffix creates a new fragment builder that suffixes the given builder if it's built not empty.
+func Suffix(suffix string, b Builder) Builder {
+	return fn(func(ctx *Context) (query string, err error) {
+		query, err = b.Build(ctx)
+		if err != nil {
+			return "", err
+		}
+		if query == "" {
+			return "", nil
+		}
+		return query + " " + suffix, nil
+	})
+}
+
+// PrefixSuffix creates a new fragment builder that prefixes and suffixes the given builder if it's built not empty.
+func PrefixSuffix(prefix, suffix string, b Builder) Builder {
+	return fn(func(ctx *Context) (query string, err error) {
+		query, err = b.Build(ctx)
+		if err != nil {
+			return "", err
+		}
+		if query == "" {
+			return "", nil
+		}
+		return prefix + " " + query + " " + suffix, nil
+	})
+}
+
 // fn creates a new fragment builder with the fn function.
 func fn(fn func(ctx *Context) (query string, err error)) Builder {
 	return &builder{
