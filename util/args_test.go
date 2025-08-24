@@ -7,7 +7,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
-func TestArgsFlatted(t *testing.T) {
+func TestFlatten(t *testing.T) {
 	type str string
 	strA := str("a")
 	testCases := []struct {
@@ -35,7 +35,7 @@ func TestArgsFlatted(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		got := util.ArgsFlatted(tc.args...)
+		got := util.Flatten(tc.args...)
 		if !reflect.DeepEqual(tc.want, got) {
 			t.Errorf("want: %s, got: %s", tc.want, got)
 		}

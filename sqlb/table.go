@@ -28,8 +28,7 @@ func (t Table) Build(ctx *sqlf.Context) (query string, err error) {
 //	t.Column("id")  // "t.id"
 func (t Table) Column(name string) *Column {
 	return &Column{
-		fragment:       sqlf.F("?."+name, t),
-		anonymousTable: t,
+		fragment: sqlf.F("?."+name, t),
 	}
 }
 

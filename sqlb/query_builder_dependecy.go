@@ -25,7 +25,7 @@ func depsFromContext(ctx *sqlf.Context) map[Table]bool {
 
 // collectDependencies collects the dependencies of the tables.
 func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
-	builders := util.ArgsFlatted(
+	builders := util.Flatten(
 		b.selects,
 		b.touches,
 		b.conditions,

@@ -52,7 +52,7 @@ func Example_select() {
 		sqlf.Join(" AND ", util.Ttoa(where)...),
 	)
 
-	query, args, err := util.Build(builder, syntax.Dollar)
+	query, args, err := builder.BuildQuery(syntax.Dollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -115,5 +115,5 @@ func (b *insertBuilder) BuildQuery(bindVarStyle syntax.BindVarStyle) (string, []
 		sqlf.Join(", ", util.Ttoa(b.fields)...),
 		sqlf.Join(", ", valueFragments...),
 	)
-	return util.Build(f, bindVarStyle)
+	return f.BuildQuery(bindVarStyle)
 }
