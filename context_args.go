@@ -4,19 +4,6 @@ import (
 	"strconv"
 )
 
-// Args returns the built args of the context.
-func (c *Context) Args() []any {
-	return c.root().argStore.Args()
-}
-
-// CommitArg commits an built arg to the context and returns the built bindvar.
-//
-// It's used usually in the implementation of a FragmentBuilder,
-// most users don't need to care about it.
-func (c *Context) CommitArg(arg any) string {
-	return c.root().argStore.CommitArg(arg)
-}
-
 type argStore interface {
 	Args() []any
 	CommitArg(arg any) string

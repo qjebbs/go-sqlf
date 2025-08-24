@@ -28,17 +28,9 @@ func (f *Fragment) Build(ctx *Context) (string, error) {
 	if ctx == nil {
 		return "", fmt.Errorf("nil context")
 	}
-	ctx = contextWithFragment(ctx, f)
 	body, err := build(ctx, f)
 	if err != nil {
 		return "", err
-	}
-	fc, err := ctx.mustFragment()
-	if err != nil {
-		return "", err
-	}
-	if err := fc.checkUsage(); err != nil {
-		return "", fmt.Errorf("build '%s': %w", f.Raw, err)
 	}
 	body = strings.TrimSpace(body)
 	if body == "" {
@@ -60,7 +52,7 @@ func build(ctx *Context, fragment *Fragment) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("parse '%s': %w", fragment.Raw, err)
 	}
-	built, err := buildClause(ctx, clause)
+	built, err := buildClause(ctx, fragment, clause)
 	if err != nil {
 		return "", fmt.Errorf("build '%s': %w", fragment.Raw, err)
 	}
@@ -68,21 +60,18 @@ func build(ctx *Context, fragment *Fragment) (string, error) {
 }
 
 // buildClause builds the parsed clause within current context.
-func buildClause(ctx *Context, clause *syntax.Clause) (string, error) {
+func buildClause(ctx *Context, fragment *Fragment, clause *syntax.Clause) (string, error) {
+	props := newProperties(fragment.Args...)
 	b := new(strings.Builder)
 	for _, decl := range clause.ExprList {
 		switch expr := decl.(type) {
 		case *syntax.PlainExpr:
 			b.WriteString(expr.Text)
 		case *syntax.BindVarExpr:
-			fc, err := ctx.mustFragment()
-			if err != nil {
-				return "", err
-			}
-			if expr.Index < 1 || expr.Index > len(fc.Args) {
+			if expr.Index < 1 || expr.Index > len(props) {
 				return "", fmt.Errorf("invalid bind var index %d", expr.Index)
 			}
-			s, err := fc.Args[expr.Index-1].Build(ctx)
+			s, err := props[expr.Index-1].Build(ctx)
 			if err != nil {
 				return "", err
 			}
@@ -90,6 +79,9 @@ func buildClause(ctx *Context, clause *syntax.Clause) (string, error) {
 		default:
 			return "", fmt.Errorf("unknown expression type %T", expr)
 		}
+	}
+	if err := props.checkUsage(); err != nil {
+		return "", fmt.Errorf("build '%s': args %w", fragment.Raw, err)
 	}
 	return b.String(), nil
 }
