@@ -196,7 +196,7 @@ func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (
 		if (b.distinct || len(b.groupbys) > 0) && t.Optional && !dep[t.Names] {
 			continue
 		}
-		c, err := t.Fragment.Build(ctx)
+		c, err := t.Builder.Build(ctx)
 		if err != nil {
 			return "", fmt.Errorf("build FROM '%s': %w", t.Names, err)
 		}

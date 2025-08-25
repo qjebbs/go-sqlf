@@ -27,7 +27,7 @@ func (b *QueryBuilder) Having(s sqlf.Builder) *QueryBuilder {
 //	b.Having(
 //		sqlf.F("? = ?", column, 1),
 //	)
-func (b *QueryBuilder) Having2(column *Column, op string, arg any) *QueryBuilder {
+func (b *QueryBuilder) Having2(column sqlf.Builder, op string, arg any) *QueryBuilder {
 	b.havings = append(
 		b.havings,
 		sqlf.F("?"+op+"?", column, arg),
@@ -36,7 +36,7 @@ func (b *QueryBuilder) Having2(column *Column, op string, arg any) *QueryBuilder
 }
 
 // HavingIn adds a where IN condition like `t.id IN (1,2,3)`
-func (b *QueryBuilder) HavingIn(column *Column, list any) *QueryBuilder {
+func (b *QueryBuilder) HavingIn(column sqlf.Builder, list any) *QueryBuilder {
 	return b.Having(
 		sqlf.F(
 			"? IN (?)",
@@ -47,7 +47,7 @@ func (b *QueryBuilder) HavingIn(column *Column, list any) *QueryBuilder {
 }
 
 // HavingNotIn adds a where NOT IN condition like `t.id NOT IN (1,2,3)`
-func (b *QueryBuilder) HavingNotIn(column *Column, list any) *QueryBuilder {
+func (b *QueryBuilder) HavingNotIn(column sqlf.Builder, list any) *QueryBuilder {
 	return b.Having(
 		sqlf.F(
 			"? NOT IN (?)",

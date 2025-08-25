@@ -27,7 +27,7 @@ func (b *QueryBuilder) Where(s sqlf.Builder) *QueryBuilder {
 //	b.Where(
 //		sqlf.F("? = ?", column, 1),
 //	)
-func (b *QueryBuilder) Where2(column *Column, op string, arg any) *QueryBuilder {
+func (b *QueryBuilder) Where2(column sqlf.Builder, op string, arg any) *QueryBuilder {
 	b.conditions = append(
 		b.conditions,
 		sqlf.F("?"+op+"?", column, arg),
@@ -36,7 +36,7 @@ func (b *QueryBuilder) Where2(column *Column, op string, arg any) *QueryBuilder 
 }
 
 // WhereIn adds a where IN condition like `t.id IN (1,2,3)`
-func (b *QueryBuilder) WhereIn(column *Column, list any) *QueryBuilder {
+func (b *QueryBuilder) WhereIn(column sqlf.Builder, list any) *QueryBuilder {
 	return b.Where(
 		sqlf.F(
 			"? IN (?)",
@@ -47,7 +47,7 @@ func (b *QueryBuilder) WhereIn(column *Column, list any) *QueryBuilder {
 }
 
 // WhereNotIn adds a where NOT IN condition like `t.id NOT IN (1,2,3)`
-func (b *QueryBuilder) WhereNotIn(column *Column, list any) *QueryBuilder {
+func (b *QueryBuilder) WhereNotIn(column sqlf.Builder, list any) *QueryBuilder {
 	return b.Where(
 		sqlf.F(
 			"? NOT IN (?)",

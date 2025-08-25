@@ -29,12 +29,12 @@ var orders = []string{
 }
 
 type orderItem struct {
-	column *Column
+	column sqlf.Builder
 	order  Order
 }
 
 // OrderBy set the sorting order. the order can be "ASC", "DESC", "ASC NULLS FIRST" or "DESC NULLS LAST"
-func (b *QueryBuilder) OrderBy(column *Column, order Order) *QueryBuilder {
+func (b *QueryBuilder) OrderBy(column sqlf.Builder, order Order) *QueryBuilder {
 	b.orders = append(b.orders, &orderItem{column: column, order: order})
 	return b
 }
@@ -58,7 +58,7 @@ func (b *QueryBuilder) buildOrders(ctx *sqlf.Context) (string, error) {
 		orderStr := orders[item.order]
 		b.touches = append(
 			b.touches,
-			ExprColumn(sqlf.F("? AS "+alias, item.column)),
+			sqlf.F("? AS "+alias, item.column),
 		)
 		builders = append(builders, sqlf.F(
 			fmt.Sprintf("%s %s", alias, orderStr),

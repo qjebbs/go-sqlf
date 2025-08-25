@@ -18,7 +18,7 @@ func (b *QueryBuilder) From(t TableAliased) *QueryBuilder {
 	}
 	table := &fromTable{
 		Names:    t,
-		Fragment: sqlf.F(tableAndAlias),
+		Builder:  sqlf.F(tableAndAlias),
 		Optional: false,
 	}
 	if len(b.tables) == 0 {
@@ -96,7 +96,7 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 	}
 	table := &fromTable{
 		Names: t,
-		Fragment: sqlf.F(
+		Builder: sqlf.F(
 			fmt.Sprintf("%s %s ?", joinStr, tableAndAlias),
 			on.WithPrefix("ON"),
 		),

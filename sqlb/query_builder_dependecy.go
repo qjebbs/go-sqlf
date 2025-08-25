@@ -115,7 +115,7 @@ func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) 
 		return nil
 	}
 	dep[from.Names] = true
-	tables, err := extractTables(from.Fragment.Args)
+	tables, err := extractTables([]any{from})
 	if err != nil {
 		return fmt.Errorf("collect dependencies of table %q: %w", from.Names.Name, err)
 	}

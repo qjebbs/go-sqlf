@@ -14,11 +14,11 @@ type QueryBuilder struct {
 	tables     []*fromTable         // the tables in order
 	tablesDict map[Table]*fromTable // the from tables by alias
 
-	selects    []*Column      // select columns and keep values in scanning.
-	touches    []*Column      // select columns but drop values in scanning.
+	selects    []sqlf.Builder // select columns and keep values in scanning.
+	touches    []sqlf.Builder // select columns but drop values in scanning.
 	conditions []sqlf.Builder // where conditions, joined with AND.
 	orders     []*orderItem   // order by columns, joined with comma.
-	groupbys   []*Column      // group by columns, joined with comma.
+	groupbys   []sqlf.Builder // group by columns, joined with comma.
 	havings    []sqlf.Builder // having conditions, joined with AND.
 	distinct   bool           // select distinct
 	limit      int64          // limit count
@@ -31,8 +31,9 @@ type QueryBuilder struct {
 }
 
 type fromTable struct {
+	sqlf.Builder
+
 	Names    TableAliased
-	Fragment *sqlf.Fragment
 	Optional bool
 }
 
@@ -57,13 +58,13 @@ func (b *QueryBuilder) Indistinct() *QueryBuilder {
 }
 
 // SelectReplace replace the columns in the SELECT clause.
-func (b *QueryBuilder) SelectReplace(columns ...*Column) *QueryBuilder {
+func (b *QueryBuilder) SelectReplace(columns ...sqlf.Builder) *QueryBuilder {
 	b.selects = columns
 	return b
 }
 
 // Select append the SELECT clause with the columns.
-func (b *QueryBuilder) Select(columns ...*Column) *QueryBuilder {
+func (b *QueryBuilder) Select(columns ...sqlf.Builder) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
 	}
@@ -88,7 +89,7 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 }
 
 // GroupBy set the sorting order.
-func (b *QueryBuilder) GroupBy(columns ...*Column) *QueryBuilder {
+func (b *QueryBuilder) GroupBy(columns ...sqlf.Builder) *QueryBuilder {
 	b.groupbys = append(b.groupbys, columns...)
 	return b
 }

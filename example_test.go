@@ -28,19 +28,19 @@ func Example_basic() {
 func Example_select() {
 	var users sqlb.Table = "users"
 	selects := []sqlf.Builder{
-		users.AnonymousColumn("id"),
-		users.AnonymousColumn("name"),
-		users.AnonymousColumn("email"),
+		sqlf.F("id"),
+		sqlf.F("name"),
+		sqlf.F("email"),
 	}
 	from := users
 	where := []sqlf.Builder{
 		sqlf.F(
 			"? = ?",
-			users.AnonymousColumn("active"), true,
+			sqlf.F("active"), true,
 		),
 		sqlf.F(
 			"? IN (?)",
-			users.AnonymousColumn("id"),
+			sqlf.F("id"),
 			sqlf.Join(", ", 1, 2, 3),
 		),
 	}
@@ -67,8 +67,8 @@ func Example_select() {
 func Example_insert() {
 	var users sqlb.Table = "users"
 	var fields = []sqlf.Builder{
-		users.AnonymousColumn("name"),
-		users.AnonymousColumn("email"),
+		sqlf.F("name"),
+		sqlf.F("email"),
 	}
 	var values = [][]any{
 		{"alice", "alice@example.org"},

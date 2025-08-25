@@ -52,7 +52,7 @@ func (t TableAliased) Names() []Table {
 //
 //	t := NewTable("table", "t")
 //	t.Column("id")  // "t.id"
-func (t TableAliased) Column(name string) *Column {
+func (t TableAliased) Column(name string) sqlf.Builder {
 	return t.AppliedName().Column(name)
 }
 
@@ -63,25 +63,6 @@ func (t TableAliased) Column(name string) *Column {
 //
 //	t := NewTable("table", "t")
 //	t.Columns("id", "name")   // "t.id", "t.name"
-func (t TableAliased) Columns(names ...string) []*Column {
+func (t TableAliased) Columns(names ...string) []sqlf.Builder {
 	return t.AppliedName().Columns(names...)
-}
-
-// AnonymousColumn returns a anonymous column of the table.
-// For example:
-//
-//	t := NewTable("table", "t")
-//	t.AnonymousColumn("id")  // "id"
-func (t TableAliased) AnonymousColumn(name string) *Column {
-	return t.AppliedName().AnonymousColumn(name)
-}
-
-// AnonymousColumns returns anonymous columns of the table from names.
-//
-// For example:
-//
-//	t := NewTable("table", "t")
-//	t.Columns("id", "name")  // "id", "name"
-func (t TableAliased) AnonymousColumns(names ...string) []*Column {
-	return t.AppliedName().AnonymousColumns(names...)
 }

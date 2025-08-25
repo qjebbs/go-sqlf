@@ -27,10 +27,8 @@ func (t Table) Build(ctx *sqlf.Context) (query string, err error) {
 //
 //	t := Table("t")
 //	t.Column("id")  // "t.id"
-func (t Table) Column(name string) *Column {
-	return &Column{
-		fragment: sqlf.F("?."+name, t),
-	}
+func (t Table) Column(name string) sqlf.Builder {
+	return sqlf.F("?."+name, t)
 }
 
 // Columns returns columns of the table from names.
@@ -40,36 +38,10 @@ func (t Table) Column(name string) *Column {
 //
 //	t := Table("t")
 //	t.Columns("id", "name")  // "t.id", "t.name"
-func (t Table) Columns(names ...string) []*Column {
-	r := make([]*Column, 0, len(names))
+func (t Table) Columns(names ...string) []sqlf.Builder {
+	r := make([]sqlf.Builder, 0, len(names))
 	for _, name := range names {
 		r = append(r, t.Column(name))
-	}
-	return r
-}
-
-// AnonymousColumn returns a anonymous column of the table.
-// For example:
-//
-//	t := Table("t")
-//	t.AnonymousColumn("id")  // "id"
-func (t Table) AnonymousColumn(name string) *Column {
-	return &Column{
-		fragment:       sqlf.F(name),
-		anonymousTable: t,
-	}
-}
-
-// AnonymousColumns returns anonymous columns of the table from names.
-//
-// For example:
-//
-//	t := Table("t")
-//	t.Columns("id", "name")  // "id", "name"
-func (t Table) AnonymousColumns(names ...string) []*Column {
-	r := make([]*Column, 0, len(names))
-	for _, name := range names {
-		r = append(r, t.AnonymousColumn(name))
 	}
 	return r
 }
