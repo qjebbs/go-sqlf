@@ -136,3 +136,33 @@ func ExampleQueryBuilder_Union() {
 	// SELECT f.* FROM foo AS f WHERE f.id = $1 UNION (SELECT f.* FROM foo AS f WHERE f.id IN ($2, $3, $4))
 	// [1 2 3 4]
 }
+
+func ExampleNoDeps() {
+	var (
+		foo = sqlb.NewTableAliased("foo", "f")
+		bar = sqlb.Table("bar")
+	)
+	q := sqlb.NewQueryBuilder().
+		Select(foo.Column("bar")).
+		From(foo).
+		Where(
+			// will not report 'b' (table 'bar') undefined
+			sqlf.F(
+				"? IN (?)",
+				foo.Column("id"),
+				sqlb.NoDeps(sqlf.F(
+					"SELECT id FROM ?", bar,
+				)),
+			),
+		)
+	query, args, err := q.BuildQuery(syntax.Dollar)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(query)
+	fmt.Println(args)
+	// Output:
+	// SELECT f.bar FROM foo AS f WHERE f.id IN (SELECT id FROM bar)
+	// []
+}

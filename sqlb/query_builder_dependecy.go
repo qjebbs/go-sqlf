@@ -10,17 +10,37 @@ import (
 
 type depTablesKey struct{}
 
-func contextWithDeps(ctx *sqlf.Context, deps map[Table]bool) *sqlf.Context {
-	ctx.WithValue(depTablesKey{}, deps)
-	return ctx
+// NoDeps returns a new builder that doesn't report any dependencies.
+//
+// *QueryBuilder collects table dependencies so that they can be used
+// for JOIN elimination. But it just simply collects all appearances
+// of tables in the query, even for those in a self-contained subqueries.
+// Wrap subqueries with NoDeps to ignore their dependencies.
+//
+// For example, the table 'bar' will not count as a dependency of the main query.
+//
+//	b.Where(sqlb.NoDeps(sqlf.F(
+//	  "id IN (SELECT ? FROM ?)",
+//	  bar, bar.Column("id"),
+//	)))
+//
+// No need to wrap *QueryBuilder with NoDeps, since it never report any
+// dependencies to outer queries.
+func NoDeps(b sqlf.Builder) sqlf.Builder {
+	return &noDepsBuilder{b}
 }
 
-func depsFromContext(ctx *sqlf.Context) map[Table]bool {
-	dep := ctx.Value(depTablesKey{})
-	if dep == nil {
-		return nil
+var _ sqlf.Builder = (*noDepsBuilder)(nil)
+
+type noDepsBuilder struct {
+	b sqlf.Builder
+}
+
+func (b *noDepsBuilder) Build(ctx *sqlf.Context) (string, error) {
+	if ctx.Value(depTablesKey{}) != nil {
+		ctx = sqlf.ContextWith(ctx, depTablesKey{}, nil)
 	}
-	return dep.(map[Table]bool)
+	return b.b.Build(ctx)
 }
 
 // collectDependencies collects the dependencies of the tables.
@@ -113,7 +133,7 @@ func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) 
 
 func extractTables(args []any) (map[Table]bool, error) {
 	tables := make(map[Table]bool)
-	ctx := contextWithDeps(sqlf.NewContext(syntax.Dollar), tables)
+	ctx := sqlf.ContextWith(sqlf.NewContext(syntax.Dollar), depTablesKey{}, tables)
 	_, err := sqlf.Join(";", args...).Build(ctx)
 	if err != nil {
 		return nil, err

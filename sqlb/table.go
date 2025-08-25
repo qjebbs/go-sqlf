@@ -11,10 +11,11 @@ type Table string
 
 // Build implements sqlf.Builder
 func (t Table) Build(ctx *sqlf.Context) (query string, err error) {
-	deps := depsFromContext(ctx)
-	if deps != nil {
-		// collecting
-		deps[t] = true
+	if v := ctx.Value(depTablesKey{}); v != nil {
+		if deps, ok := v.(map[Table]bool); ok && deps != nil {
+			// collecting
+			deps[t] = true
+		}
 	}
 	return string(t), nil
 }

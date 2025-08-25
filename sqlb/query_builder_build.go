@@ -26,6 +26,10 @@ func (b *QueryBuilder) BuildQuery(bindVarStyle syntax.BindVarStyle) (query strin
 
 // Build implements sqlf.Builder
 func (b *QueryBuilder) Build(ctx *sqlf.Context) (query string, err error) {
+	if ctx.Value(depTablesKey{}) != nil {
+		// b is self-contained, not reporting any deps to parent ctx
+		ctx = sqlf.ContextWith(ctx, depTablesKey{}, nil)
+	}
 	return b.buildInternal(ctx)
 }
 
