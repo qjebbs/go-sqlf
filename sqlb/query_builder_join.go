@@ -12,13 +12,9 @@ func (b *QueryBuilder) From(t TableAliased) *QueryBuilder {
 		b.pushError(fmt.Errorf("from table is empty"))
 		return b
 	}
-	tableAndAlias := string(t.Name)
-	if t.Alias != "" {
-		tableAndAlias = tableAndAlias + " AS " + string(t.Alias)
-	}
 	table := &fromTable{
 		Names:    t,
-		Builder:  sqlf.F(tableAndAlias),
+		Builder:  NewTableAsBuilder(t),
 		Optional: false,
 	}
 	if len(b.tables) == 0 {
@@ -90,14 +86,11 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 		// reserve the first alias for the main table
 		b.tables = append(b.tables, &fromTable{})
 	}
-	tableAndAlias := t.Name
-	if t.Alias != "" {
-		tableAndAlias = tableAndAlias + " AS " + t.Alias
-	}
 	table := &fromTable{
 		Names: t,
 		Builder: sqlf.F(
-			fmt.Sprintf("%s %s ?", joinStr, tableAndAlias),
+			joinStr+" ? ?",
+			NewTableAsBuilder(t),
 			on.WithPrefix("ON"),
 		),
 		Optional: optional,

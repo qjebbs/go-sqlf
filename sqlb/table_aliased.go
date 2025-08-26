@@ -17,6 +17,17 @@ type TableAliased struct {
 }
 
 // NewTableAliased returns a new TableAliased.
+//
+// TableAliased is a sqlf.Builder, but builds only the applied name,
+// since it's more common to use it to build column references, e.g.:
+//
+//	t := NewTable("table", "t")
+//	sqlf.F("?.id", t)  // t.id
+//
+// If you want to build fragments like `foo As f`, consider wrapping it
+// with NewTableAsBuilder.
+//
+//	sqlf.F("LEFT JOIN ?", NewTableAsBuilder(t)) // JOIN JOIN table AS t
 func NewTableAliased(name, alias Table) TableAliased {
 	return TableAliased{
 		Name:  name,
@@ -65,4 +76,24 @@ func (t TableAliased) Column(name string) sqlf.Builder {
 //	t.Columns("id", "name")   // "t.id", "t.name"
 func (t TableAliased) Columns(names ...string) []sqlf.Builder {
 	return t.AppliedName().Columns(names...)
+}
+
+var _ sqlf.Builder = (*tableAsBuilder)(nil)
+
+type tableAsBuilder struct {
+	TableAliased
+}
+
+// NewTableAsBuilder returns a new tableAsBuilder that builds t into fragment like `table AS t`
+func NewTableAsBuilder(t TableAliased) sqlf.Builder {
+	return &tableAsBuilder{t}
+}
+
+func (t *tableAsBuilder) Build(ctx *sqlf.Context) (string, error) {
+	// only report the applied name
+	t.AppliedName().Build(ctx)
+	if t.Alias == "" {
+		return string(t.Name), nil
+	}
+	return string(t.Name + " AS " + t.Alias), nil
 }
