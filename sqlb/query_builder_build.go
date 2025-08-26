@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
@@ -14,7 +13,7 @@ var _ Builder = (*QueryBuilder)(nil)
 var _ sqlf.Builder = (*QueryBuilder)(nil)
 
 // BuildQuery builds the query.
-func (b *QueryBuilder) BuildQuery(style syntax.BindVarStyle) (query string, args []any, err error) {
+func (b *QueryBuilder) BuildQuery(style sqlf.BindStyle) (query string, args []any, err error) {
 	ctx := sqlf.NewContext(style)
 	query, err = b.buildInternal(ctx)
 	if err != nil {

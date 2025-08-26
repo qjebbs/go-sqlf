@@ -6,7 +6,6 @@ import (
 
 	"github.com/qjebbs/go-sqlf/v3"
 	"github.com/qjebbs/go-sqlf/v3/sqlb"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 func TestQueryBuilderDistinctElimination(t *testing.T) {
@@ -40,7 +39,7 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 			bar.Column("user_id"),
 			users.Column("id"),
 		))
-	gotQuery, gotArgs, err := q.BuildQuery(syntax.Dollar)
+	gotQuery, gotArgs, err := q.BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +78,7 @@ func TestQueryBuilderGroupbyElimination(t *testing.T) {
 		)).
 		Where2(foo.Column("id"), "=", 1).
 		GroupBy(foo.Column("id"))
-	gotQuery, gotArgs, err := q.BuildQuery(syntax.Dollar)
+	gotQuery, gotArgs, err := q.BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		t.Fatal(err)
 	}

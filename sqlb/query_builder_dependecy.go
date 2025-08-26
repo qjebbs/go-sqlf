@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
@@ -133,7 +132,7 @@ func (b *QueryBuilder) collectDepsFromTable(dep map[Table]bool, t string) error 
 
 func extractTables(args []any) (map[string]bool, error) {
 	tables := make(map[string]bool)
-	ctx := sqlf.ContextWith(sqlf.NewContext(syntax.Dollar), depTablesKey{}, tables)
+	ctx := sqlf.ContextWith(sqlf.NewContext(sqlf.BindStyleDollar), depTablesKey{}, tables)
 	_, err := sqlf.Join(";", args...).Build(ctx)
 	if err != nil {
 		return nil, err

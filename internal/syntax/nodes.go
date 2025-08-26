@@ -32,19 +32,19 @@ func (*node) aNode()     {}
 
 // BindVarExpr is the bind var expression.
 type BindVarExpr struct {
-	Type  BindVarStyle
+	Type  bindVarStyle
 	Index int
 	expr
 }
 
-// BindVarStyle is the type of bind vars.
-type BindVarStyle int
+// bindVarStyle is the type of bind vars.
+type bindVarStyle int
 
 const (
-	// Dollar is the style of bind vars like $1, $2, $3
-	Dollar BindVarStyle = iota
-	// Question is the style of bind vars like ?, ?, ?
-	Question
+	// bindVarDollar is the style of bind vars like $1, $2, $3
+	bindVarDollar bindVarStyle = iota
+	// bindVarQuestion is the style of bind vars like ?, ?, ?
+	bindVarQuestion
 )
 
 // PlainExpr is the plain text expression.

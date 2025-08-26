@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 func TestBuildFragmentFn(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name     string
-		style    syntax.BindVarStyle
+		style    sqlf.BindStyle
 		builder  sqlf.Builder
 		want     string
 		wantArgs []any
@@ -20,14 +19,14 @@ func TestBuildFragmentFn(t *testing.T) {
 	}{
 		{
 			name:     "join",
-			style:    syntax.Question,
+			style:    sqlf.BindStyleQuestion,
 			builder:  sqlf.Join(",", 1, 2),
 			want:     "?,?",
 			wantArgs: []any{1, 2},
 		},
 		{
 			name:    "prefix",
-			style:   syntax.Dollar,
+			style:   sqlf.BindStyleDollar,
 			builder: sqlf.Prefix("WHERE", sqlf.F("1=1")),
 			want:    "WHERE 1=1",
 		},

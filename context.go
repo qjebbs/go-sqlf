@@ -1,9 +1,5 @@
 package sqlf
 
-import (
-	"github.com/qjebbs/go-sqlf/v3/syntax"
-)
-
 // Context is the context for fragment building.
 type Context struct {
 	global *globalContext
@@ -20,9 +16,9 @@ type globalContext struct {
 }
 
 // NewContext returns a new context.
-func NewContext(style syntax.BindVarStyle) *Context {
+func NewContext(style BindStyle) *Context {
 	var argStore argStore
-	if style == syntax.Dollar {
+	if style == BindStyleDollar {
 		argStore = newDollarArgStore()
 	} else {
 		argStore = newQuestionArgStore()

@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 func TestBuildFragment(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name     string
-		style    syntax.BindVarStyle
+		style    sqlf.BindStyle
 		fragment sqlf.Builder
 		want     string
 		wantArgs []any
@@ -32,7 +31,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name:  "builder and args",
-			style: syntax.Question,
+			style: sqlf.BindStyleQuestion,
 			fragment: sqlf.F(
 				"WHERE ?=?",
 				sqlf.F("id"),
@@ -43,7 +42,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name:  "build nil column",
-			style: syntax.Dollar,
+			style: sqlf.BindStyleDollar,
 			fragment: sqlf.F(
 				"WHERE ?=?",
 				(*sqlf.Fragment)(nil),
@@ -54,7 +53,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name:  "args merging",
-			style: syntax.Dollar,
+			style: sqlf.BindStyleDollar,
 			fragment: sqlf.F(
 				"WHERE foo=? AND bar IN (?)",
 				1,
@@ -77,7 +76,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name:  "ref fragment twice",
-			style: syntax.Dollar,
+			style: sqlf.BindStyleDollar,
 			fragment: sqlf.F(
 				"$1, $1",
 				sqlf.F("$1, $2, $1", 1, 2),

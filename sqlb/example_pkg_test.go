@@ -1,8 +1,8 @@
 package sqlb_test
 
 import (
+	"github.com/qjebbs/go-sqlf/v3"
 	"github.com/qjebbs/go-sqlf/v3/sqlb"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 func Example() {
@@ -36,7 +36,7 @@ func (b *UserQueryBuilder) WithIDs(ids []int64) *UserQueryBuilder {
 
 func (b *UserQueryBuilder) GetUsers() ([]*User, error) {
 	b.Select(Users.Columns("id", "name", "email")...)
-	return sqlb.Query(b.QueryAble, b.QueryBuilder, syntax.Dollar, func() (*User, []any) {
+	return sqlb.Query(b.QueryAble, b.QueryBuilder, sqlf.BindStyleDollar, func() (*User, []any) {
 		r := &User{}
 		return r, []interface{}{
 			&r.ID, &r.Name, &r.Email,

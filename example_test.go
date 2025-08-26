@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
@@ -16,7 +15,7 @@ func Example_basic() {
 			sqlf.F("baz = $1", true),
 			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
 		),
-	).BuildQuery(syntax.Dollar)
+	).BuildQuery(sqlf.BindStyleDollar)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -47,7 +46,7 @@ func Example_insert() {
 		})...),
 	)
 
-	query, args, err := f.BuildQuery(syntax.Dollar)
+	query, args, err := f.BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		fmt.Println(err)
 		return

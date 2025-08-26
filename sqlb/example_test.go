@@ -5,7 +5,6 @@ import (
 
 	"github.com/qjebbs/go-sqlf/v3"
 	"github.com/qjebbs/go-sqlf/v3/sqlb"
-	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 func ExampleQueryBuilder_BuildQuery() {
@@ -27,14 +26,14 @@ func ExampleQueryBuilder_BuildQuery() {
 		)).
 		Where2(bar.Column("c"), "=", 2)
 
-	query, args, err := b.BuildQuery(syntax.Dollar)
+	query, args, err := b.BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Println(query)
 	fmt.Println(args)
-	query, args, err = b.BuildQuery(syntax.Question)
+	query, args, err = b.BuildQuery(sqlf.BindStyleQuestion)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -65,7 +64,7 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		)).
 		// don't touch any columns of "bar", so that it can be eliminated
 		Where2(foo.Column("id"), ">", 1).
-		BuildQuery(syntax.Dollar)
+		BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -100,7 +99,7 @@ func ExampleQueryBuilder_With() {
 			cte.Column("foo_id"),
 			foo.Column("id"),
 		)).
-		BuildQuery(syntax.Dollar)
+		BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -125,7 +124,7 @@ func ExampleQueryBuilder_Union() {
 				WhereIn(foo.Column("id"), []any{2, 3, 4}).
 				Select(column),
 		).
-		BuildQuery(syntax.Dollar)
+		BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -155,7 +154,7 @@ func ExampleNoDeps() {
 				)),
 			),
 		)
-	query, args, err := q.BuildQuery(syntax.Dollar)
+	query, args, err := q.BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		fmt.Println(err)
 		return

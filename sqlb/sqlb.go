@@ -3,12 +3,10 @@
 // is the underlying foundation.
 package sqlb
 
-import (
-	"github.com/qjebbs/go-sqlf/v3/syntax"
-)
+import "github.com/qjebbs/go-sqlf/v3"
 
 // Builder is the interface for sql builders.
 type Builder interface {
 	// BuildQuery builds and returns the query and args.
-	BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error)
+	BuildQuery(bindVarStyle sqlf.BindStyle) (query string, args []any, err error)
 }
