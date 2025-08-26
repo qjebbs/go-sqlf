@@ -11,12 +11,12 @@ type Order uint
 
 // orders
 const (
-	Asc Order = iota
-	AscNullsFirst
-	AscNullsLast
-	Desc
-	DescNullsFirst
-	DescNullsLast
+	OrderAsc Order = iota
+	OrderAscNullsFirst
+	OrderAscNullsLast
+	OrderDesc
+	OrderDescNullsFirst
+	OrderDescNullsLast
 )
 
 var orders = []string{
@@ -42,7 +42,7 @@ func (b *QueryBuilder) OrderBy(column sqlf.Builder, order Order) *QueryBuilder {
 func (b *QueryBuilder) buildOrders(ctx *sqlf.Context) (string, error) {
 	builders := make([]any, 0, len(b.orders))
 	for i, item := range b.orders {
-		if item.order > DescNullsLast {
+		if item.order > OrderDescNullsLast {
 			b.pushError(fmt.Errorf("invalid order: %d", item.order))
 			continue
 		}
