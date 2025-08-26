@@ -14,7 +14,7 @@ func (b *QueryBuilder) From(t Table) *QueryBuilder {
 	}
 	table := &fromTable{
 		table:    t,
-		Builder:  NewTableAsBuilder(t),
+		Builder:  t.TableAs(),
 		optional: false,
 	}
 	if len(b.tables) == 0 {
@@ -90,7 +90,7 @@ func (b *QueryBuilder) join(joinStr string, t Table, on *sqlf.Fragment, optional
 		table: t,
 		Builder: sqlf.F(
 			joinStr+" ? ?",
-			NewTableAsBuilder(t),
+			t.TableAs(),
 			sqlf.Prefix("ON", on),
 		),
 		optional: optional,

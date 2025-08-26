@@ -30,10 +30,9 @@ type Table struct {
 //	t := NewTable("table", "t")
 //	sqlf.F("?.id", t)  // t.id
 //
-// If you want to build fragments like `foo As f`, consider wrapping it
-// with NewTableAsBuilder.
+// If you want to build fragments like `foo As f`, use t.TableAs().
 //
-//	sqlf.F("LEFT JOIN ?", NewTableAsBuilder(t)) // JOIN JOIN table AS t
+//	sqlf.F("LEFT JOIN ?", t.TableAs()) // JOIN JOIN table AS t
 func NewTable(name string, alias ...string) Table {
 	aliasName := ""
 	if len(alias) > 0 {
@@ -72,6 +71,18 @@ func (t Table) Column(name string) sqlf.Builder {
 	return sqlf.F("?."+name, t)
 }
 
+// TableAs returns a new builder that builds t into fragment like `table AS t`
+func (t Table) TableAs() sqlf.Builder {
+	return sqlf.Func(func(ctx *sqlf.Context) (query string, err error) {
+		// report dependency
+		t.Build(ctx)
+		if t.Alias == "" {
+			return string(t.Name), nil
+		}
+		return string(t.Name + " AS " + t.Alias), nil
+	})
+}
+
 // Columns returns columns of the table from names.
 // It adds table prefix to the column name, e.g.: "id" -> "t.id".
 //
@@ -85,24 +96,4 @@ func (t Table) Columns(names ...string) []sqlf.Builder {
 		r = append(r, t.Column(name))
 	}
 	return r
-}
-
-var _ sqlf.Builder = (*tableAsBuilder)(nil)
-
-type tableAsBuilder struct {
-	Table
-}
-
-// NewTableAsBuilder returns a new tableAsBuilder that builds t into fragment like `table AS t`
-func NewTableAsBuilder(t Table) sqlf.Builder {
-	return &tableAsBuilder{t}
-}
-
-func (t *tableAsBuilder) Build(ctx *sqlf.Context) (string, error) {
-	// report dependency
-	t.Table.Build(ctx)
-	if t.Alias == "" {
-		return string(t.Name), nil
-	}
-	return string(t.Name + " AS " + t.Alias), nil
 }

@@ -88,7 +88,7 @@ func ExampleQueryBuilder_With() {
 			cte,
 			sqlf.F(
 				"SELECT * FROM ? WHERE ?=?",
-				sqlb.NewTableAsBuilder(bar), bar.Column("type"), 1,
+				bar.TableAs(), bar.Column("type"), 1,
 			)).
 		Select(
 			foo.Column("*"),

@@ -8,7 +8,7 @@ import (
 //
 // An arg could be either a sql arg or fragment builder.
 func Join(sep string, args ...any) Builder {
-	return fn(func(ctx *Context) (string, error) {
+	return Func(func(ctx *Context) (string, error) {
 		if len(args) == 0 {
 			return "", nil
 		}
@@ -34,7 +34,7 @@ func Join(sep string, args ...any) Builder {
 
 // Prefix creates a new fragment builder that prefixes the given builder if it's built not empty.
 func Prefix(prefix string, b Builder) Builder {
-	return fn(func(ctx *Context) (query string, err error) {
+	return Func(func(ctx *Context) (query string, err error) {
 		if b == nil {
 			return "", nil
 		}
@@ -51,7 +51,7 @@ func Prefix(prefix string, b Builder) Builder {
 
 // Suffix creates a new fragment builder that suffixes the given builder if it's built not empty.
 func Suffix(suffix string, b Builder) Builder {
-	return fn(func(ctx *Context) (query string, err error) {
+	return Func(func(ctx *Context) (query string, err error) {
 		if b == nil {
 			return "", nil
 		}
@@ -68,7 +68,7 @@ func Suffix(suffix string, b Builder) Builder {
 
 // PrefixSuffix creates a new fragment builder that prefixes and suffixes the given builder if it's built not empty.
 func PrefixSuffix(prefix, suffix string, b Builder) Builder {
-	return fn(func(ctx *Context) (query string, err error) {
+	return Func(func(ctx *Context) (query string, err error) {
 		if b == nil {
 			return "", nil
 		}
@@ -83,8 +83,8 @@ func PrefixSuffix(prefix, suffix string, b Builder) Builder {
 	})
 }
 
-// fn creates a new fragment builder with the fn function.
-func fn(fn func(ctx *Context) (query string, err error)) Builder {
+// Func is a helper to create fragment builder with function.
+func Func(fn func(ctx *Context) (query string, err error)) Builder {
 	return &builder{
 		fn: fn,
 	}

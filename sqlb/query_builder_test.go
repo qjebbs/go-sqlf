@@ -24,7 +24,7 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 			users,
 			// CTE references another
 			sqlf.F("SELECT * FROM ? INNER JOIN ? ON ?=?",
-				sqlb.NewTableAsBuilder(users), sqlb.NewTableAsBuilder(locs),
+				users.TableAs(), locs.TableAs(),
 				users.Column("id"), locs.Column("id"),
 			),
 		)
