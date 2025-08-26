@@ -1,5 +1,7 @@
 package sqlf
 
+import "fmt"
+
 // Fragment is the builder for a part of or even a full query, it allows you
 // to write and combine fragments with freedom.
 type Fragment struct {
@@ -27,5 +29,17 @@ func (f *Fragment) WithArgs(args ...any) *Fragment {
 // AppendArgs appends args to f.
 func (f *Fragment) AppendArgs(args ...any) *Fragment {
 	f.Args = append(f.Args, args...)
+	return f
+}
+
+// SetArg sets the args at the given index (0-based, -1 means last).
+func (f *Fragment) SetArg(index int, args any) *Fragment {
+	if index < 0 {
+		index = len(f.Args) + index
+	}
+	if index < 0 || index >= len(f.Args) {
+		panic(fmt.Errorf("index %d out of range [%d,%d)", index, -len(f.Args), len(f.Args)))
+	}
+	f.Args[index] = args
 	return f
 }
