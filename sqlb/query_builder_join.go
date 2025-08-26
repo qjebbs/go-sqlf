@@ -91,7 +91,7 @@ func (b *QueryBuilder) join(joinStr string, t Table, on *sqlf.Fragment, optional
 		Builder: sqlf.F(
 			joinStr+" ? ?",
 			NewTableAsBuilder(t),
-			on.WithPrefix("ON"),
+			sqlf.Prefix("ON", on),
 		),
 		optional: optional,
 	}

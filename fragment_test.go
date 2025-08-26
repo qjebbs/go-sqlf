@@ -65,13 +65,13 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name:     "prefix and suffix",
-			fragment: sqlf.F("").WithPrefix("SELECT").WithSuffix("FOR UPDATE"),
+			fragment: sqlf.PrefixSuffix("SELECT", "FOR UPDATE", nil),
 			want:     "",
 			wantArgs: nil,
 		},
 		{
 			name:     "prefix and suffix",
-			fragment: sqlf.F("foo").WithPrefix("SELECT").WithSuffix("FOR UPDATE"),
+			fragment: sqlf.PrefixSuffix("SELECT", "FOR UPDATE", sqlf.F("foo")),
 			want:     "SELECT foo FOR UPDATE",
 			wantArgs: nil,
 		},

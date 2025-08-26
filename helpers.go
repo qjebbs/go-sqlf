@@ -35,6 +35,9 @@ func Join(sep string, args ...any) Builder {
 // Prefix creates a new fragment builder that prefixes the given builder if it's built not empty.
 func Prefix(prefix string, b Builder) Builder {
 	return fn(func(ctx *Context) (query string, err error) {
+		if b == nil {
+			return "", nil
+		}
 		query, err = b.Build(ctx)
 		if err != nil {
 			return "", err
@@ -49,6 +52,9 @@ func Prefix(prefix string, b Builder) Builder {
 // Suffix creates a new fragment builder that suffixes the given builder if it's built not empty.
 func Suffix(suffix string, b Builder) Builder {
 	return fn(func(ctx *Context) (query string, err error) {
+		if b == nil {
+			return "", nil
+		}
 		query, err = b.Build(ctx)
 		if err != nil {
 			return "", err
@@ -63,6 +69,9 @@ func Suffix(suffix string, b Builder) Builder {
 // PrefixSuffix creates a new fragment builder that prefixes and suffixes the given builder if it's built not empty.
 func PrefixSuffix(prefix, suffix string, b Builder) Builder {
 	return fn(func(ctx *Context) (query string, err error) {
+		if b == nil {
+			return "", nil
+		}
 		query, err = b.Build(ctx)
 		if err != nil {
 			return "", err
@@ -88,5 +97,8 @@ type builder struct {
 }
 
 func (b *builder) Build(ctx *Context) (string, error) {
+	if b == nil || b.fn == nil {
+		return "", nil
+	}
 	return b.fn(ctx)
 }

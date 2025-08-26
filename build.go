@@ -32,18 +32,7 @@ func (f *Fragment) Build(ctx *Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	body = strings.TrimSpace(body)
-	if body == "" {
-		return "", nil
-	}
-	header, footer := "", ""
-	if f.Prefix != "" {
-		header = f.Prefix + " "
-	}
-	if f.Suffix != "" {
-		footer = " " + f.Suffix
-	}
-	return header + body + footer, nil
+	return strings.TrimSpace(body), nil
 }
 
 // build builds the fragment
