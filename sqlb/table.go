@@ -30,9 +30,9 @@ type Table struct {
 //	t := NewTable("table", "t")
 //	sqlf.F("?.id", t)  // t.id
 //
-// If you want to build fragments like `foo As f`, use t.TableAs().
+// If you want to build fragments like `table As t`, use t.TableAs().
 //
-//	sqlf.F("LEFT JOIN ?", t.TableAs()) // JOIN JOIN table AS t
+//	sqlf.F("LEFT JOIN ?", t.TableAs()) // LEFT JOIN table AS t
 func NewTable(name string, alias ...string) Table {
 	aliasName := ""
 	if len(alias) > 0 {
