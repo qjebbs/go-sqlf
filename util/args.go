@@ -71,12 +71,17 @@ func argsFrom(v any) []any {
 
 // Ttoa is a help func to convert a slice to []any.
 func Ttoa[T any](slice []T) []any {
-	if len(slice) == 0 {
+	return Map(slice, func(v T) any { return v })
+}
+
+// Map applies a function to each element of a slice and returns a new slice.
+func Map[T1 any, T2 any](a []T1, f func(T1) T2) []T2 {
+	if a == nil {
 		return nil
 	}
-	b := make([]any, 0, len(slice))
-	for _, v := range slice {
-		b = append(b, v)
+	b := make([]T2, len(a))
+	for i, x := range a {
+		b[i] = f(x)
 	}
 	return b
 }

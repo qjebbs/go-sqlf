@@ -6,12 +6,11 @@ import "fmt"
 // to write and combine fragments with freedom.
 type Fragment struct {
 	Raw  string // Raw string support bind vars (?, $1)
-	Args []any  // Args can be referenced by the Raw, for example: ?, $1. An arg can be either a sql arg or fragment builder.
+	Args []any  // Args that can be referenced by the Raw. An arg can be either an ordinary arg or a fragment builder.
 }
 
 // F creates a new Fragment.
-// `raw` has exactly the same bind var (`?` / `$n`)
-// syntax as `database/sql`, but more than that,
+// 'raw' has exactly the same bind var syntax (? / $1) as database/sql, but more than that,
 // it allows you to bind other fragment builders.
 func F(raw string, args ...any) *Fragment {
 	return &Fragment{
@@ -32,7 +31,7 @@ func (f *Fragment) AppendArgs(args ...any) *Fragment {
 	return f
 }
 
-// SetArg sets the args at the given index (0-based, -1 means last).
+// SetArg sets the arg at the given index (0-based, -1 means last).
 func (f *Fragment) SetArg(index int, args any) *Fragment {
 	if index < 0 {
 		index = len(f.Args) + index

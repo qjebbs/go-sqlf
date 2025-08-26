@@ -1,4 +1,6 @@
-// Package sqlb is a SQL query builder based on `sqlf.Fragment`.
+// Package sqlb provides a complex SQL query builder shipped with
+// WITH-CTE / JOIN Elimination capabilities, while *sqlf.Fragment
+// is the underlying foundation.
 package sqlb
 
 import (

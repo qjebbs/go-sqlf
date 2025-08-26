@@ -24,48 +24,9 @@ func Example_basic() {
 	// [true 1 100]
 }
 
-func Example_select() {
-	var users = sqlf.F("users")
-	selects := []sqlf.Builder{
-		sqlf.F("id"),
-		sqlf.F("name"),
-		sqlf.F("email"),
-	}
-	from := users
-	where := []sqlf.Builder{
-		sqlf.F(
-			"? = ?",
-			sqlf.F("active"), true,
-		),
-		sqlf.F(
-			"? IN (?)",
-			sqlf.F("id"),
-			sqlf.Join(", ", 1, 2, 3),
-		),
-	}
-
-	builder := sqlf.F(
-		"SELECT ? FROM ? WHERE ?",
-		sqlf.Join(", ", util.Ttoa(selects)...),
-		from,
-		sqlf.Join(" AND ", util.Ttoa(where)...),
-	)
-
-	query, args, err := builder.BuildQuery(syntax.Dollar)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(query)
-	fmt.Println(args)
-	// Output:
-	// SELECT id, name, email FROM users WHERE active = $1 AND id IN ($2, $3, $4)
-	// [true 1 2 3]
-}
-
 func Example_insert() {
-	var users = sqlf.F("users")
-	var fields = []sqlf.Builder{
+	var table = sqlf.F("users")
+	var fields = []any{
 		sqlf.F("name"),
 		sqlf.F("email"),
 	}
@@ -74,13 +35,19 @@ func Example_insert() {
 		{"bob", "bob@example.org"},
 	}
 
-	builder := &insertBuilder{
-		table:  users,
-		fields: fields,
-		values: values,
-	}
+	f := sqlf.F(
+		"INSERT INTO ? (?) VALUES ?",
+		table,
+		sqlf.Join(", ", fields...),
+		sqlf.Join(", ", util.Map(values, func(value []any) any {
+			return sqlf.F(
+				"(?)",
+				sqlf.Join(", ", value...),
+			)
+		})...),
+	)
 
-	query, args, err := builder.BuildQuery(syntax.Dollar)
+	query, args, err := f.BuildQuery(syntax.Dollar)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -90,27 +57,4 @@ func Example_insert() {
 	// Output:
 	// INSERT INTO users (name, email) VALUES ($1, $2), ($3, $4)
 	// [alice alice@example.org bob bob@example.org]
-}
-
-type insertBuilder struct {
-	table  sqlf.Builder
-	fields []sqlf.Builder
-	values [][]any
-}
-
-func (b *insertBuilder) BuildQuery(bindVarStyle syntax.BindVarStyle) (string, []any, error) {
-	valueFragments := make([]any, len(b.values))
-	for i, value := range b.values {
-		valueFragments[i] = sqlf.F(
-			"(?)",
-			sqlf.Join(", ", value...),
-		)
-	}
-	f := sqlf.F(
-		"INSERT INTO ? (?) VALUES ?",
-		b.table,
-		sqlf.Join(", ", util.Ttoa(b.fields)...),
-		sqlf.Join(", ", valueFragments...),
-	)
-	return f.BuildQuery(bindVarStyle)
 }

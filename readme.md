@@ -9,10 +9,10 @@ when writing SQL.
 Unlike any other sql builder or ORMs, `*Fragment` is the only concept you need to learn.
 
 A `*Fragment` is usually part of a SQL query, which has exactly the same bind 
-var (`?` / `$n`) syntax as `database/sql`, but more than that, it allows you 
+var syntax (`?` / `$1`) as `database/sql`, but more than that, it allows you 
 to bind other fragment builders.
 
-The `*Fragment` is usually created by `sqlf.F()`.
+The `*Fragment` is usually created by `F()`.
 
 ```go
 import (
@@ -38,7 +38,7 @@ func Example_basic() {
 
 ## QueryBuilder
 
-`*sqlb.QueryBuilder` is a high-level abstraction of SQL queries for building complex queries,
-with `*sqlf.Fragment` as its underlying foundation.
+Package sqlb provides a complex SQL query builder shipped  with WITH-CTE / JOIN 
+Elimination capabilities, while `*sqlf.Fragment` is the underlying foundation.
 
 See [sqlb/example_test.go](./sqlb/example_test.go) for examples.

@@ -54,7 +54,7 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 		bar = sqlb.NewTable("bar", "b")
 	)
 	query, args, err := sqlb.NewQueryBuilder().
-		Distinct(). // *QueryBuilder trims optional joins only when SELECT DISTINCT is used.
+		Distinct(). // *QueryBuilder eliminates optional joins when SELECT DISTINCT is used.
 		Select(foo.Column("*")).
 		From(foo).
 		// declare an optional LEFT JOIN
@@ -63,7 +63,7 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 			bar.Column("foo_id"),
 			foo.Column("id"),
 		)).
-		// don't touch any columns of "bar", so that it can be trimmed
+		// don't touch any columns of "bar", so that it can be eliminated
 		Where2(foo.Column("id"), ">", 1).
 		BuildQuery(syntax.Dollar)
 	if err != nil {
@@ -146,7 +146,7 @@ func ExampleNoDeps() {
 		Select(foo.Column("bar")).
 		From(foo).
 		Where(
-			// will not report 'b' (table 'bar') undefined
+			// will not report 'b' as dependency, or the builder complains: from undefined: 'bar'
 			sqlf.F(
 				"? IN (?)",
 				foo.Column("id"),
