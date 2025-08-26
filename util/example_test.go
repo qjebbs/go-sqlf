@@ -27,7 +27,7 @@ func ExampleFlatten() {
 func ExampleInterpolate() {
 	query := "SELECT * FROM foo WHERE status = ? AND created_at > ?"
 	args := []any{"ok", time.Unix(0, 0)}
-	interpolated, err := util.Interpolate(query, args, util.WithTimeFormat("2006-01-02 15:04:05"))
+	interpolated, err := util.Interpolate(query, args, util.WithInterpolateTimeFormat("2006-01-02 15:04:05"))
 	if err != nil {
 		panic(err)
 	}

@@ -17,7 +17,7 @@ func (t Table) Build(ctx *sqlf.Context) (query string, err error) {
 	return t.AppliedName(), nil
 }
 
-// Table is the table name with alias.
+// Table is the table name with optional alias.
 type Table struct {
 	Name, Alias string
 }

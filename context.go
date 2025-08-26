@@ -4,7 +4,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
-// Context is the global context shared between all fragments building.
+// Context is the context for fragment building.
 type Context struct {
 	global *globalContext
 
@@ -20,9 +20,9 @@ type globalContext struct {
 }
 
 // NewContext returns a new context.
-func NewContext(bindVarStyle syntax.BindVarStyle) *Context {
+func NewContext(style syntax.BindVarStyle) *Context {
 	var argStore argStore
-	if bindVarStyle == syntax.Dollar {
+	if style == syntax.Dollar {
 		argStore = newDollarArgStore()
 	} else {
 		argStore = newQuestionArgStore()
@@ -58,7 +58,7 @@ func ContextWith(ctx *Context, key, value any) *Context {
 	return newCtx
 }
 
-// Value returns the value in the context.
+// Value retrieves the value in the context.
 func (c *Context) Value(key any) any {
 	for ctx := c; ctx != nil; ctx = ctx.parent {
 		if ctx.key == key {

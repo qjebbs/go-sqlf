@@ -33,15 +33,16 @@ func applyInterpolateOptions(options []InterpolateOption) *interpolateOptions {
 	return opts
 }
 
-// WithTimeFormat sets the format of time value.
-func WithTimeFormat(format string) InterpolateOption {
+// WithInterpolateTimeFormat sets the format of time value.
+func WithInterpolateTimeFormat(format string) InterpolateOption {
 	return func(opts *interpolateOptions) {
 		opts.TimeFormat = format
 	}
 }
 
-// Interpolate interpolates the args into the query, use it only for
-// debug purposes to avoid SQL injection attacks.
+// Interpolate interpolates the args into the query.
+//
+// !!! Use it only on debug purposes.
 func Interpolate(query string, args []any, options ...InterpolateOption) (string, error) {
 	opts := applyInterpolateOptions(options)
 	exprs, err := syntax.Parse(query)

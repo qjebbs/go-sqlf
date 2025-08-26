@@ -14,8 +14,8 @@ var _ Builder = (*QueryBuilder)(nil)
 var _ sqlf.Builder = (*QueryBuilder)(nil)
 
 // BuildQuery builds the query.
-func (b *QueryBuilder) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
-	ctx := sqlf.NewContext(bindVarStyle)
+func (b *QueryBuilder) BuildQuery(style syntax.BindVarStyle) (query string, args []any, err error) {
+	ctx := sqlf.NewContext(style)
 	query, err = b.buildInternal(ctx)
 	if err != nil {
 		return "", nil, err
@@ -33,7 +33,7 @@ func (b *QueryBuilder) Build(ctx *sqlf.Context) (query string, err error) {
 	return b.buildInternal(ctx)
 }
 
-// Debug enables debug mode.
+// Debug enables debug mode which prints the interpolated query to stdout.
 func (b *QueryBuilder) Debug() {
 	b.debug = true
 }

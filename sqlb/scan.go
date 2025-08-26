@@ -22,8 +22,8 @@ type QueryAble interface {
 // This is useful when work with *QueryBuilder who may add extra select
 // columns (on SELECT DISTINCT + ORDER BY), and Query will ignore those
 // columns instead of reporting short-scan-destination errors.
-func Query[T any](db QueryAble, b Builder, bindVarStyle syntax.BindVarStyle, fn func() (T, []any)) ([]T, error) {
-	query, args, err := b.BuildQuery(bindVarStyle)
+func Query[T any](db QueryAble, b Builder, style syntax.BindVarStyle, fn func() (T, []any)) ([]T, error) {
+	query, args, err := b.BuildQuery(style)
 	if err != nil {
 		return nil, err
 	}

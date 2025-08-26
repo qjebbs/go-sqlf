@@ -13,7 +13,7 @@
 // to bind other fragment builders.
 package sqlf
 
-// Builder is a builder that builds a fragment.
+// Builder is a SQL fragment builder.
 type Builder interface {
 	// Build builds as a fragment with the context.
 	// The args should be committed to the ctx if any.

@@ -5,7 +5,7 @@ type Clause struct {
 	ExprList []Expr
 }
 
-// Expr is the declaration.
+// Expr is the expression.
 type Expr interface {
 	Node
 	aExpr()
@@ -30,24 +30,24 @@ type node struct {
 func (n *node) Pos() Pos { return n.pos }
 func (*node) aNode()     {}
 
-// BindVarExpr is the reference declaration.
+// BindVarExpr is the bind var expression.
 type BindVarExpr struct {
 	Type  BindVarStyle
 	Index int
 	expr
 }
 
-// BindVarStyle is the type of placeholder.
+// BindVarStyle is the type of bind vars.
 type BindVarStyle int
 
 const (
-	// Dollar is the type of indexed argument placeholders, e.g.: $1, $2, $3
+	// Dollar is the style of bind vars like $1, $2, $3
 	Dollar BindVarStyle = iota
-	// Question is the type of unindexed argument placeholders, e.g.: ?, ?, ?
+	// Question is the style of bind vars like ?, ?, ?
 	Question
 )
 
-// PlainExpr is the plain text declaration.
+// PlainExpr is the plain text expression.
 type PlainExpr struct {
 	Text string
 	expr

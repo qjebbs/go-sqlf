@@ -10,8 +10,8 @@ import (
 var _ Builder = (*Fragment)(nil)
 
 // BuildQuery builds the fragment as full query.
-func (f *Fragment) BuildQuery(bindVarStyle syntax.BindVarStyle) (query string, args []any, err error) {
-	ctx := NewContext(bindVarStyle)
+func (f *Fragment) BuildQuery(style syntax.BindVarStyle) (query string, args []any, err error) {
+	ctx := NewContext(style)
 	query, err = f.Build(ctx)
 	if err != nil {
 		return "", nil, err

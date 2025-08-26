@@ -6,7 +6,7 @@ import "fmt"
 // to write and combine fragments with freedom.
 type Fragment struct {
 	Raw  string // Raw string support bind vars (?, $1)
-	Args []any  // Args that can be referenced by the Raw. An arg can be either an ordinary arg or a fragment builder.
+	Args []any  // Args that can be referenced by the Raw. An arg can be either an ordinary arg or a Builder.
 }
 
 // F creates a new Fragment.

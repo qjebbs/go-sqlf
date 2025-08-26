@@ -4,9 +4,9 @@ import (
 	"strings"
 )
 
-// Join creates a new fragment builder that joins the given arguments with the specified separator.
+// Join creates a new fragment builder that joins the given args with the specified separator.
 //
-// An arg could be either a sql arg or fragment builder.
+// An arg could be either an ordinary arg or a Builder.
 func Join(sep string, args ...any) Builder {
 	return Func(func(ctx *Context) (string, error) {
 		if len(args) == 0 {
