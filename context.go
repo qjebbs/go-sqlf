@@ -13,8 +13,10 @@ type Context struct {
 }
 
 type globalContext struct {
-	bindVarStyle syntax.BindVarStyle
-	argStore     argStore
+	// no usecase for user to care about the bind var style.
+	// bindVarStyle syntax.BindVarStyle
+
+	argStore argStore
 }
 
 // NewContext returns a new context.
@@ -27,15 +29,9 @@ func NewContext(bindVarStyle syntax.BindVarStyle) *Context {
 	}
 	return &Context{
 		global: &globalContext{
-			bindVarStyle: bindVarStyle,
-			argStore:     argStore,
+			argStore: argStore,
 		},
 	}
-}
-
-// BindVarStyle returns the bind var style of the context.
-func (c *Context) BindVarStyle() syntax.BindVarStyle {
-	return c.global.bindVarStyle
 }
 
 // Args returns the built args of the context.
