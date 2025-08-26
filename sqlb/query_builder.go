@@ -8,11 +8,11 @@ import (
 // It's recommended to wrap it with your struct to provide a
 // more friendly API and improve fragment reusability.
 type QueryBuilder struct {
-	ctes     []*cte         // common table expressions in order
-	ctesDict map[Table]*cte // the ctes by name, not alias
+	ctes     []*cte          // common table expressions in order
+	ctesDict map[string]*cte // the ctes by name, not alias
 
-	tables     []*fromTable         // the tables in order
-	tablesDict map[Table]*fromTable // the from tables by alias
+	tables     []*fromTable          // the tables in order
+	tablesDict map[string]*fromTable // the from tables by alias
 
 	selects    []sqlf.Builder // select columns and keep values in scanning.
 	touches    []sqlf.Builder // select columns but drop values in scanning.
@@ -33,8 +33,8 @@ type QueryBuilder struct {
 // NewQueryBuilder returns a new QueryBuilder.
 func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{
-		ctesDict:   make(map[Table]*cte),
-		tablesDict: make(map[Table]*fromTable),
+		ctesDict:   make(map[string]*cte),
+		tablesDict: make(map[string]*fromTable),
 	}
 }
 

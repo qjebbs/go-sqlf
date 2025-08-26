@@ -44,7 +44,7 @@ func (b *noDepsBuilder) Build(ctx *sqlf.Context) (string, error) {
 }
 
 // collectDependencies collects the dependencies of the tables.
-func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
+func (b *QueryBuilder) collectDependencies() (map[Table]bool, error) {
 	builders := util.Flatten(
 		b.selects,
 		b.touches,
@@ -60,9 +60,9 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("collect dependencies: %w", err)
 	}
-	deps := make(map[TableAliased]bool)
+	deps := make(map[Table]bool)
 	// first table is the main table and always included
-	deps[b.tables[0].Names] = true
+	deps[b.tables[0].table] = true
 	for table := range tables {
 		err := b.collectDepsFromTable(deps, table)
 		if err != nil {
@@ -70,12 +70,12 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 		}
 	}
 	// mark for CTEs
-	depsCTE := make(map[TableAliased]bool)
+	depsCTE := make(map[Table]bool)
 	for _, t := range b.tables {
-		if (b.distinct || len(b.groupbys) > 0) && t.Optional && !deps[t.Names] {
+		if (b.distinct || len(b.groupbys) > 0) && t.optional && !deps[t.table] {
 			continue
 		}
-		if cte, ok := b.ctesDict[t.Names.AppliedName()]; ok {
+		if cte, ok := b.ctesDict[t.table.AppliedName()]; ok {
 			b.collectDepsFromCTE(depsCTE, cte)
 		}
 	}
@@ -85,15 +85,15 @@ func (b *QueryBuilder) collectDependencies() (map[TableAliased]bool, error) {
 	return deps, nil
 }
 
-func (b *QueryBuilder) collectDepsFromCTE(deps map[TableAliased]bool, cte *cte) error {
-	key := cte.name
+func (b *QueryBuilder) collectDepsFromCTE(deps map[Table]bool, cte *cte) error {
+	key := cte.table
 	if deps[key] {
 		return nil
 	}
 	deps[key] = true
 	tables, err := extractTables([]any{cte.Builder})
 	if err != nil {
-		return fmt.Errorf("collect dependencies of CTE %q: %w", cte.name, err)
+		return fmt.Errorf("collect dependencies of CTE %q: %w", cte.table, err)
 	}
 	for dep := range tables {
 		if cte, ok := b.ctesDict[dep]; ok {
@@ -106,18 +106,18 @@ func (b *QueryBuilder) collectDepsFromCTE(deps map[TableAliased]bool, cte *cte) 
 	return nil
 }
 
-func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) error {
+func (b *QueryBuilder) collectDepsFromTable(dep map[Table]bool, t string) error {
 	from, ok := b.tablesDict[t]
 	if !ok {
 		return fmt.Errorf("from undefined: '%s'", t)
 	}
-	if dep[from.Names] {
+	if dep[from.table] {
 		return nil
 	}
-	dep[from.Names] = true
+	dep[from.table] = true
 	tables, err := extractTables([]any{from})
 	if err != nil {
-		return fmt.Errorf("collect dependencies of table %q: %w", from.Names.Name, err)
+		return fmt.Errorf("collect dependencies of table %q: %w", from.table.Name, err)
 	}
 	for ft := range tables {
 		if ft == t {
@@ -131,8 +131,8 @@ func (b *QueryBuilder) collectDepsFromTable(dep map[TableAliased]bool, t Table) 
 	return nil
 }
 
-func extractTables(args []any) (map[Table]bool, error) {
-	tables := make(map[Table]bool)
+func extractTables(args []any) (map[string]bool, error) {
+	tables := make(map[string]bool)
 	ctx := sqlf.ContextWith(sqlf.NewContext(syntax.Dollar), depTablesKey{}, tables)
 	_, err := sqlf.Join(";", args...).Build(ctx)
 	if err != nil {

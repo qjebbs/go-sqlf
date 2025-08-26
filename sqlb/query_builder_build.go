@@ -138,25 +138,25 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	return query, nil
 }
 
-func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[TableAliased]bool) (string, error) {
+func (b *QueryBuilder) buildCTEs(ctx *sqlf.Context, dep map[Table]bool) (string, error) {
 	if len(b.ctes) == 0 {
 		return "", nil
 	}
 	clauses := make([]string, 0, len(b.ctes))
 	for _, cte := range b.ctes {
-		if !dep[cte.name] {
+		if !dep[cte.table] {
 			continue
 		}
 		query, err := cte.Build(ctx)
 		if err != nil {
-			return "", fmt.Errorf("build CTE '%s': %w", cte.name, err)
+			return "", fmt.Errorf("build CTE '%s': %w", cte.table, err)
 		}
 		if query == "" {
 			continue
 		}
 		clauses = append(clauses, fmt.Sprintf(
 			"%s AS (%s)",
-			cte.name.Name, query,
+			cte.table.Name, query,
 		))
 	}
 	if len(clauses) == 0 {
@@ -190,15 +190,15 @@ func (b *QueryBuilder) buildSelects(ctx *sqlf.Context) (string, error) {
 	return sel + ", " + touches, nil
 }
 
-func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[TableAliased]bool) (string, error) {
+func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[Table]bool) (string, error) {
 	tables := make([]string, 0, len(b.tables))
 	for _, t := range b.tables {
-		if (b.distinct || len(b.groupbys) > 0) && t.Optional && !dep[t.Names] {
+		if (b.distinct || len(b.groupbys) > 0) && t.optional && !dep[t.table] {
 			continue
 		}
 		c, err := t.Builder.Build(ctx)
 		if err != nil {
-			return "", fmt.Errorf("build FROM '%s': %w", t.Names, err)
+			return "", fmt.Errorf("build FROM '%s': %w", t.table, err)
 		}
 		tables = append(tables, c)
 	}

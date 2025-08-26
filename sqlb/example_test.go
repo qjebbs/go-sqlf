@@ -10,8 +10,8 @@ import (
 
 func ExampleQueryBuilder_BuildQuery() {
 	var (
-		foo = sqlb.NewTableAliased("foo", "f")
-		bar = sqlb.NewTableAliased("bar", "b")
+		foo = sqlb.NewTable("foo", "f")
+		bar = sqlb.NewTable("bar", "b")
 	)
 	b := sqlb.NewQueryBuilder().
 		Select(foo.Column("*")).
@@ -50,8 +50,8 @@ func ExampleQueryBuilder_BuildQuery() {
 
 func ExampleQueryBuilder_LeftJoinOptional() {
 	var (
-		foo = sqlb.NewTableAliased("foo", "f")
-		bar = sqlb.NewTableAliased("bar", "b")
+		foo = sqlb.NewTable("foo", "f")
+		bar = sqlb.NewTable("bar", "b")
 	)
 	query, args, err := sqlb.NewQueryBuilder().
 		Distinct(). // *QueryBuilder trims optional joins only when SELECT DISTINCT is used.
@@ -79,9 +79,9 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 
 func ExampleQueryBuilder_With() {
 	var (
-		foo = sqlb.NewTableAliased("foo", "f")
-		bar = sqlb.NewTableAliased("bar", "b")
-		cte = sqlb.NewTableAliased("bar_type_1", "b1")
+		foo = sqlb.NewTable("foo", "f")
+		bar = sqlb.NewTable("bar", "b")
+		cte = sqlb.NewTable("bar_type_1", "b1")
 	)
 	query, args, err := sqlb.NewQueryBuilder().
 		With(
@@ -113,7 +113,7 @@ func ExampleQueryBuilder_With() {
 }
 
 func ExampleQueryBuilder_Union() {
-	var foo = sqlb.NewTableAliased("foo", "f")
+	var foo = sqlb.NewTable("foo", "f")
 	column := foo.Column("*")
 	query, args, err := sqlb.NewQueryBuilder().
 		Select(column).
@@ -139,8 +139,8 @@ func ExampleQueryBuilder_Union() {
 
 func ExampleNoDeps() {
 	var (
-		foo = sqlb.NewTableAliased("foo", "f")
-		bar = sqlb.Table("bar")
+		foo = sqlb.NewTable("foo", "f")
+		bar = sqlb.NewTable("bar")
 	)
 	q := sqlb.NewQueryBuilder().
 		Select(foo.Column("bar")).

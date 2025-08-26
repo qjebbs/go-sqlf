@@ -17,7 +17,7 @@ type UserQueryBuilder struct {
 	*sqlb.QueryBuilder
 }
 
-var Users = sqlb.NewTableAliased("users", "u")
+var Users = sqlb.NewTable("users", "u")
 
 func NewUserQueryBuilder(db sqlb.QueryAble) *UserQueryBuilder {
 	b := sqlb.NewQueryBuilder().

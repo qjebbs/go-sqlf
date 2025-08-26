@@ -11,14 +11,14 @@ import (
 
 func TestQueryBuilderDistinctElimination(t *testing.T) {
 	var (
-		users = sqlb.NewTableAliased("users", "u")
-		locs  = sqlb.NewTableAliased("locs", "l")
-		foo   = sqlb.NewTableAliased("foo", "f")
-		bar   = sqlb.NewTableAliased("bar", "b")
+		users = sqlb.NewTable("users", "u")
+		locs  = sqlb.NewTable("locs", "l")
+		foo   = sqlb.NewTable("foo", "f")
+		bar   = sqlb.NewTable("bar", "b")
 	)
 	q := sqlb.NewQueryBuilder().
 		Distinct().
-		With(sqlb.NewTableAliased("xxx", ""), sqlf.F("SELECT 1 AS whatever")). // should be ignored
+		With(sqlb.NewTable("xxx", ""), sqlf.F("SELECT 1 AS whatever")). // should be ignored
 		With(locs, sqlf.F("SELECT user_id AS id, loc FROM user_locs WHERE country_code = ?", "cn")).
 		With(
 			users,
@@ -56,9 +56,9 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 
 func TestQueryBuilderGroupbyElimination(t *testing.T) {
 	var (
-		foo = sqlb.NewTableAliased("foo", "f")
-		bar = sqlb.NewTableAliased("bar", "b")
-		baz = sqlb.NewTableAliased("baz", "z")
+		foo = sqlb.NewTable("foo", "f")
+		bar = sqlb.NewTable("bar", "b")
+		baz = sqlb.NewTable("baz", "z")
 	)
 	q := sqlb.NewQueryBuilder().
 		With(

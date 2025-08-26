@@ -8,9 +8,9 @@ import "github.com/qjebbs/go-sqlf/v3"
 //
 // CTE dependencies are not automatically calculated, since it's
 // not possible to do so without semantic analysis.
-func (b *QueryBuilder) With(name TableAliased, builder sqlf.Builder) *QueryBuilder {
+func (b *QueryBuilder) With(name Table, builder sqlf.Builder) *QueryBuilder {
 	cte := &cte{
-		name:    name,
+		table:   name,
 		Builder: builder,
 	}
 	b.ctes = append(b.ctes, cte)
@@ -19,6 +19,6 @@ func (b *QueryBuilder) With(name TableAliased, builder sqlf.Builder) *QueryBuild
 }
 
 type cte struct {
-	name TableAliased
 	sqlf.Builder
+	table Table
 }

@@ -7,15 +7,15 @@ import (
 )
 
 // From set the from table.
-func (b *QueryBuilder) From(t TableAliased) *QueryBuilder {
+func (b *QueryBuilder) From(t Table) *QueryBuilder {
 	if t.Name == "" {
 		b.pushError(fmt.Errorf("from table is empty"))
 		return b
 	}
 	table := &fromTable{
-		Names:    t,
+		table:    t,
 		Builder:  NewTableAsBuilder(t),
-		Optional: false,
+		optional: false,
 	}
 	if len(b.tables) == 0 {
 		b.tables = append(b.tables, table)
@@ -27,12 +27,12 @@ func (b *QueryBuilder) From(t TableAliased) *QueryBuilder {
 }
 
 // InnerJoin append a inner join table.
-func (b *QueryBuilder) InnerJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) InnerJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("INNER JOIN", t, on, false)
 }
 
 // LeftJoin append / replace a left join table.
-func (b *QueryBuilder) LeftJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) LeftJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("LEFT JOIN", t, on, false)
 }
 
@@ -41,35 +41,35 @@ func (b *QueryBuilder) LeftJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder
 // in the query, such as in SELECT DISTINCT or GROUP BY statements.
 //
 // !!! To ensure dependencies are collected as expected, do not hard-code table names.
-// Always build tables using Table or TableAliased. For example:
+// Always build tables using Table. For example:
 //
 //	// GOOD: The dependency of foo will be collected.
-//	foo := Table("foo")
+//	foo := sqlb.NewTable("foo")
 //	b.SELECT(sqlf.F("?.id", foo))
 //
 //	// BAD: The dependency of foo will NOT be collected.
 //	b.SELECT(sqlf.F("foo.id"))
-func (b *QueryBuilder) LeftJoinOptional(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) LeftJoinOptional(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("LEFT JOIN", t, on, true)
 }
 
 // RightJoin append / replace a right join table.
-func (b *QueryBuilder) RightJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) RightJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("RIGHT JOIN", t, on, false)
 }
 
 // FullJoin append / replace a full join table.
-func (b *QueryBuilder) FullJoin(t TableAliased, on *sqlf.Fragment) *QueryBuilder {
+func (b *QueryBuilder) FullJoin(t Table, on *sqlf.Fragment) *QueryBuilder {
 	return b.join("FULL JOIN", t, on, false)
 }
 
 // CrossJoin append / replace a cross join table.
-func (b *QueryBuilder) CrossJoin(t TableAliased) *QueryBuilder {
+func (b *QueryBuilder) CrossJoin(t Table) *QueryBuilder {
 	return b.join("CROSS JOIN", t, nil, false)
 }
 
 // join append or replace a join table.
-func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, optional bool) *QueryBuilder {
+func (b *QueryBuilder) join(joinStr string, t Table, on *sqlf.Fragment, optional bool) *QueryBuilder {
 	if t.Name == "" {
 		b.pushError(fmt.Errorf("join table name is empty"))
 		return b
@@ -87,13 +87,13 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 		b.tables = append(b.tables, &fromTable{})
 	}
 	table := &fromTable{
-		Names: t,
+		table: t,
 		Builder: sqlf.F(
 			joinStr+" ? ?",
 			NewTableAsBuilder(t),
 			on.WithPrefix("ON"),
 		),
-		Optional: optional,
+		optional: optional,
 	}
 	if target, replacing := b.tablesDict[t.AppliedName()]; replacing {
 		*target = *table
@@ -106,7 +106,6 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 
 type fromTable struct {
 	sqlf.Builder
-
-	Names    TableAliased
-	Optional bool
+	table    Table
+	optional bool
 }
