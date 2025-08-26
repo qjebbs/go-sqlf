@@ -5,13 +5,11 @@ import (
 	"testing"
 
 	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/sqlb"
 	"github.com/qjebbs/go-sqlf/v3/syntax"
 )
 
 func TestBuildFragment(t *testing.T) {
 	t.Parallel()
-	var table, alias sqlb.Table = "table", "t"
 	testCases := []struct {
 		name     string
 		style    syntax.BindVarStyle
@@ -37,10 +35,10 @@ func TestBuildFragment(t *testing.T) {
 			style: syntax.Question,
 			fragment: sqlf.F(
 				"WHERE ?=?",
-				alias.Column("id"),
+				sqlf.F("id"),
 				nil,
 			),
-			want:     "WHERE t.id=?",
+			want:     "WHERE id=?",
 			wantArgs: []any{nil},
 		},
 		{
@@ -64,22 +62,6 @@ func TestBuildFragment(t *testing.T) {
 			),
 			want:     "WHERE foo=$1 AND bar IN ($1,$2,$3)",
 			wantArgs: []any{1, 2, 3},
-		},
-		{
-			name:  "build complex fragment",
-			style: syntax.Dollar,
-			fragment: sqlf.F(
-				"WITH t AS (?) SELECT ?,?,? FROM ? AS ?",
-				sqlf.F(
-					"SELECT * FROM ? AS ? WHERE ? > ?",
-					table, alias, alias.Column("id"), 1,
-				),
-				alias.Column("id"),
-				sqlf.F("?.id=?", alias, 2),
-				"foo", table, alias,
-			),
-			want:     "WITH t AS (SELECT * FROM table AS t WHERE t.id > $1) SELECT t.id,t.id=$2,$3 FROM table AS t",
-			wantArgs: []any{1, 2, "foo"},
 		},
 		{
 			name:     "prefix and suffix",

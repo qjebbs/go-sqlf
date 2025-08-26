@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/sqlb"
 	"github.com/qjebbs/go-sqlf/v3/syntax"
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
@@ -26,7 +25,7 @@ func Example_basic() {
 }
 
 func Example_select() {
-	var users sqlb.Table = "users"
+	var users = sqlf.F("users")
 	selects := []sqlf.Builder{
 		sqlf.F("id"),
 		sqlf.F("name"),
@@ -65,7 +64,7 @@ func Example_select() {
 }
 
 func Example_insert() {
-	var users sqlb.Table = "users"
+	var users = sqlf.F("users")
 	var fields = []sqlf.Builder{
 		sqlf.F("name"),
 		sqlf.F("email"),
@@ -93,10 +92,8 @@ func Example_insert() {
 	// [alice alice@example.org bob bob@example.org]
 }
 
-var _ sqlb.Builder = (*insertBuilder)(nil)
-
 type insertBuilder struct {
-	table  sqlb.Table
+	table  sqlf.Builder
 	fields []sqlf.Builder
 	values [][]any
 }

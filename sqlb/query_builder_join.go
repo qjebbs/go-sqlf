@@ -103,3 +103,10 @@ func (b *QueryBuilder) join(joinStr string, t TableAliased, on *sqlf.Fragment, o
 	b.tablesDict[t.AppliedName()] = table
 	return b
 }
+
+type fromTable struct {
+	sqlf.Builder
+
+	Names    TableAliased
+	Optional bool
+}

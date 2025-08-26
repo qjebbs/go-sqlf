@@ -23,8 +23,8 @@ func TestQueryBuilderDistinctElimination(t *testing.T) {
 		With(
 			users,
 			// CTE references another
-			sqlf.F("SELECT * FROM ? AS ? INNER JOIN ? AS ? ON ?=?",
-				users.Name, users.Alias, locs.Name, locs.Alias,
+			sqlf.F("SELECT * FROM ? INNER JOIN ? ON ?=?",
+				sqlb.NewTableAsBuilder(users), sqlb.NewTableAsBuilder(locs),
 				users.Column("id"), locs.Column("id"),
 			),
 		)

@@ -30,13 +30,6 @@ type QueryBuilder struct {
 	debug bool // debug mode
 }
 
-type fromTable struct {
-	sqlf.Builder
-
-	Names    TableAliased
-	Optional bool
-}
-
 // NewQueryBuilder returns a new QueryBuilder.
 func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{

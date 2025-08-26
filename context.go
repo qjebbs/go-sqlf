@@ -19,12 +19,6 @@ type globalContext struct {
 
 // NewContext returns a new context.
 func NewContext(bindVarStyle syntax.BindVarStyle) *Context {
-	ctx := newEmptyContext(bindVarStyle)
-	ctx.global.bindVarStyle = bindVarStyle
-	return ctx
-}
-
-func newEmptyContext(bindVarStyle syntax.BindVarStyle) *Context {
 	var argStore argStore
 	if bindVarStyle == syntax.Dollar {
 		argStore = newDollarArgStore()
