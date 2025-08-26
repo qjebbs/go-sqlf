@@ -2,10 +2,8 @@ package sqlb
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v3/syntax"
-	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
 // QueryAble is the interface for query-able *sql.DB, *sql.Tx, etc.
@@ -16,21 +14,24 @@ type QueryAble interface {
 	QueryRow(query string, args ...any) *sql.Row
 }
 
-// NewScanDestFunc is the function to create a new scan destination,
-// returning the destination and its fields to scan.
-type NewScanDestFunc[T any] func() (T, []any)
-
-// ScanBuilder is like Scan, but it builds query from sqlf.Builder
-func ScanBuilder[T any](db QueryAble, b Builder, bindVarStyle syntax.BindVarStyle, fn NewScanDestFunc[T]) ([]T, error) {
+// Query queries the built query and scans rows into a slice.
+//
+// The main difference in behavior from *sql.Rows.Scan() is that
+// it will discard extra columns if there are not enough scan destinations.
+//
+// This is useful when work with *QueryBuilder who may add extra select
+// columns (on SELECT DISTINCT + ORDER BY), and Query will ignore those
+// columns instead of reporting short-scan-destination errors.
+func Query[T any](db QueryAble, b Builder, bindVarStyle syntax.BindVarStyle, fn func() (T, []any)) ([]T, error) {
 	query, args, err := b.BuildQuery(bindVarStyle)
 	if err != nil {
 		return nil, err
 	}
-	return Scan(db, query, args, fn)
+	return scan(db, query, args, fn)
 }
 
-// Scan scans query rows with scanner
-func Scan[T any](db QueryAble, query string, args []any, fn NewScanDestFunc[T]) ([]T, error) {
+// scan scans query rows with scanner
+func scan[T any](db QueryAble, query string, args []any, fn func() (T, []any)) ([]T, error) {
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -40,7 +41,7 @@ func Scan[T any](db QueryAble, query string, args []any, fn NewScanDestFunc[T]) 
 	var results []T
 	for rows.Next() {
 		dest, fields := fn()
-		err = ScanRow(rows, fields...)
+		err = scanRow(rows, fields...)
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +52,7 @@ func Scan[T any](db QueryAble, query string, args []any, fn NewScanDestFunc[T]) 
 
 // ScanRow scans a single row to dest, unlike rows.Scan(), it drops the extra columns.
 // It's useful when *sqlb.QueryBuilder.OrderBy() add extra column to the query.
-func ScanRow(rows *sql.Rows, dest ...any) error {
+func scanRow(rows *sql.Rows, dest ...any) error {
 	cols, err := rows.Columns()
 	if err != nil {
 		return err
@@ -62,29 +63,6 @@ func ScanRow(rows *sql.Rows, dest ...any) error {
 		dest = append(dest, &bh)
 	}
 	return rows.Scan(dest...)
-}
-
-// CountBuilder is like Count, but it builds query from sqlf.Builder.
-func CountBuilder(db QueryAble, b Builder, bindVarStyle syntax.BindVarStyle) (count int64, err error) {
-	query, args, err := b.BuildQuery(bindVarStyle)
-	if err != nil {
-		return 0, err
-	}
-	return Count(db, query, args)
-}
-
-// Count count the number of rows of the query.
-func Count(db QueryAble, query string, args []any) (count int64, err error) {
-	query = fmt.Sprintf(`SELECT COUNT(1) FROM (%s) list`, query)
-	err = db.QueryRow(query, args...).Scan(&count)
-	if err == sql.ErrNoRows {
-		return 0, nil
-	}
-	if err != nil {
-		query, _ := util.Interpolate(query, args)
-		return 0, fmt.Errorf("%w: %s", err, query)
-	}
-	return count, nil
 }
 
 type blackhole struct{}
