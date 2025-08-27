@@ -27,7 +27,8 @@ type QueryBuilder struct {
 
 	errors []error // errors during building
 
-	debug bool // debug mode
+	debug     bool // debug mode
+	debugName string
 }
 
 // NewQueryBuilder returns a new QueryBuilder.

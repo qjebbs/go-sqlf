@@ -2,7 +2,6 @@ package sqlb
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/qjebbs/go-sqlf/v3"
@@ -27,14 +26,16 @@ func (b *QueryBuilder) BuildQuery(style sqlf.BindStyle) (query string, args []an
 func (b *QueryBuilder) Build(ctx *sqlf.Context) (query string, err error) {
 	if ctx.Value(depTablesKey{}) != nil {
 		// b is self-contained, not reporting any deps to parent ctx
-		ctx = sqlf.ContextWith(ctx, depTablesKey{}, nil)
+		return "", nil
 	}
 	return b.buildInternal(ctx)
 }
 
 // Debug enables debug mode which prints the interpolated query to stdout.
-func (b *QueryBuilder) Debug() {
+func (b *QueryBuilder) Debug(name ...string) *QueryBuilder {
 	b.debug = true
+	b.debugName = strings.Replace(strings.Join(name, "_"), " ", "_", -1)
+	return b
 }
 
 // buildInternal builds the query with the selects.
@@ -130,9 +131,17 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	if b.debug {
 		interpolated, err := util.Interpolate(query, ctx.Args())
 		if err != nil {
-			log.Printf("debug: interpolated query: %s\n", err)
+			if b.debugName == "" {
+				fmt.Printf("debug: interpolated query: %s\n", err)
+			} else {
+				fmt.Printf("[%s] debug: interpolated query: %s\n", b.debugName, err)
+			}
 		}
-		log.Println(interpolated)
+		if b.debugName == "" {
+			fmt.Println(interpolated)
+		} else {
+			fmt.Printf("[%s] %s\n", b.debugName, interpolated)
+		}
 	}
 	return query, nil
 }

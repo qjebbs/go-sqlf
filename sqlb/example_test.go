@@ -165,3 +165,33 @@ func ExampleNoDeps() {
 	// SELECT f.bar FROM foo AS f WHERE f.id IN (SELECT id FROM bar)
 	// []
 }
+
+func ExampleQueryBuilder_Debug() {
+	foo := sqlb.NewTable("foo", "f")
+	id := foo.Column("id")
+	q1 := sqlb.NewQueryBuilder().Debug("q1").
+		Select(id).
+		From(foo)
+	q2 := sqlb.NewQueryBuilder().Debug("q2").
+		Select(id).
+		From(foo).
+		Where(sqlf.F("? IN (?)", id, q1))
+	q3 := sqlb.NewQueryBuilder().Debug("q3").
+		Select(id).
+		From(foo).
+		Where(sqlf.F("? IN (?)", id, q2))
+	q4 := sqlb.NewQueryBuilder().Debug("q4").
+		Select(foo.Column("*")).
+		From(foo).
+		Where(sqlf.F("? IN (?)", id, q3))
+	_, _, err := q4.BuildQuery(sqlf.BindStyleDollar)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	// Output:
+	// [q1] SELECT f.id FROM foo AS f
+	// [q2] SELECT f.id FROM foo AS f WHERE f.id IN (SELECT f.id FROM foo AS f)
+	// [q3] SELECT f.id FROM foo AS f WHERE f.id IN (SELECT f.id FROM foo AS f WHERE f.id IN (SELECT f.id FROM foo AS f))
+	// [q4] SELECT f.* FROM foo AS f WHERE f.id IN (SELECT f.id FROM foo AS f WHERE f.id IN (SELECT f.id FROM foo AS f WHERE f.id IN (SELECT f.id FROM foo AS f)))
+}

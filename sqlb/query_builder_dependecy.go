@@ -26,20 +26,14 @@ type depTablesKey struct{}
 // No need to wrap *QueryBuilder with NoDeps, since it never report any
 // dependencies to outer queries.
 func NoDeps(b sqlf.Builder) sqlf.Builder {
-	return &noDepsBuilder{b}
-}
-
-var _ sqlf.Builder = (*noDepsBuilder)(nil)
-
-type noDepsBuilder struct {
-	b sqlf.Builder
-}
-
-func (b *noDepsBuilder) Build(ctx *sqlf.Context) (string, error) {
-	if ctx.Value(depTablesKey{}) != nil {
-		ctx = sqlf.ContextWith(ctx, depTablesKey{}, nil)
-	}
-	return b.b.Build(ctx)
+	return sqlf.Func(func(ctx *sqlf.Context) (query string, err error) {
+		if ctx.Value(depTablesKey{}) != nil {
+			// the call is to collect dependencies,
+			// do nothing since there are no dependencies here.
+			return "", nil
+		}
+		return b.Build(ctx)
+	})
 }
 
 // collectDependencies collects the dependencies of the tables.
