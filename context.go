@@ -10,7 +10,7 @@ type Context struct {
 
 type globalContext struct {
 	// no usecase for user to care about the bind var style.
-	// bindVarStyle syntax.BindVarStyle
+	// bindVarStyle BindStyle
 
 	argStore argStore
 }
@@ -36,9 +36,6 @@ func (c *Context) Args() []any {
 }
 
 // CommitArg commits an built arg to the context and returns the built bindvar.
-//
-// It's used usually in the implementation of a FragmentBuilder,
-// most users don't need to care about it.
 func (c *Context) CommitArg(arg any) string {
 	return c.global.argStore.CommitArg(arg)
 }

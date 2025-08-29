@@ -1,18 +1,13 @@
-Package `sqlf` focuses on building SQL queries by free combination of fragments. 
+## Go SQL Fragment (go-sqlf)
 
-The package exports only a few functions and methods, but improves a lot on the 
-reusability and extensibility of SQL, which are the main challenges we encounter 
-when writing SQL.
+Package `sqlf` is dedicated to building SQL queries by composing fragments.
 
-## Fragment
+> `v3` makes the package exceptionally lightweight and easy to use by preserving only the native bind variable syntax of `database/sql`.
 
-Unlike any other sql builder or ORMs, `*Fragment` is the only concept you need to learn.
+Unlike other SQL builders or ORMs, `*Fragment` is the only concept you need to understand.
+It uses the same bind variable syntax (`?` / `$1`) as `database/sql`, and also supports binding other fragment builders for flexible query composition.
 
-A `*Fragment` is usually part of a SQL query, which has exactly the same bind 
-var syntax (`?` / `$1`) as `database/sql`, but more than that, it allows you 
-to bind other fragment builders.
-
-The `*Fragment` is usually created by `F()`.
+A `*Fragment` is usually created by `F()`.
 
 ```go
 import (
@@ -27,7 +22,7 @@ func Example_basic() {
 			sqlf.F("baz = $1", true),             
 			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
 		),
-	).BuildQuery(syntax.Dollar)
+	).BuildQuery(sqlf.BindStyleDollar)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:

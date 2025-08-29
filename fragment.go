@@ -2,16 +2,18 @@ package sqlf
 
 import "fmt"
 
-// Fragment is the builder for a part of or even a full query, it allows you
-// to write and combine fragments with freedom.
+// Fragment is a builder for a part of, or even an entire, SQL query.
+//
+// 'Raw' uses the same bind variable syntax (? / $1) as database/sql.
+// In addition, it supports binding other fragment builders.
 type Fragment struct {
 	Raw  string // Raw string support bind vars (?, $1)
 	Args []any  // Args that can be referenced by the Raw. An arg can be either an ordinary arg or a Builder.
 }
 
 // F creates a new Fragment.
-// 'raw' has exactly the same bind var syntax (? / $1) as database/sql, but more than that,
-// it allows you to bind other fragment builders.
+// 'raw' uses the same bind variable syntax (? / $1) as database/sql.
+// Additionally, it allows you to bind other fragment builders.
 func F(raw string, args ...any) *Fragment {
 	return &Fragment{
 		Raw:  raw,
@@ -19,7 +21,7 @@ func F(raw string, args ...any) *Fragment {
 	}
 }
 
-// WithArgs sets the args of f.
+// WithArgs replaces the args of f.
 func (f *Fragment) WithArgs(args ...any) *Fragment {
 	f.Args = args
 	return f
