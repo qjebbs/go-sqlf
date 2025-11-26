@@ -228,5 +228,5 @@ func (b *QueryBuilder) buildUnion(ctx *sqlf.Context) (string, error) {
 		}
 		clauses = append(clauses, query)
 	}
-	return "UNION (" + strings.Join(clauses, ") UNION (") + ")", nil
+	return "UNION " + strings.Join(clauses, " UNION "), nil
 }
