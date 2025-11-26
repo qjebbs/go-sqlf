@@ -24,10 +24,13 @@ func (b *QueryBuilder) BuildQuery(style sqlf.BindStyle) (query string, args []an
 
 // Build implements sqlf.Builder
 func (b *QueryBuilder) Build(ctx *sqlf.Context) (query string, err error) {
-	if ctx.Value(depTablesKey{}) != nil {
-		// b is self-contained, not reporting any deps to parent ctx
-		return "", nil
-	}
+	// SHOULD NOT assume b is self-contained, b can depend on parent CTEs
+	// when it's a sub query.
+	//
+	// if ctx.Value(depTablesKey{}) != nil {
+	// 	// b is self-contained, not reporting any deps to parent ctx
+	// 	return "", nil
+	// }
 	return b.buildInternal(ctx)
 }
 
