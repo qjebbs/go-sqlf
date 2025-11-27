@@ -4,17 +4,17 @@ import (
 	"reflect"
 )
 
-// Flatten is a help func to create a slice of query args.
+// FlattenArgs is a help func to create a slice of query args.
 //
 // it accepts values, slices and arrays, and the all 1st depth elements
 // in the slice/array will be extract and concatenated to the returned
 // slice, which is called flattening, e.g.:
 //
-//	Flatten(1, []int{2, 3}, []string{"a", "b", "c"}) => []any{1, 2, 3, "a", "b", "c"}
-//	Flatten(1, []int{}, []int{2}) => []any{1, 2}
-func Flatten(valueOrSlices ...any) []any {
+//	FlattenArgs[any](1, []int{2, 3}, []string{"a", "b", "c"}) => []any{1, 2, 3, "a", "b", "c"}
+//	FlattenArgs([]int{1}, []int{2}) => []any{1, 2}
+func FlattenArgs[T any](valuesOrSlices ...T) []any {
 	args := make([]any, 0, 10)
-	for _, v := range valueOrSlices {
+	for _, v := range valuesOrSlices {
 		args = append(args, argsFrom(v)...)
 	}
 	return args

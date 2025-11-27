@@ -7,15 +7,15 @@ import (
 	"github.com/qjebbs/go-sqlf/v4/util"
 )
 
-func ExampleFlatten() {
+func ExampleFlattenArgs() {
 	print := func(v any) {
 		fmt.Printf("%#v\n", v)
 	}
-	print(util.Flatten(1, 2, 3))
-	print(util.Flatten([]int{1, 2, 3}))
-	print(util.Flatten(&[]int{1, 2, 3}))
-	print(util.Flatten([3]int{1, 2, 3}))
-	print(util.Flatten(1, []int{2, 3}, []string{"a", "b", "c"}))
+	print(util.FlattenArgs(1, 2, 3))
+	print(util.FlattenArgs([]int{1, 2, 3}))
+	print(util.FlattenArgs(&[]int{1, 2, 3}))
+	print(util.FlattenArgs([3]int{1, 2, 3}))
+	print(util.FlattenArgs[any](1, []int{2, 3}, []string{"a", "b", "c"}))
 	// Output:
 	// []interface {}{1, 2, 3}
 	// []interface {}{1, 2, 3}

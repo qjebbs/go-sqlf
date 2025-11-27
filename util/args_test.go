@@ -35,7 +35,7 @@ func TestFlatten(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		got := util.Flatten(tc.args...)
+		got := util.FlattenArgs(tc.args...)
 		if !reflect.DeepEqual(tc.want, got) {
 			t.Errorf("want: %s, got: %s", tc.want, got)
 		}
