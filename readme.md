@@ -2,12 +2,12 @@
 
 Package `sqlf` is dedicated to building SQL queries by composing fragments.
 
-> `v3` makes the package exceptionally lightweight and easy to use by preserving only the native bind variable syntax of `database/sql`.
+> `v4` makes the package exceptionally lightweight and easy to use by preserving only the native bind variable syntax of `database/sql`.
 
 Unlike other SQL builders or ORMs, `*Fragment` is the only concept you need to understand.
 It uses the same bind variable syntax (`?` / `$1`) as `database/sql`, and also supports binding other fragment builders for flexible query composition.
 
-A `*Fragment` is usually created by `F()`.
+A `*Fragment` is created by `F()`.
 
 ```go
 import (
@@ -33,7 +33,5 @@ func Example_basic() {
 
 ## QueryBuilder
 
-Package sqlb provides a complex SQL query builder shipped  with WITH-CTE / JOIN 
-Elimination capabilities, while `*sqlf.Fragment` is the underlying foundation.
-
-See [sqlb/example_test.go](./sqlb/example_test.go) for examples.
+Package [go-sqlb](https://github.com/qjebbs/go-sqlb) provides a complex SQL query builder shipped  with WITH-CTE / JOIN 
+Elimination capabilities, while `go-sqlf` is the underlying foundation.
