@@ -37,20 +37,20 @@ func (f *Fragment) Build(ctx *Context) (string, error) {
 
 // build builds the fragment
 func build(ctx *Context, fragment *Fragment) (string, error) {
-	clause, err := syntax.Parse(fragment.Raw)
+	clause, err := syntax.Parse(fragment.raw)
 	if err != nil {
-		return "", fmt.Errorf("parse '%s': %w", fragment.Raw, err)
+		return "", fmt.Errorf("parse '%s': %w", fragment.raw, err)
 	}
 	built, err := buildClause(ctx, fragment, clause)
 	if err != nil {
-		return "", fmt.Errorf("build '%s': %w", fragment.Raw, err)
+		return "", fmt.Errorf("build '%s': %w", fragment.raw, err)
 	}
 	return built, nil
 }
 
 // buildClause builds the parsed clause within current context.
 func buildClause(ctx *Context, fragment *Fragment, clause *syntax.Clause) (string, error) {
-	props := newProperties(fragment.Args...)
+	props := newProperties(fragment.args...)
 	b := new(strings.Builder)
 	for _, decl := range clause.ExprList {
 		switch expr := decl.(type) {
@@ -70,7 +70,7 @@ func buildClause(ctx *Context, fragment *Fragment, clause *syntax.Clause) (strin
 		}
 	}
 	if err := props.checkUsage(); err != nil {
-		return "", fmt.Errorf("build '%s': args %w", fragment.Raw, err)
+		return "", fmt.Errorf("build '%s': args %w", fragment.raw, err)
 	}
 	return b.String(), nil
 }
