@@ -77,38 +77,28 @@ func ExampleQueryBuilder_LeftJoinOptional() {
 }
 
 func ExampleQueryBuilder_With() {
-	var (
-		foo = sqlb.NewTable("foo", "f")
-		bar = sqlb.NewTable("bar", "b")
-		cte = sqlb.NewTable("bar_type_1", "b1")
-	)
-	query, args, err := sqlb.NewQueryBuilder().
-		With(
-			cte,
-			sqlf.F(
-				"SELECT * FROM ? WHERE ?=?",
-				bar.TableAs(), bar.Column("type"), 1,
-			)).
-		Select(
-			foo.Column("*"),
-			cte.Column("*"),
-		).
-		From(foo).
-		LeftJoinOptional(cte, sqlf.F(
-			"?=?",
-			cte.Column("foo_id"),
-			foo.Column("id"),
-		)).
-		BuildQuery(sqlf.BindStyleDollar)
+	foo := sqlb.NewTable("foo")
+	bar := sqlb.NewTable("bar")
+	builderFoo := sqlf.F("SELECT * FROM users WHERE active")
+	builderBar := sqlf.F("SELECT * FROM ?", foo) // requires 'foo'
+	builder := sqlb.NewQueryBuilder().
+		With(foo, builderFoo).
+		With(bar, builderBar).
+		Select(bar.Column("*")). // requires 'bar'
+		From(bar)                // requires 'bar'
+
+	// Tracked dependencies:
+	// - SELECT / FROM requires 'bar',
+	// - 'bar' requires 'foo',
+	// so both CTEs are included.
+	query, _, err := builder.BuildQuery(sqlf.BindStyleDollar)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	fmt.Println(query)
-	fmt.Println(args)
 	// Output:
-	// With bar_type_1 AS (SELECT * FROM bar AS b WHERE b.type=$1) SELECT f.*, b1.* FROM foo AS f LEFT JOIN bar_type_1 AS b1 ON b1.foo_id=f.id
-	// [1]
+	// With foo AS (SELECT * FROM users WHERE active), bar AS (SELECT * FROM foo) SELECT bar.* FROM bar
 }
 
 func ExampleQueryBuilder_Union() {
@@ -132,7 +122,7 @@ func ExampleQueryBuilder_Union() {
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
-	// SELECT f.* FROM foo AS f WHERE f.id = $1 UNION (SELECT f.* FROM foo AS f WHERE f.id IN ($2, $3, $4))
+	// SELECT f.* FROM foo AS f WHERE f.id = $1 UNION SELECT f.* FROM foo AS f WHERE f.id IN ($2, $3, $4)
 	// [1 2 3 4]
 }
 

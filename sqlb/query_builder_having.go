@@ -5,11 +5,14 @@ import (
 	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
-// Having add a condition.  e.g.:
+// Having add a having condition.
 //
-//	b.Having(
-//		sqlf.F("? = ?", a.Column("id"), 1),
-//	)
+// !!! Make sure the columns are built from sqlb.Table to have their dependencies tracked.
+//
+//	foo := sqlb.NewTable("foo")
+//	b.Having(sqlf.F(
+//		"? = ?", foo.Column("id"), 1,
+//	))
 func (b *QueryBuilder) Having(s sqlf.Builder) *QueryBuilder {
 	if s == nil {
 		return b
@@ -18,15 +21,18 @@ func (b *QueryBuilder) Having(s sqlf.Builder) *QueryBuilder {
 	return b
 }
 
-// Having2 is a helper func similar to Having(), which adds a simple where condition. e.g.:
+// Having2 is a helper func similar to Having(), which adds a simple where condition.
 //
-//	b.Having2(column, "=", 1)
+// !!! Make sure the columns are built from sqlb.Table to have their dependencies tracked.
 //
-// it's equivalent to:
+//	foo := sqlb.NewTable("foo")
+//	b.Having2(foo.Column("id"), "=", 1)
 //
-//	b.Having(
-//		sqlf.F("? = ?", column, 1),
-//	)
+// equivalent to:
+//
+//	b.Having(sqlf.F(
+//		"? = ?", foo.Column("id"), 1,
+//	))
 func (b *QueryBuilder) Having2(column sqlf.Builder, op string, arg any) *QueryBuilder {
 	b.havings = append(
 		b.havings,
@@ -36,6 +42,8 @@ func (b *QueryBuilder) Having2(column sqlf.Builder, op string, arg any) *QueryBu
 }
 
 // HavingIn adds a where IN condition like `t.id IN (1,2,3)`
+//
+// !!! Make sure the columns are built from sqlb.Table to have their dependencies tracked.
 func (b *QueryBuilder) HavingIn(column sqlf.Builder, list any) *QueryBuilder {
 	return b.Having(
 		sqlf.F(
@@ -47,6 +55,8 @@ func (b *QueryBuilder) HavingIn(column sqlf.Builder, list any) *QueryBuilder {
 }
 
 // HavingNotIn adds a where NOT IN condition like `t.id NOT IN (1,2,3)`
+//
+// !!! Make sure the columns are built from sqlb.Table to have their dependencies tracked.
 func (b *QueryBuilder) HavingNotIn(column sqlf.Builder, list any) *QueryBuilder {
 	return b.Having(
 		sqlf.F(

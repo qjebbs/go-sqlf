@@ -34,6 +34,11 @@ type orderItem struct {
 }
 
 // OrderBy set the sorting order. the order can be "ASC", "DESC", "ASC NULLS FIRST" or "DESC NULLS LAST"
+//
+// !!! Make sure the columns are built from sqlb.Table to have their dependencies tracked.
+//
+//	foo := sqlb.NewTable("foo")
+//	b.OrderBy(foo.Column("bar"), sqlb.OrderAsc)
 func (b *QueryBuilder) OrderBy(column sqlf.Builder, order Order) *QueryBuilder {
 	b.orders = append(b.orders, &orderItem{column: column, order: order})
 	return b

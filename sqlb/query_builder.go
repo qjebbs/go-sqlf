@@ -52,12 +52,22 @@ func (b *QueryBuilder) Indistinct() *QueryBuilder {
 }
 
 // SelectReplace replace the columns in the SELECT clause.
+//
+// !!! Make sure the columns are built from sqlb.Table to have their dependencies tracked.
+//
+//	foo := sqlb.NewTable("foo")
+//	b.SelectReplace(foo.Column("bar"))
 func (b *QueryBuilder) SelectReplace(columns ...sqlf.Builder) *QueryBuilder {
 	b.selects = columns
 	return b
 }
 
 // Select append the SELECT clause with the columns.
+//
+// !!! Make sure the columns are built from sqlb.Table to have their dependencies tracked.
+//
+//	foo := sqlb.NewTable("foo")
+//	b.Select(foo.Column("bar"))
 func (b *QueryBuilder) Select(columns ...sqlf.Builder) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
@@ -83,14 +93,20 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 }
 
 // GroupBy set the sorting order.
+//
+// !!! Make sure the columns are built from sqlb.Table to have their dependencies tracked.
+//
+//	foo := sqlb.NewTable("foo")
+//	b.GroupBy(foo.Column("bar"))
 func (b *QueryBuilder) GroupBy(columns ...sqlf.Builder) *QueryBuilder {
 	b.groupbys = append(b.groupbys, columns...)
 	return b
 }
 
-// Union unions other query builders, the type of query builders can be
-// *QueryBuilder or any other extended *QueryBuilder types (structs with
-// *QueryBuilder embedded.)
+// Union unions other builders.
+//
+// !!! Make sure the all table references within the builders are built from sqlb.Table
+// to have their dependencies tracked.
 func (b *QueryBuilder) Union(builders ...sqlf.Builder) *QueryBuilder {
 	b.unions = append(b.unions, builders...)
 	return b
