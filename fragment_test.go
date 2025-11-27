@@ -57,7 +57,7 @@ func TestBuildFragment(t *testing.T) {
 			fragment: sqlf.F(
 				"WHERE foo=? AND bar IN (?)",
 				1,
-				sqlf.Join(",", 1, 2, 3),
+				sqlf.JoinArgs(",", 1, 2, 3),
 			),
 			want:     "WHERE foo=$1 AND bar IN ($1,$2,$3)",
 			wantArgs: []any{1, 2, 3},

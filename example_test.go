@@ -25,11 +25,11 @@ func Example_basic() {
 
 func Example_insert() {
 	var table = sqlf.F("users")
-	var fields = []any{
+	var fields = []sqlf.Builder{
 		sqlf.F("name"),
 		sqlf.F("email"),
 	}
-	var values = [][]any{
+	var values = [][]string{
 		{"alice", "alice@example.org"},
 		{"bob", "bob@example.org"},
 	}
@@ -38,10 +38,10 @@ func Example_insert() {
 		"INSERT INTO ? (?) VALUES ?",
 		table,
 		sqlf.Join(", ", fields...),
-		sqlf.Join(", ", util.Map(values, func(value []any) any {
+		sqlf.Join(", ", util.Map(values, func(value []string) sqlf.Builder {
 			return sqlf.F(
 				"(?)",
-				sqlf.Join(", ", value...),
+				sqlf.JoinArgs(", ", value...),
 			)
 		})...),
 	)

@@ -12,3 +12,17 @@ type Builder interface {
 	// The args should be committed to the ctx if any.
 	Build(ctx *Context) (query string, err error)
 }
+
+// BuildQuery builds the given builder into a query string and args slice
+// with the specified bind style.
+func BuildQuery(b Builder, style BindStyle) (query string, args []any, err error) {
+	if b == nil {
+		return "", nil, nil
+	}
+	ctx := NewContext(style)
+	query, err = b.Build(ctx)
+	if err != nil {
+		return "", nil, err
+	}
+	return query, ctx.Args(), nil
+}

@@ -4,17 +4,16 @@ import (
 	"strings"
 )
 
-// Join creates a new fragment builder that joins the given args with the specified separator.
+// Join creates a new fragment builder that joins the given builders with the specified separator.
 //
 // An arg could be either an ordinary arg or a Builder.
-func Join(sep string, args ...any) Builder {
+func Join(sep string, builders ...Builder) Builder {
 	return Func(func(ctx *Context) (string, error) {
-		if len(args) == 0 {
+		if len(builders) == 0 {
 			return "", nil
 		}
 		var sb strings.Builder
-		props := newProperties(args...)
-		for i, p := range props {
+		for i, p := range builders {
 			r, err := p.Build(ctx)
 			if err != nil {
 				return "", err
@@ -29,6 +28,20 @@ func Join(sep string, args ...any) Builder {
 			sb.WriteString(r)
 		}
 		return sb.String(), nil
+	})
+}
+
+// JoinArgs creates a new fragment builder that joins args with the specified separator.
+func JoinArgs[T any](sep string, args ...T) Builder {
+	return Func(func(ctx *Context) (string, error) {
+		if len(args) == 0 {
+			return "", nil
+		}
+		props := make([]Builder, 0, len(args))
+		for _, a := range args {
+			props = append(props, newArgProperty(a))
+		}
+		return Join(sep, props...).Build(ctx)
 	})
 }
 

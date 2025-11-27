@@ -20,7 +20,7 @@ func TestBuildFragmentFn(t *testing.T) {
 		{
 			name:     "join",
 			style:    sqlf.BindStyleQuestion,
-			builder:  sqlf.Join(",", 1, 2),
+			builder:  sqlf.JoinArgs(",", 1, 2),
 			want:     "?,?",
 			wantArgs: []any{1, 2},
 		},
