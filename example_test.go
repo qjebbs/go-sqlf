@@ -3,8 +3,8 @@ package sqlf_test
 import (
 	"fmt"
 
-	"github.com/qjebbs/go-sqlf/v3"
-	"github.com/qjebbs/go-sqlf/v3/util"
+	"github.com/qjebbs/go-sqlf/v4"
+	"github.com/qjebbs/go-sqlf/v4/util"
 )
 
 func Example_basic() {

@@ -1,5 +1,3 @@
-module github.com/qjebbs/go-sqlf/v3
+module github.com/qjebbs/go-sqlf/v4
 
 go 1.18
-
-retract v3.0.0

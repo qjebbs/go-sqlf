@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/qjebbs/go-sqlf/v3/util"
+	"github.com/qjebbs/go-sqlf/v4/util"
 )
 
 func TestFlatten(t *testing.T) {

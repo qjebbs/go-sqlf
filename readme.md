@@ -12,7 +12,7 @@ A `*Fragment` is usually created by `F()`.
 ```go
 import (
 	"fmt"
-	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v4"
 )
 func Example_basic() {
 	query, args, _ := sqlf.F(

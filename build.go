@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/qjebbs/go-sqlf/v3/internal/syntax"
+	"github.com/qjebbs/go-sqlf/v4/internal/syntax"
 )
 
 var _ Builder = (*Fragment)(nil)

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v4"
 )
 
 func TestBuildFragmentFn(t *testing.T) {
