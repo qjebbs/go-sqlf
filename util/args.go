@@ -2,6 +2,8 @@ package util
 
 import (
 	"reflect"
+
+	"github.com/qjebbs/go-sqlf/v4/internal/util"
 )
 
 // FlattenArgs is a help func to create a slice of query args.
@@ -25,45 +27,45 @@ func argsFrom(v any) []any {
 	case []any:
 		return a
 	case []bool:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []float64:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []float32:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []int64:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []int32:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []int:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []uint64:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []uint32:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []uint:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case []string:
-		return Ttoa(a)
+		return util.Ttoa(a)
 	case *[]bool:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]float64:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]float32:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]int64:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]int32:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]int:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]uint64:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]uint32:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]uint:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	case *[]string:
-		return Ttoa(*a)
+		return util.Ttoa(*a)
 	default:
 		return convertArrayReflect(v)
 	}

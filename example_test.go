@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v4"
-	"github.com/qjebbs/go-sqlf/v4/util"
+	"github.com/qjebbs/go-sqlf/v4/internal/util"
 )
 
 func Example_basic() {

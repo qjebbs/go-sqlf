@@ -17,15 +17,15 @@ func Map[T1 any, T2 any](a []T1, f func(T1) T2) []T2 {
 	return b
 }
 
-// // Concat concatenates multiple slices into one.
-// func Concat[T any](slices ...[]T) []T {
-// 	var totalLen int
-// 	for _, s := range slices {
-// 		totalLen += len(s)
-// 	}
-// 	result := make([]T, 0, totalLen)
-// 	for _, s := range slices {
-// 		result = append(result, s...)
-// 	}
-// 	return result
-// }
+// Concat concatenates multiple slices into one.
+func Concat[T any](slices ...[]T) []T {
+	var totalLen int
+	for _, s := range slices {
+		totalLen += len(s)
+	}
+	result := make([]T, 0, totalLen)
+	for _, s := range slices {
+		result = append(result, s...)
+	}
+	return result
+}
