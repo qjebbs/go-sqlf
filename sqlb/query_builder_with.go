@@ -20,6 +20,7 @@ import "github.com/qjebbs/go-sqlf/v3"
 //		With(foo, builderFoo).With(bar, builderBar).
 //		Select(bar.Column("*")).From(bar)
 func (b *QueryBuilder) With(name Table, builder sqlf.Builder) *QueryBuilder {
+	b.resetDepTablesCache()
 	cte := &cte{
 		table:   name,
 		Builder: builder,

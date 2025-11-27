@@ -24,13 +24,6 @@ func (b *QueryBuilder) BuildQuery(style sqlf.BindStyle) (query string, args []an
 
 // Build implements sqlf.Builder
 func (b *QueryBuilder) Build(ctx *sqlf.Context) (query string, err error) {
-	// SHOULD NOT assume b is self-contained, b can depend on parent CTEs
-	// when it's a sub query.
-	//
-	// if ctx.Value(depTablesKey{}) != nil {
-	// 	// b is self-contained, not reporting any deps to parent ctx
-	// 	return "", nil
-	// }
 	return b.buildInternal(ctx)
 }
 
@@ -46,16 +39,33 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	if b == nil {
 		return "", nil
 	}
-	if err := b.anyError(); err != nil {
+	err := b.anyError()
+	if err != nil {
 		return "", err
 	}
 	clauses := make([]string, 0)
 
-	dep, err := b.collectDependencies()
-	if err != nil {
-		return "", err
+	// SHOULD NOT assume b is self-contained,
+	// b can depend on parent CTEs when it's a sub query.
+	dep := b.depTablesCache
+	if dep == nil {
+		dep, err = b.collectDependencies()
+		if err != nil {
+			return "", err
+		}
+		b.depTablesCache = dep
 	}
-
+	if v := ctx.Value(depTablesKey{}); v != nil {
+		if deps, ok := v.(map[string]bool); ok && deps != nil {
+			// report dependencies to parent query builder
+			for t := range dep {
+				deps[t.AppliedName()] = true
+			}
+			// collecting dependencies only,
+			// no need to build anything here
+			return "", nil
+		}
+	}
 	sq, err := b.buildCTEs(ctx, dep)
 	if err != nil {
 		return "", err

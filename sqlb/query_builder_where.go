@@ -14,6 +14,7 @@ func (b *QueryBuilder) Where(s sqlf.Builder) *QueryBuilder {
 	if s == nil {
 		return b
 	}
+	b.resetDepTablesCache()
 	b.conditions = append(b.conditions, s)
 	return b
 }
@@ -28,6 +29,7 @@ func (b *QueryBuilder) Where(s sqlf.Builder) *QueryBuilder {
 //		sqlf.F("? = ?", column, 1),
 //	)
 func (b *QueryBuilder) Where2(column sqlf.Builder, op string, arg any) *QueryBuilder {
+	b.resetDepTablesCache()
 	b.conditions = append(
 		b.conditions,
 		sqlf.F("?"+op+"?", column, arg),

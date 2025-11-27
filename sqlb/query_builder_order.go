@@ -40,6 +40,7 @@ type orderItem struct {
 //	foo := sqlb.NewTable("foo")
 //	b.OrderBy(foo.Column("bar"), sqlb.OrderAsc)
 func (b *QueryBuilder) OrderBy(column sqlf.Builder, order Order) *QueryBuilder {
+	b.resetDepTablesCache()
 	b.orders = append(b.orders, &orderItem{column: column, order: order})
 	return b
 }

@@ -30,6 +30,8 @@ type QueryBuilder struct {
 
 	debug     bool // debug mode
 	debugName string
+
+	depTablesCache map[Table]bool
 }
 
 // NewQueryBuilder returns a new QueryBuilder.
@@ -59,6 +61,7 @@ func (b *QueryBuilder) Indistinct() *QueryBuilder {
 //	foo := sqlb.NewTable("foo")
 //	b.SelectReplace(foo.Column("bar"))
 func (b *QueryBuilder) SelectReplace(columns ...sqlf.Builder) *QueryBuilder {
+	b.resetDepTablesCache()
 	b.selects = columns
 	return b
 }
@@ -73,6 +76,7 @@ func (b *QueryBuilder) Select(columns ...sqlf.Builder) *QueryBuilder {
 	if len(columns) == 0 {
 		return b
 	}
+	b.resetDepTablesCache()
 	b.selects = append(b.selects, columns...)
 	return b
 }
@@ -100,6 +104,7 @@ func (b *QueryBuilder) Offset(offset int64) *QueryBuilder {
 //	foo := sqlb.NewTable("foo")
 //	b.GroupBy(foo.Column("bar"))
 func (b *QueryBuilder) GroupBy(columns ...sqlf.Builder) *QueryBuilder {
+	b.resetDepTablesCache()
 	b.groupbys = append(b.groupbys, columns...)
 	return b
 }
@@ -109,6 +114,7 @@ func (b *QueryBuilder) GroupBy(columns ...sqlf.Builder) *QueryBuilder {
 // !!! Make sure the all table references within the builders are built from sqlb.Table
 // to have their dependencies tracked.
 func (b *QueryBuilder) Union(builders ...sqlf.Builder) *QueryBuilder {
+	b.resetDepTablesCache()
 	b.unions = append(b.unions, util.Map(builders, func(b sqlf.Builder) sqlf.Builder {
 		return sqlf.Prefix("UNION", b)
 	})...)
@@ -120,8 +126,13 @@ func (b *QueryBuilder) Union(builders ...sqlf.Builder) *QueryBuilder {
 // !!! Make sure the all table references within the builders are built from sqlb.Table
 // to have their dependencies tracked.
 func (b *QueryBuilder) UnionAll(builders ...sqlf.Builder) *QueryBuilder {
+	b.resetDepTablesCache()
 	b.unions = append(b.unions, util.Map(builders, func(b sqlf.Builder) sqlf.Builder {
 		return sqlf.Prefix("UNION ALL", b)
 	})...)
 	return b
+}
+
+func (b *QueryBuilder) resetDepTablesCache() {
+	b.depTablesCache = nil
 }

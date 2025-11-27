@@ -8,6 +8,7 @@ import (
 
 // From set the from table.
 func (b *QueryBuilder) From(t Table) *QueryBuilder {
+	b.resetDepTablesCache()
 	if t.Name == "" {
 		b.pushError(fmt.Errorf("from table is empty"))
 		return b
@@ -70,6 +71,7 @@ func (b *QueryBuilder) CrossJoin(t Table) *QueryBuilder {
 
 // join append or replace a join table.
 func (b *QueryBuilder) join(joinStr string, t Table, on *sqlf.Fragment, optional bool) *QueryBuilder {
+	b.resetDepTablesCache()
 	if t.Name == "" {
 		b.pushError(fmt.Errorf("join table name is empty"))
 		return b

@@ -17,6 +17,7 @@ func (b *QueryBuilder) Having(s sqlf.Builder) *QueryBuilder {
 	if s == nil {
 		return b
 	}
+	b.resetDepTablesCache()
 	b.havings = append(b.havings, s)
 	return b
 }
@@ -34,6 +35,7 @@ func (b *QueryBuilder) Having(s sqlf.Builder) *QueryBuilder {
 //		"? = ?", foo.Column("id"), 1,
 //	))
 func (b *QueryBuilder) Having2(column sqlf.Builder, op string, arg any) *QueryBuilder {
+	b.resetDepTablesCache()
 	b.havings = append(
 		b.havings,
 		sqlf.F("?"+op+"?", column, arg),
