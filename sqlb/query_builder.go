@@ -2,6 +2,7 @@ package sqlb
 
 import (
 	"github.com/qjebbs/go-sqlf/v3"
+	"github.com/qjebbs/go-sqlf/v3/util"
 )
 
 // QueryBuilder is the SQL query builder.
@@ -108,6 +109,19 @@ func (b *QueryBuilder) GroupBy(columns ...sqlf.Builder) *QueryBuilder {
 // !!! Make sure the all table references within the builders are built from sqlb.Table
 // to have their dependencies tracked.
 func (b *QueryBuilder) Union(builders ...sqlf.Builder) *QueryBuilder {
-	b.unions = append(b.unions, builders...)
+	b.unions = append(b.unions, util.Map(builders, func(b sqlf.Builder) sqlf.Builder {
+		return sqlf.Prefix("UNION", b)
+	})...)
+	return b
+}
+
+// UnionAll unions other builders with 'UNION ALL'.
+//
+// !!! Make sure the all table references within the builders are built from sqlb.Table
+// to have their dependencies tracked.
+func (b *QueryBuilder) UnionAll(builders ...sqlf.Builder) *QueryBuilder {
+	b.unions = append(b.unions, util.Map(builders, func(b sqlf.Builder) sqlf.Builder {
+		return sqlf.Prefix("UNION ALL", b)
+	})...)
 	return b
 }

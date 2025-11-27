@@ -125,7 +125,7 @@ func (b *QueryBuilder) buildInternal(ctx *sqlf.Context) (string, error) {
 	clauses[selectAt] = sel
 	query := strings.TrimSpace(strings.Join(clauses, " "))
 	if len(b.unions) > 0 {
-		union, err := b.buildUnion(ctx)
+		union, err := sqlf.Join(" ", util.Ttoa(b.unions)...).Build(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -214,19 +214,4 @@ func (b *QueryBuilder) buildFrom(ctx *sqlf.Context, dep map[Table]bool) (string,
 		tables = append(tables, c)
 	}
 	return "FROM " + strings.Join(tables, " "), nil
-}
-
-func (b *QueryBuilder) buildUnion(ctx *sqlf.Context) (string, error) {
-	clauses := make([]string, 0, len(b.unions))
-	for _, union := range b.unions {
-		query, err := union.Build(ctx)
-		if err != nil {
-			return "", err
-		}
-		if query == "" {
-			continue
-		}
-		clauses = append(clauses, query)
-	}
-	return "UNION " + strings.Join(clauses, " UNION "), nil
 }
