@@ -69,8 +69,10 @@ func buildClause(ctx *Context, fragment *Fragment, clause *syntax.Clause) (strin
 			return "", fmt.Errorf("unknown expression type %T", expr)
 		}
 	}
-	if err := props.checkUsage(); err != nil {
-		return "", fmt.Errorf("build '%s': args %w", fragment.raw, err)
+	if !fragment.noUsageCheck {
+		if err := props.checkUsage(); err != nil {
+			return "", fmt.Errorf("build '%s': args %w", fragment.raw, err)
+		}
 	}
 	return b.String(), nil
 }

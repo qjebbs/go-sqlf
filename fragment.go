@@ -6,8 +6,9 @@ import "fmt"
 //
 // To create a Fragment, use the F() function.
 type Fragment struct {
-	raw  string // Raw string support bind vars (?, $1)
-	args []any  // Args that can be referenced by the Raw. An arg can be either an ordinary arg or a Builder.
+	raw          string // Raw string support bind vars (?, $1)
+	args         []any  // Args that can be referenced by the Raw. An arg can be either an ordinary arg or a Builder.
+	noUsageCheck bool   // If true, skip checking whether all bind vars are used.
 }
 
 // F creates a new Fragment.
@@ -41,5 +42,12 @@ func (f *Fragment) SetArg(index int, args any) *Fragment {
 		panic(fmt.Errorf("index %d out of range [%d,%d)", index, -len(f.args), len(f.args)))
 	}
 	f.args[index] = args
+	return f
+}
+
+// NoUsageCheck disables usage checking whether all bind vars are used.
+// This is useful when the arguments are constructed not by hand but by programs dynamically.
+func (f *Fragment) NoUsageCheck() *Fragment {
+	f.noUsageCheck = true
 	return f
 }
