@@ -61,6 +61,34 @@ func (l *lexerHelper) Next() rune {
 	return l.rune
 }
 
+// Back steps back one rune. Can be called only once per call of next.
+func (l *lexerHelper) Back() (rune, bool) {
+	// cannot move back across lines
+	// cannot move back past the start of the token or the string
+	if l.rune == '\r' || l.rune == '\n' ||
+		l.current.offset == l.start.offset || l.current.offset == 0 {
+		return l.rune, false
+	}
+
+	// Find the beginning of the previous rune
+	var width int
+	var r rune
+	// A simple loop is the most reliable way to find the previous rune start
+	i := l.current.offset - 1
+	for i > 0 && !utf8.RuneStart(l.input[i]) {
+		i--
+	}
+
+	// Decode the previous rune to get its width and value
+	r, width = utf8.DecodeRuneInString(l.input[i:])
+
+	// Update position
+	l.current.offset = i
+	l.width = width
+	l.rune = r
+	return l.rune, true
+}
+
 // Peek returns the next rune without changing the postions.
 // it returns the whole string left if n is 0.
 func (l *lexerHelper) Peek() rune {
@@ -80,6 +108,20 @@ func (l *lexerHelper) SkipWhitespace() {
 		}
 		l.Next()
 		if l.rune == EOF {
+			break
+		}
+	}
+}
+
+// TrimTrailingWhitespace backup to the right side of last non-whitespace rune
+func (l *lexerHelper) TrimTrailingWhitespace() {
+	for {
+		r, ok := l.Back()
+		if !ok {
+			break
+		}
+		if !unicode.IsSpace(r) {
+			l.Next()
 			break
 		}
 	}
