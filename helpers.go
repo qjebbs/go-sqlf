@@ -45,6 +45,24 @@ func JoinArgs[T any](sep string, args ...T) Builder {
 	})
 }
 
+// JoinMixed creates a new fragment builder that joins mixed Builders and args with the specified separator.
+func JoinMixed(sep string, args ...any) Builder {
+	return Func(func(ctx *Context) (string, error) {
+		if len(args) == 0 {
+			return "", nil
+		}
+		props := make([]Builder, 0, len(args))
+		for _, a := range args {
+			if b, ok := a.(Builder); ok {
+				props = append(props, b)
+				continue
+			}
+			props = append(props, newArgProperty(a))
+		}
+		return Join(sep, props...).Build(ctx)
+	})
+}
+
 // Prefix creates a new fragment builder that prefixes the given builder if it's built not empty.
 func Prefix(prefix string, b Builder) Builder {
 	return Func(func(ctx *Context) (query string, err error) {
