@@ -68,10 +68,18 @@ func Interpolate(query string, args []any, options ...InterpolateOption) (string
 }
 
 func encodeValue(arg any, opts *interpolateOptions) ([]byte, error) {
+	if arg == nil {
+		return []byte("NULL"), nil
+	}
+	v := reflect.ValueOf(arg)
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Chan, reflect.Func:
+		if v.IsNil() {
+			return []byte("NULL"), nil
+		}
+	}
 	buf := bytes.NewBuffer(nil)
 	switch v := arg.(type) {
-	case nil:
-		buf.WriteString("NULL")
 	case driver.Valuer:
 		val, err := v.Value()
 		if err != nil {
