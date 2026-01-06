@@ -2,53 +2,25 @@ package sqlf
 
 // Context is the context for fragment building.
 type Context struct {
-	global *globalContext
-
 	parent     *Context
 	key, value any
 }
 
-type globalContext struct {
-	// no usecase for user to care about the bind var style.
-	// bindVarStyle BindStyle
-
-	argStore argStore
-}
-
 // NewContext returns a new context.
 func NewContext(style BindStyle) *Context {
-	var argStore argStore
-	if style == BindStyleDollar {
-		argStore = newDollarArgStore()
-	} else {
-		argStore = newQuestionArgStore()
-	}
 	return &Context{
-		global: &globalContext{
-			argStore: argStore,
-		},
+		key:   argStoreKey{},
+		value: newArgStore(style),
 	}
-}
-
-// Args returns the built args of the context.
-func (c *Context) Args() []any {
-	return c.global.argStore.Args()
-}
-
-// CommitArg commits an built arg to the context and returns the built bindvar.
-func (c *Context) CommitArg(arg any) string {
-	return c.global.argStore.CommitArg(arg)
 }
 
 // ContextWith returns a new context with the given key and value.
 func ContextWith(ctx *Context, key, value any) *Context {
-	newCtx := &Context{
+	return &Context{
 		parent: ctx,
-		global: ctx.global,
+		key:    key,
+		value:  value,
 	}
-	newCtx.key = key
-	newCtx.value = value
-	return newCtx
 }
 
 // Value retrieves the value in the context.

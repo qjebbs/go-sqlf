@@ -4,6 +4,32 @@ import (
 	"strconv"
 )
 
+type argStoreKey struct{}
+
+// Args returns the built args of the context.
+func (c *Context) Args() []any {
+	store := c.Value(argStoreKey{}).(argStore)
+	return store.Args()
+}
+
+// CommitArg commits an built arg to the context and returns the built bindvar.
+func (c *Context) CommitArg(arg any) string {
+	store := c.Value(argStoreKey{}).(argStore)
+	return store.CommitArg(arg)
+}
+
+// ContextWithNewArgStore returns a new context with the new argStore for the given style.
+func ContextWithNewArgStore(ctx *Context, style BindStyle) *Context {
+	return ContextWith(ctx, argStoreKey{}, newArgStore(style))
+}
+
+func newArgStore(style BindStyle) argStore {
+	if style == BindStyleDollar {
+		return newDollarArgStore()
+	}
+	return newQuestionArgStore()
+}
+
 type argStore interface {
 	Args() []any
 	CommitArg(arg any) string
