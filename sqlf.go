@@ -6,6 +6,8 @@
 // supports binding other fragment builders for flexible query composition.
 package sqlf
 
+import "context"
+
 // Builder is a SQL fragment builder.
 type Builder interface {
 	// Build builds as a fragment with the context.
@@ -16,13 +18,18 @@ type Builder interface {
 // BuildQuery builds the given builder into a query string and args slice
 // with the specified bind style.
 func BuildQuery(b Builder, style BindStyle) (query string, args []any, err error) {
+	return BuildQueryContext(context.Background(), b, style)
+}
+
+// BuildQueryContext builds the given builder into a query string and args slice.
+func BuildQueryContext(ctx context.Context, b Builder, style BindStyle) (query string, args []any, err error) {
 	if b == nil {
 		return "", nil, nil
 	}
-	ctx := NewContext(style)
-	query, err = b.Build(ctx)
+	buildCtx := NewContext(ctx, style)
+	query, err = b.Build(buildCtx)
 	if err != nil {
 		return "", nil, err
 	}
-	return query, ctx.Args(), nil
+	return query, buildCtx.Args(), nil
 }

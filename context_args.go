@@ -18,11 +18,6 @@ func (c *Context) CommitArg(arg any) string {
 	return store.CommitArg(arg)
 }
 
-// ContextWithNewArgStore returns a new context with the new argStore for the given style.
-func ContextWithNewArgStore(ctx *Context, style BindStyle) *Context {
-	return ContextWith(ctx, argStoreKey{}, newArgStore(style))
-}
-
 func newArgStore(style BindStyle) argStore {
 	if style == BindStyleDollar {
 		return newDollarArgStore()

@@ -1,6 +1,7 @@
 package sqlf
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -11,13 +12,12 @@ var _ Builder = (*Fragment)(nil)
 
 // BuildQuery builds the fragment as full query.
 func (f *Fragment) BuildQuery(style BindStyle) (query string, args []any, err error) {
-	ctx := NewContext(style)
-	query, err = f.Build(ctx)
-	if err != nil {
-		return "", nil, err
-	}
-	args = ctx.Args()
-	return query, args, nil
+	return BuildQuery(f, style)
+}
+
+// BuildQueryContext builds the fragment as full query with the given context.
+func (f *Fragment) BuildQueryContext(ctx context.Context, style BindStyle) (query string, args []any, err error) {
+	return BuildQueryContext(ctx, f, style)
 }
 
 // Build builds the fragment with context.
@@ -27,6 +27,9 @@ func (f *Fragment) Build(ctx *Context) (string, error) {
 	}
 	if ctx == nil {
 		return "", fmt.Errorf("nil context")
+	}
+	if err := ctx.Err(); err != nil {
+		return "", err
 	}
 	body, err := build(ctx, f)
 	if err != nil {

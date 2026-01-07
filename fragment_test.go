@@ -1,6 +1,8 @@
 package sqlf_test
 
 import (
+	"context"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -89,7 +91,7 @@ func TestBuildFragment(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
-			ctx := sqlf.NewContext(tc.style)
+			ctx := sqlf.NewContext(context.Background(), tc.style)
 			got, err := tc.fragment.Build(ctx)
 			if err != nil {
 				if tc.wantErr {
@@ -105,5 +107,18 @@ func TestBuildFragment(t *testing.T) {
 				t.Errorf("got %v, want %v", args, tc.wantArgs)
 			}
 		})
+	}
+}
+func TestBuildWithCancelledContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	buildCtx := sqlf.NewContext(ctx, sqlf.BindStyleQuestion)
+	_, err := sqlf.F(`SELECT 1`).Build(buildCtx)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("got err %v, want context.Canceled", err)
+	}
+	_, err = sqlf.JoinArgs(",", 1, 2, 3).Build(buildCtx)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("got err %v, want context.Canceled", err)
 	}
 }

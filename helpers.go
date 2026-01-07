@@ -131,5 +131,8 @@ func (b *builder) Build(ctx *Context) (string, error) {
 	if b == nil || b.fn == nil {
 		return "", nil
 	}
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
 	return b.fn(ctx)
 }
