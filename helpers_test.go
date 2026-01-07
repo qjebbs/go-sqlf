@@ -1,6 +1,7 @@
 package sqlf_test
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -35,7 +36,7 @@ func TestBuildFragmentFn(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
-			ctx := sqlf.NewContext(tc.style)
+			ctx := sqlf.NewContext(context.Background(), tc.style)
 			got, err := tc.builder.Build(ctx)
 			if err != nil {
 				if tc.wantErr {

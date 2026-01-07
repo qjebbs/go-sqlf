@@ -1,6 +1,7 @@
 package sqlf_test
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v4"
@@ -15,7 +16,7 @@ func Example_basic() {
 			sqlf.F("baz = $1", true),
 			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
 		),
-	).BuildQuery(sqlf.BindStyleDollar)
+	).BuildQuery(context.Background(), sqlf.BindStyleDollar)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -46,7 +47,7 @@ func Example_insert() {
 		})...),
 	)
 
-	query, args, err := f.BuildQuery(sqlf.BindStyleDollar)
+	query, args, err := f.BuildQuery(context.Background(), sqlf.BindStyleDollar)
 	if err != nil {
 		fmt.Println(err)
 		return
