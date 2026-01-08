@@ -104,6 +104,9 @@ func encodeValue(arg any, opts *interpolateOptions) ([]byte, error) {
 		buf.Write(quoteStringValue(v.String()))
 	default:
 		for rv.Kind() == reflect.Ptr {
+			if rv.IsNil() {
+				return []byte("NULL"), nil
+			}
 			rv = rv.Elem()
 		}
 		switch k := rv.Kind(); k {
