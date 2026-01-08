@@ -71,10 +71,10 @@ func encodeValue(arg any, opts *interpolateOptions) ([]byte, error) {
 	if arg == nil {
 		return []byte("NULL"), nil
 	}
-	v := reflect.ValueOf(arg)
-	switch v.Kind() {
+	rv := reflect.ValueOf(arg)
+	switch rv.Kind() {
 	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Chan, reflect.Func:
-		if v.IsNil() {
+		if rv.IsNil() {
 			return []byte("NULL"), nil
 		}
 	}
@@ -103,22 +103,24 @@ func encodeValue(arg any, opts *interpolateOptions) ([]byte, error) {
 	case fmt.Stringer:
 		buf.Write(quoteStringValue(v.String()))
 	default:
-		primative := reflect.ValueOf(arg)
-		switch k := primative.Kind(); k {
+		for rv.Kind() == reflect.Ptr {
+			rv = rv.Elem()
+		}
+		switch k := rv.Kind(); k {
 		case reflect.Bool:
-			if primative.Bool() {
+			if rv.Bool() {
 				buf.WriteString("TRUE")
 			} else {
 				buf.WriteString("FALSE")
 			}
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			buf.WriteString(fmt.Sprintf("%d", primative.Int()))
+			buf.WriteString(fmt.Sprintf("%d", rv.Int()))
 		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			buf.WriteString(fmt.Sprintf("%d", primative.Uint()))
+			buf.WriteString(fmt.Sprintf("%d", rv.Uint()))
 		case reflect.Float32, reflect.Float64:
-			buf.WriteString(fmt.Sprintf("%f", primative.Float()))
+			buf.WriteString(fmt.Sprintf("%f", rv.Float()))
 		case reflect.String:
-			buf.Write(quoteStringValue(primative.String()))
+			buf.Write(quoteStringValue(rv.String()))
 		default:
 			return nil, fmt.Errorf("unsupported type %T", arg)
 		}
