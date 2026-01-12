@@ -1,13 +1,20 @@
 package sqlf_test
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v4"
+	"github.com/qjebbs/go-sqlf/v4/argstore"
+	"github.com/qjebbs/go-sqlf/v4/dialect"
 	"github.com/qjebbs/go-sqlf/v4/internal/util"
 )
 
 func Example_basic() {
+	ctx := sqlf.ContextWithDialect(
+		context.Background(),
+		dialect.PostgreSQL{},
+	)
 	query, args, _ := sqlf.F(
 		"SELECT * FROM foo WHERE ?",
 		sqlf.Join(
@@ -15,7 +22,7 @@ func Example_basic() {
 			sqlf.F("baz = $1", true),
 			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
 		),
-	).BuildQuery(sqlf.BindStyleDollar)
+	).BuildQuery(ctx)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -46,7 +53,11 @@ func Example_insert() {
 		})...),
 	)
 
-	query, args, err := f.BuildQuery(sqlf.BindStyleDollar)
+	ctx := sqlf.ContextWithArgStore(
+		context.Background(),
+		argstore.NewNumbered("$"),
+	)
+	query, args, err := f.BuildQuery(ctx)
 	if err != nil {
 		fmt.Println(err)
 		return

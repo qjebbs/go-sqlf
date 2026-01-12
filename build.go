@@ -10,14 +10,16 @@ import (
 
 var _ Builder = (*Fragment)(nil)
 
-// BuildQuery builds the fragment as full query.
-func (f *Fragment) BuildQuery(style BindStyle) (query string, args []any, err error) {
-	return BuildQuery(f, style)
-}
-
-// BuildQueryContext builds the fragment as full query with the given context.
-func (f *Fragment) BuildQueryContext(ctx context.Context, style BindStyle) (query string, args []any, err error) {
-	return BuildQueryContext(ctx, f, style)
+// BuildQuery builds the given builder into a query string and args slice.
+// The default dialect and argument store will be used if not set in the context.
+// To customize the dialect or argument store, use ContextWithDialect or ContextWithArgStore
+// to create a new context and pass it to this function.
+// E.g.:
+//
+//	ctx = sqlf.ContextWithDialect(ctx, dialect.PostgreSQL{})
+//	query, args, err := f.BuildQuery(ctx)
+func (f *Fragment) BuildQuery(ctx context.Context) (query string, args []any, err error) {
+	return BuildQuery(ctx, f)
 }
 
 // Build builds the fragment with context.

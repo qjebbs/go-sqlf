@@ -6,7 +6,9 @@
 // supports binding other fragment builders for flexible query composition.
 package sqlf
 
-import "context"
+import (
+	"context"
+)
 
 // Builder is a SQL fragment builder.
 type Builder interface {
@@ -15,18 +17,21 @@ type Builder interface {
 	Build(ctx *Context) (query string, err error)
 }
 
-// BuildQuery builds the given builder into a query string and args slice
-// with the specified bind style.
-func BuildQuery(b Builder, style BindStyle) (query string, args []any, err error) {
-	return BuildQueryContext(context.Background(), b, style)
-}
-
-// BuildQueryContext builds the given builder into a query string and args slice.
-func BuildQueryContext(ctx context.Context, b Builder, style BindStyle) (query string, args []any, err error) {
+// BuildQuery builds the given builder into a query string and args slice.
+// The default dialect and argument store will be used if not set in the context.
+// To customize the dialect or argument store, use ContextWithDialect or ContextWithArgStore
+// to create a new context and pass it to this function.
+// E.g.:
+//
+//	ctx = sqlf.ContextWithArgStore(ctx, argstore.NewPositional())
+//	ctx = sqlf.ContextWithDialect(ctx, dialect.PostgreSQL{})
+//	query, args, err := sqlf.BuildQuery(ctx, builder)
+func BuildQuery(ctx context.Context, b Builder) (query string, args []any, err error) {
 	if b == nil {
 		return "", nil, nil
 	}
-	buildCtx := NewContext(ctx, style)
+	// new context with default dialect and argument store if not set
+	buildCtx := NewContext(ctx)
 	query, err = b.Build(buildCtx)
 	if err != nil {
 		return "", nil, err

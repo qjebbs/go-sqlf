@@ -7,13 +7,14 @@ import (
 	"testing"
 
 	"github.com/qjebbs/go-sqlf/v4"
+	"github.com/qjebbs/go-sqlf/v4/argstore"
 )
 
 func TestBuildFragment(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name     string
-		style    sqlf.BindStyle
+		store    argstore.Store
 		fragment sqlf.Builder
 		want     string
 		wantArgs []any
@@ -32,8 +33,7 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: nil,
 		},
 		{
-			name:  "builder and args",
-			style: sqlf.BindStyleQuestion,
+			name: "builder and args",
 			fragment: sqlf.F(
 				"WHERE ?=?",
 				sqlf.F("id"),
@@ -44,7 +44,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name:  "build nil column",
-			style: sqlf.BindStyleDollar,
+			store: argstore.NewNumbered("$"),
 			fragment: sqlf.F(
 				"WHERE ?=?",
 				(*sqlf.Fragment)(nil),
@@ -55,7 +55,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name:  "args merging",
-			style: sqlf.BindStyleDollar,
+			store: argstore.NewNumbered("$"),
 			fragment: sqlf.F(
 				"WHERE foo=? AND bar IN (?)",
 				1,
@@ -78,7 +78,7 @@ func TestBuildFragment(t *testing.T) {
 		},
 		{
 			name:  "ref fragment twice",
-			style: sqlf.BindStyleDollar,
+			store: argstore.NewNumbered("$"),
 			fragment: sqlf.F(
 				"$1, $1",
 				sqlf.F("$1, $2, $1", 1, 2),
@@ -91,7 +91,11 @@ func TestBuildFragment(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
-			ctx := sqlf.NewContext(context.Background(), tc.style)
+			store := tc.store
+			if store == nil {
+				store = argstore.NewPositional()
+			}
+			ctx := sqlf.ContextWithArgStore(context.Background(), store)
 			got, err := tc.fragment.Build(ctx)
 			if err != nil {
 				if tc.wantErr {
@@ -112,7 +116,7 @@ func TestBuildFragment(t *testing.T) {
 func TestBuildWithCancelledContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	buildCtx := sqlf.NewContext(ctx, sqlf.BindStyleQuestion)
+	buildCtx := sqlf.NewContext(ctx)
 	_, err := sqlf.F(`SELECT 1`).Build(buildCtx)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("got err %v, want context.Canceled", err)
