@@ -14,7 +14,7 @@ func Join(sep string, builders ...Builder) Builder {
 		}
 		var sb strings.Builder
 		for i, p := range builders {
-			r, err := p.Build(ctx)
+			r, err := p.BuildTo(ctx)
 			if err != nil {
 				return "", err
 			}
@@ -41,7 +41,7 @@ func JoinArgs[T any](sep string, args ...T) Builder {
 		for _, a := range args {
 			props = append(props, newArgProperty(a))
 		}
-		return Join(sep, props...).Build(ctx)
+		return Join(sep, props...).BuildTo(ctx)
 	})
 }
 
@@ -59,7 +59,7 @@ func JoinMixed(sep string, args ...any) Builder {
 			}
 			props = append(props, newArgProperty(a))
 		}
-		return Join(sep, props...).Build(ctx)
+		return Join(sep, props...).BuildTo(ctx)
 	})
 }
 
@@ -69,7 +69,7 @@ func Prefix(prefix string, b Builder) Builder {
 		if b == nil {
 			return "", nil
 		}
-		query, err = b.Build(ctx)
+		query, err = b.BuildTo(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -86,7 +86,7 @@ func Suffix(suffix string, b Builder) Builder {
 		if b == nil {
 			return "", nil
 		}
-		query, err = b.Build(ctx)
+		query, err = b.BuildTo(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -103,7 +103,7 @@ func PrefixSuffix(prefix, suffix string, b Builder) Builder {
 		if b == nil {
 			return "", nil
 		}
-		query, err = b.Build(ctx)
+		query, err = b.BuildTo(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -136,7 +136,7 @@ type builder struct {
 	fn func(ctx *Context) (query string, err error)
 }
 
-func (b *builder) Build(ctx *Context) (string, error) {
+func (b *builder) BuildTo(ctx *Context) (string, error) {
 	if b == nil || b.fn == nil {
 		return "", nil
 	}

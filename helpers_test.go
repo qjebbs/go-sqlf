@@ -34,8 +34,8 @@ func TestBuildFragmentFn(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
-			ctx := sqlf.NewContext(context.Background())
-			got, err := tc.builder.Build(ctx)
+			ctx := sqlf.ContextWithDialect(context.Background(), dialect.SQLite{})
+			got, args, err := sqlf.Build(ctx, tc.builder)
 			if err != nil {
 				if tc.wantErr {
 					return
@@ -45,7 +45,6 @@ func TestBuildFragmentFn(t *testing.T) {
 			if got != tc.want {
 				t.Errorf("got %q, want %q", got, tc.want)
 			}
-			args := ctx.Args()
 			if !reflect.DeepEqual(args, tc.wantArgs) {
 				t.Errorf("got %v, want %v", args, tc.wantArgs)
 			}
@@ -78,7 +77,7 @@ func TestBuildIdentifiers(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := sqlf.ContextWithDialect(context.Background(), tc.dialect)
 			builder := sqlf.Identifier(tc.ident)
-			got, err := builder.Build(ctx)
+			got, err := builder.BuildTo(ctx)
 			if err != nil {
 				t.Fatal(err)
 			}

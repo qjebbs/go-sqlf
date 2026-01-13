@@ -1,7 +1,6 @@
 package sqlf
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -10,20 +9,20 @@ import (
 
 var _ Builder = (*Fragment)(nil)
 
-// BuildQuery builds the given builder into a query string and args slice.
+// Build builds the given builder into a query string and args slice.
 // The default dialect and argument store will be used if not set in the context.
 // To customize the dialect or argument store, use ContextWithDialect or ContextWithArgStore
 // to create a new context and pass it to this function.
 // E.g.:
 //
 //	ctx = sqlf.ContextWithDialect(ctx, dialect.PostgreSQL{})
-//	query, args, err := f.BuildQuery(ctx)
-func (f *Fragment) BuildQuery(ctx context.Context) (query string, args []any, err error) {
-	return BuildQuery(ctx, f)
+//	query, args, err := f.Build(ctx)
+func (f *Fragment) Build(ctx *Context) (query string, args []any, err error) {
+	return Build(ctx, f)
 }
 
-// Build builds the fragment with context.
-func (f *Fragment) Build(ctx *Context) (string, error) {
+// BuildTo builds the fragment into the given context.
+func (f *Fragment) BuildTo(ctx *Context) (string, error) {
 	if f == nil {
 		return "", nil
 	}
@@ -65,7 +64,7 @@ func buildClause(ctx *Context, fragment *Fragment, clause *syntax.Clause) (strin
 			if expr.Index < 1 || expr.Index > len(props) {
 				return "", fmt.Errorf("invalid bind var index %d", expr.Index)
 			}
-			s, err := props[expr.Index-1].Build(ctx)
+			s, err := props[expr.Index-1].BuildTo(ctx)
 			if err != nil {
 				return "", err
 			}

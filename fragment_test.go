@@ -96,7 +96,7 @@ func TestBuildFragment(t *testing.T) {
 				store = argstore.NewPositional()
 			}
 			ctx := sqlf.ContextWithArgStore(context.Background(), store)
-			got, err := tc.fragment.Build(ctx)
+			got, err := tc.fragment.BuildTo(ctx)
 			if err != nil {
 				if tc.wantErr {
 					return
@@ -117,11 +117,11 @@ func TestBuildWithCancelledContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	buildCtx := sqlf.NewContext(ctx)
-	_, err := sqlf.F(`SELECT 1`).Build(buildCtx)
+	_, err := sqlf.F(`SELECT 1`).BuildTo(buildCtx)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("got err %v, want context.Canceled", err)
 	}
-	_, err = sqlf.JoinArgs(",", 1, 2, 3).Build(buildCtx)
+	_, err = sqlf.JoinArgs(",", 1, 2, 3).BuildTo(buildCtx)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("got err %v, want context.Canceled", err)
 	}

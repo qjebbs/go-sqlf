@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v4"
-	"github.com/qjebbs/go-sqlf/v4/argstore"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
 	"github.com/qjebbs/go-sqlf/v4/internal/util"
 )
@@ -22,7 +21,7 @@ func Example_basic() {
 			sqlf.F("baz = $1", true),
 			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
 		),
-	).BuildQuery(ctx)
+	).Build(ctx)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -53,11 +52,11 @@ func Example_insert() {
 		})...),
 	)
 
-	ctx := sqlf.ContextWithArgStore(
+	ctx := sqlf.ContextWithDialect(
 		context.Background(),
-		argstore.NewNumbered("$"),
+		dialect.PostgreSQL{},
 	)
-	query, args, err := f.BuildQuery(ctx)
+	query, args, err := f.Build(ctx)
 	if err != nil {
 		fmt.Println(err)
 		return
