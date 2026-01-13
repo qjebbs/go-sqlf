@@ -10,7 +10,7 @@ import (
 
 var _ context.Context = (*Context)(nil)
 
-var defaultDialect = dialect.AnsiSQL{}
+var defaultDialect = dialect.PostgreSQL{}
 
 // Context is the context for fragment building.
 type Context struct {
