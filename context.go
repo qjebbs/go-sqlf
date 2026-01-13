@@ -34,27 +34,31 @@ func ContextWithValue(parent context.Context, key, value any) *Context {
 
 // EnsureContextValues ensures that the context has both a dialect and an ArgStore.
 func EnsureContextValues(parent context.Context, defaultDialect dialect.Dialect) *Context {
-	dialect, ctx := contextWithDefaultValue(parent, dialectKey{}, defaultDialect)
-	_, ctx = contextWithDefaultValue(ctx, argStoreKey{}, dialect.NewArgStore())
-	return ctx
+	ctx, added := contextWithDefaultValue(parent, dialectKey{}, defaultDialect)
+	// ArgStore will surely exist if Dialect exists,
+	// so do default set of ArgStore only when the Dialect was newly added.
+	if added {
+		ctx, _ = contextWithDefaultValue(ctx, argStoreKey{}, defaultDialect.NewArgStore())
+	}
+	if ctx, ok := ctx.(*Context); ok {
+		return ctx
+	}
+	return &Context{
+		parent: ctx,
+	}
 }
 
 // contextWithDefaultValue returns a new context with the given key and value
 // only if the key is not already set in the context.
-func contextWithDefaultValue[T any](ctx context.Context, key any, value T) (applied T, c *Context) {
+func contextWithDefaultValue(ctx context.Context, key any, value any) (c context.Context, added bool) {
 	if v := ctx.Value(key); v != nil {
-		if existingCtx, ok := ctx.(*Context); ok {
-			return v.(T), existingCtx
-		}
-		return v.(T), &Context{
-			parent: ctx,
-		}
+		return ctx, false
 	}
-	return value, &Context{
+	return &Context{
 		parent: ctx,
 		key:    key,
 		value:  value,
-	}
+	}, true
 }
 
 // Deadline always returns false.

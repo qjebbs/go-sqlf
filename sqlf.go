@@ -14,6 +14,7 @@ type Builder interface {
 }
 
 // Build builds the given builder into a query string and args slice.
+// Unlike Builder.BuildTo, this function does not commit args to the ctx.
 func Build(ctx *Context, b Builder) (query string, args []any, err error) {
 	if b == nil {
 		return "", nil, nil
