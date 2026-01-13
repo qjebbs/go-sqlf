@@ -8,43 +8,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/qjebbs/go-sqlf/v4/dialect"
 	"github.com/qjebbs/go-sqlf/v4/internal/syntax"
 )
-
-// InterpolateOption is the option of Interpolate.
-type InterpolateOption func(*interpolateOptions)
-
-type interpolateOptions struct {
-	// TimeFormat is the format of time value.
-	TimeFormat string
-}
-
-func defaultInterpolateOptions() *interpolateOptions {
-	return &interpolateOptions{
-		TimeFormat: time.RFC3339,
-	}
-}
-
-func applyInterpolateOptions(options []InterpolateOption) *interpolateOptions {
-	opts := defaultInterpolateOptions()
-	for _, opt := range options {
-		opt(opts)
-	}
-	return opts
-}
-
-// WithInterpolateTimeFormat sets the format of time value.
-func WithInterpolateTimeFormat(format string) InterpolateOption {
-	return func(opts *interpolateOptions) {
-		opts.TimeFormat = format
-	}
-}
 
 // Interpolate interpolates the args into the query.
 //
 // !!! Use it only on debug purposes.
-func Interpolate(query string, args []any, options ...InterpolateOption) (string, error) {
-	opts := applyInterpolateOptions(options)
+func Interpolate(dialect dialect.Dialect, query string, args []any) (string, error) {
 	exprs, err := syntax.Parse(query)
 	if err != nil {
 		return "", err
@@ -55,7 +26,7 @@ func Interpolate(query string, args []any, options ...InterpolateOption) (string
 		case *syntax.PlainExpr:
 			b.WriteString(decl.Text)
 		case *syntax.BindVarExpr:
-			v, err := encodeValue(args[decl.Index-1], opts)
+			v, err := encodeValue(dialect, args[decl.Index-1])
 			if err != nil {
 				return "", err
 			}
@@ -67,7 +38,7 @@ func Interpolate(query string, args []any, options ...InterpolateOption) (string
 	return b.String(), nil
 }
 
-func encodeValue(arg any, opts *interpolateOptions) ([]byte, error) {
+func encodeValue(dialect dialect.Dialect, arg any) ([]byte, error) {
 	if arg == nil {
 		return []byte("NULL"), nil
 	}
@@ -85,20 +56,19 @@ func encodeValue(arg any, opts *interpolateOptions) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		enc, err := encodeValue(val, opts)
+		enc, err := encodeValue(dialect, val)
 		if err != nil {
 			return nil, err
 		}
 		buf.Write(enc)
 	case time.Time:
-		if v.IsZero() {
-			buf.WriteString("'0000-00-00'")
-			break
+		timeFormat := dialect.TimeFormat()
+		if !strings.Contains(timeFormat, "07") {
+			v = v.UTC()
 		}
-		// In SQL standard, the precision of fractional seconds in time literal is up to 6 digits.
 		v = v.Round(time.Microsecond)
 		buf.WriteRune('\'')
-		buf.WriteString(v.Format(opts.TimeFormat))
+		buf.WriteString(v.Format(timeFormat))
 		buf.WriteRune('\'')
 	case fmt.Stringer:
 		buf.Write(quoteStringValue(v.String()))

@@ -10,4 +10,6 @@ type Dialect interface {
 	QuoteIdentifier(name string) string
 	// NewArgStore creates a new ArgStore based on the dialect.
 	NewArgStore() argstore.Store
+	// TimeFormat returns the time format for the dialect.
+	TimeFormat() string
 }

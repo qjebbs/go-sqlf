@@ -20,3 +20,8 @@ func (d SQLite) QuoteIdentifier(name string) string {
 func (d SQLite) NewArgStore() argstore.Store {
 	return argstore.NewPositional()
 }
+
+// TimeFormat returns the time format for the dialect.
+func (d SQLite) TimeFormat() string {
+	return "2006-01-02 15:04:05.999"
+}

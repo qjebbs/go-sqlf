@@ -20,3 +20,8 @@ func (d Oracle) QuoteIdentifier(name string) string {
 func (d Oracle) NewArgStore() argstore.Store {
 	return argstore.NewNumbered(":")
 }
+
+// TimeFormat returns the time format for the dialect.
+func (d Oracle) TimeFormat() string {
+	return "2006-01-02 15:04:05.999"
+}
