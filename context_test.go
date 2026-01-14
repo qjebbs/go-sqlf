@@ -20,12 +20,6 @@ func TestContextValues(t *testing.T) {
 			},
 		},
 		{
-			name: "ContextWithArgStore",
-			fn: func(ctx context.Context) *Context {
-				return ContextWithArgStore(ctx, argstore.NewPositional())
-			},
-		},
-		{
 			name: "ContextWithDialect",
 			fn: func(ctx context.Context) *Context {
 				return ContextWithDialect(ctx, dialect.PostgreSQL{})

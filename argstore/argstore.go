@@ -6,6 +6,4 @@ type Store interface {
 	Args() []any
 	// CommitArg commits an built arg to the store and returns the built bindvar.
 	CommitArg(arg any) string
-	// New returns a new Store of the same type and configuration.
-	New() Store
 }

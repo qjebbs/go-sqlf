@@ -44,8 +44,3 @@ func (s *Named) CommitArg(arg any) string {
 	s.args = append(s.args, sql.Named(baseName, arg))
 	return name
 }
-
-// New implements Store.New.
-func (s *Named) New() Store {
-	return NewNamed(s.marker, s.prefix)
-}

@@ -20,10 +20,10 @@ func Build(ctx *Context, b Builder) (query string, args []any, err error) {
 		return "", nil, nil
 	}
 	// make sure not committing args to the original context
-	buildCtx := ContextWithArgStore(ctx, ctx.NewArgStore())
-	query, err = b.BuildTo(buildCtx)
+	ctx = ContextWithNewArgStore(ctx)
+	query, err = b.BuildTo(ctx)
 	if err != nil {
 		return "", nil, err
 	}
-	return query, buildCtx.Args(), nil
+	return query, ctx.Args(), nil
 }

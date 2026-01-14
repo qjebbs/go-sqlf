@@ -22,8 +22,3 @@ func (p *Positional) CommitArg(arg any) string {
 	p.args = append(p.args, arg)
 	return "?"
 }
-
-// New implements Store.New.
-func (p *Positional) New() Store {
-	return NewPositional()
-}

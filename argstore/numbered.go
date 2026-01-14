@@ -39,8 +39,3 @@ func (s *Numbered) CommitArg(arg any) string {
 	s.args = append(s.args, arg)
 	return s.marker + strconv.Itoa(i)
 }
-
-// New implements Store.New.
-func (s *Numbered) New() Store {
-	return NewNumbered(s.marker)
-}

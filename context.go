@@ -20,15 +20,9 @@ type Context struct {
 
 // NewContext returns a new Context with an argument store for the given dialect.
 // If no store is provided, a new one is created using the dialect's NewArgStore method.
-func NewContext(parent context.Context, dialect dialect.Dialect, store ...argstore.Store) *Context {
-	var s argstore.Store
-	if len(store) > 0 {
-		s = store[0]
-	} else {
-		s = dialect.NewArgStore()
-	}
+func NewContext(parent context.Context, dialect dialect.Dialect) *Context {
 	ctx := contextWithValue(parent, dialectKey{}, dialect)
-	ctx = contextWithValue(ctx, argStoreKey{}, s)
+	ctx = contextWithValue(ctx, argStoreKey{}, dialect.NewArgStore())
 	return ctx
 }
 
@@ -88,17 +82,6 @@ func (c *Context) Value(key any) any {
 
 type argStoreKey struct{}
 
-// NewArgStore returns a new ArgStore of the same type and configuration as in the context.
-//
-// It's useful for creating sub-contexts that need their own ArgStore.
-// For example,
-//
-//	ctx = sqlf.ContextWithArgStore(ctx, ctx.NewArgStore())
-func (c *Context) NewArgStore() argstore.Store {
-	store := c.Value(argStoreKey{}).(argstore.Store)
-	return store.New()
-}
-
 // Args returns the built args of the context.
 func (c *Context) Args() []any {
 	store := c.Value(argStoreKey{}).(argstore.Store)
@@ -111,22 +94,22 @@ func (c *Context) CommitArg(arg any) string {
 	return store.CommitArg(arg)
 }
 
-// ContextWithArgStore returns a new context with the given ArgStore.
+// ContextWithNewArgStore returns a new context with a new ArgStore created from the dialect in the parent context.
+//
+// It's useful for creating sub-contexts that need their own ArgStore, like what sqlf.Build() does.
+func ContextWithNewArgStore(parent *Context) *Context {
+	dialect := parent.Value(dialectKey{}).(dialect.Dialect)
+	store := dialect.NewArgStore()
+	return contextWithArgStore(parent, store)
+}
+
+// contextWithArgStore returns a new context with the given ArgStore.
 // It panics if the store is nil.
-//
-// It's useful to set a custom ArgStore other than the default one from the dialect.
-// For example,
-//
-//	ctx = sqlf.NewContext(parentCtx, dialect.SQLite{})  // default is positional (?)
-//	ctx = sqlf.ContextWithArgStore(ctx, argstore.NewNumbered("$")) // switch to numbered ($1, $2, ...)
-func ContextWithArgStore(parent context.Context, store argstore.Store) *Context {
+func contextWithArgStore(parent context.Context, store argstore.Store) *Context {
 	if store == nil {
 		panic("store cannot be nil")
 	}
 	ctx := contextWithValue(parent, argStoreKey{}, store)
-	if parent.Value(dialectKey{}) == nil {
-		return contextWithValue(ctx, dialectKey{}, defaultDialect)
-	}
 	return ctx
 }
 

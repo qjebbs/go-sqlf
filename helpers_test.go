@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/qjebbs/go-sqlf/v4"
-	"github.com/qjebbs/go-sqlf/v4/argstore"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
 )
 
@@ -91,11 +90,9 @@ func TestBuildIdentifiers(t *testing.T) {
 
 func TestBuild(t *testing.T) {
 	f := sqlf.JoinArgs(", ", 1, 2, 3)
-	ctx := sqlf.NewContext(context.Background(), dialect.SQLite{})
-	// Build should respect this arg store type and configuration.
-	// But not commit args to the store. (only BuildTo does that.)
-	store := argstore.NewNumbered("$")
-	ctx = sqlf.ContextWithArgStore(ctx, store)
+	ctx := sqlf.NewContext(context.Background(), dialect.SQLite{
+		BindVarStyle: dialect.SQLiteBindVarStyleDollarNumbered,
+	})
 	got, _, err := sqlf.Build(ctx, f)
 	if err != nil {
 		t.Fatal(err)
@@ -104,7 +101,7 @@ func TestBuild(t *testing.T) {
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
-	if n := len(store.Args()); n != 0 {
+	if n := len(ctx.Args()); n != 0 {
 		t.Errorf("expected no args committed to the store, got %d", n)
 	}
 }

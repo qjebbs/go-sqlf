@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/qjebbs/go-sqlf/v4"
-	"github.com/qjebbs/go-sqlf/v4/argstore"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
 )
 
@@ -15,7 +14,6 @@ func TestBuildFragment(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name     string
-		store    argstore.Store
 		fragment sqlf.Builder
 		want     string
 		wantArgs []any
@@ -40,12 +38,11 @@ func TestBuildFragment(t *testing.T) {
 				sqlf.F("id"),
 				nil,
 			),
-			want:     "WHERE id=?",
+			want:     "WHERE id=$1",
 			wantArgs: []any{nil},
 		},
 		{
-			name:  "build nil column",
-			store: argstore.NewNumbered("$"),
+			name: "build nil column",
 			fragment: sqlf.F(
 				"WHERE ?=?",
 				(*sqlf.Fragment)(nil),
@@ -55,8 +52,7 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{nil},
 		},
 		{
-			name:  "args merging",
-			store: argstore.NewNumbered("$"),
+			name: "args merging",
 			fragment: sqlf.F(
 				"WHERE foo=? AND bar IN (?)",
 				1,
@@ -78,8 +74,7 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: nil,
 		},
 		{
-			name:  "ref fragment twice",
-			store: argstore.NewNumbered("$"),
+			name: "ref fragment twice",
 			fragment: sqlf.F(
 				"$1, $1",
 				sqlf.F("$1, $2, $1", 1, 2),
@@ -88,16 +83,12 @@ func TestBuildFragment(t *testing.T) {
 			wantArgs: []any{1, 2},
 		},
 	}
+	ctx := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
-			store := tc.store
-			if store == nil {
-				store = argstore.NewPositional()
-			}
-			ctx := sqlf.ContextWithArgStore(context.Background(), store)
-			got, err := tc.fragment.BuildTo(ctx)
+			got, args, err := sqlf.Build(ctx, tc.fragment)
 			if err != nil {
 				if tc.wantErr {
 					return
@@ -107,7 +98,6 @@ func TestBuildFragment(t *testing.T) {
 			if got != tc.want {
 				t.Errorf("got %q, want %q", got, tc.want)
 			}
-			args := ctx.Args()
 			if !reflect.DeepEqual(args, tc.wantArgs) {
 				t.Errorf("got %v, want %v", args, tc.wantArgs)
 			}
