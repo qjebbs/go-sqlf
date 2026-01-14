@@ -2,23 +2,28 @@ package argstore
 
 var _ Store = (*Positional)(nil)
 
-// Positional implements ArgStore for positional parameters (e.g., "?").
+// Positional implements Store for positional parameters (e.g., "?").
 type Positional struct {
 	args []any
 }
 
-// NewPositional creates a new Positional ArgStore.
+// NewPositional creates a new Positional Store.
 func NewPositional() *Positional {
 	return &Positional{}
 }
 
-// Args implements ArgStore.Args.
+// Args implements Store.Args.
 func (p *Positional) Args() []any {
 	return p.args
 }
 
-// CommitArg implements ArgStore.CommitArg.
+// CommitArg implements Store.CommitArg.
 func (p *Positional) CommitArg(arg any) string {
 	p.args = append(p.args, arg)
 	return "?"
+}
+
+// New implements Store.New.
+func (p *Positional) New() Store {
+	return NewPositional()
 }

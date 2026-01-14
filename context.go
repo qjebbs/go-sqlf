@@ -88,6 +88,17 @@ func (c *Context) Value(key any) any {
 
 type argStoreKey struct{}
 
+// NewArgStore returns a new ArgStore of the same type and configuration as in the context.
+//
+// It's useful for creating sub-contexts that need their own ArgStore.
+// For example,
+//
+//	ctx = sqlf.ContextWithArgStore(ctx, ctx.NewArgStore())
+func (c *Context) NewArgStore() argstore.Store {
+	store := c.Value(argStoreKey{}).(argstore.Store)
+	return store.New()
+}
+
 // Args returns the built args of the context.
 func (c *Context) Args() []any {
 	store := c.Value(argStoreKey{}).(argstore.Store)

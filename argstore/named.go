@@ -8,7 +8,7 @@ import (
 
 var _ Store = (*Named)(nil)
 
-// Named implements ArgStore for Named parameters (e.g., ":name", "@name").
+// Named implements Store for Named parameters (e.g., ":name", "@name").
 type Named struct {
 	marker string
 	prefix string
@@ -16,7 +16,7 @@ type Named struct {
 	dict   map[any]int
 }
 
-// NewNamed creates a new Named ArgStore.
+// NewNamed creates a new Named Store.
 func NewNamed(marker, prefix string) *Named {
 	return &Named{
 		marker: marker,
@@ -25,12 +25,12 @@ func NewNamed(marker, prefix string) *Named {
 	}
 }
 
-// Args implements ArgStore.Args.
+// Args implements Store.Args.
 func (s *Named) Args() []any {
 	return s.args
 }
 
-// CommitArg implements ArgStore.CommitArg.
+// CommitArg implements Store.CommitArg.
 func (s *Named) CommitArg(arg any) string {
 	if arg != nil && reflect.TypeOf(arg).Comparable() {
 		if i, ok := s.dict[arg]; ok {
@@ -43,4 +43,9 @@ func (s *Named) CommitArg(arg any) string {
 	name := s.marker + baseName
 	s.args = append(s.args, sql.Named(baseName, arg))
 	return name
+}
+
+// New implements Store.New.
+func (s *Named) New() Store {
+	return NewNamed(s.marker, s.prefix)
 }
