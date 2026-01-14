@@ -30,11 +30,11 @@ func TestBuildFragmentFn(t *testing.T) {
 			want:    "WHERE 1=1",
 		},
 	}
+	ctx := sqlf.NewContext(context.Background(), dialect.SQLite{})
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			// t.Parallel()
-			ctx := sqlf.ContextWithDialect(context.Background(), dialect.SQLite{})
 			got, args, err := sqlf.Build(ctx, tc.builder)
 			if err != nil {
 				if tc.wantErr {
@@ -75,7 +75,7 @@ func TestBuildIdentifiers(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			ctx := sqlf.ContextWithDialect(context.Background(), tc.dialect)
+			ctx := sqlf.NewContext(context.Background(), tc.dialect)
 			builder := sqlf.Identifier(tc.ident)
 			got, err := builder.BuildTo(ctx)
 			if err != nil {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/qjebbs/go-sqlf/v4"
 	"github.com/qjebbs/go-sqlf/v4/argstore"
+	"github.com/qjebbs/go-sqlf/v4/dialect"
 )
 
 func TestBuildFragment(t *testing.T) {
@@ -116,7 +117,7 @@ func TestBuildFragment(t *testing.T) {
 func TestBuildWithCancelledContext(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	buildCtx := sqlf.NewContext(ctx)
+	buildCtx := sqlf.NewContext(ctx, dialect.PostgreSQL{})
 	_, err := sqlf.F(`SELECT 1`).BuildTo(buildCtx)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("got err %v, want context.Canceled", err)

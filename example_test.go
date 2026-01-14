@@ -10,10 +10,7 @@ import (
 )
 
 func Example_basic() {
-	ctx := sqlf.ContextWithDialect(
-		context.Background(),
-		dialect.PostgreSQL{},
-	)
+	ctx := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
 	query, args, _ := sqlf.F(
 		"SELECT * FROM foo WHERE ?",
 		sqlf.Join(
@@ -52,10 +49,7 @@ func Example_insert() {
 		})...),
 	)
 
-	ctx := sqlf.ContextWithDialect(
-		context.Background(),
-		dialect.PostgreSQL{},
-	)
+	ctx := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
 	query, args, err := f.Build(ctx)
 	if err != nil {
 		fmt.Println(err)

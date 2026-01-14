@@ -18,47 +18,37 @@ type Context struct {
 	key, value any
 }
 
-// NewContext returns a new Context with an argument store for the given bind style.
-func NewContext(parent context.Context) *Context {
-	return EnsureContextValues(parent, defaultDialect)
+// NewContext returns a new Context with an argument store for the given dialect.
+// If no store is provided, a new one is created using the dialect's NewArgStore method.
+func NewContext(parent context.Context, dialect dialect.Dialect, store ...argstore.Store) *Context {
+	var s argstore.Store
+	if len(store) > 0 {
+		s = store[0]
+	} else {
+		s = dialect.NewArgStore()
+	}
+	ctx := contextWithValue(parent, dialectKey{}, dialect)
+	ctx = contextWithValue(ctx, argStoreKey{}, s)
+	return ctx
 }
 
 // ContextWithValue returns a new context with the given key and value.
-func ContextWithValue(parent context.Context, key, value any) *Context {
-	return EnsureContextValues(&Context{
+// It's used to create from *Context to a new *Context with custom values.
+//
+// If you want to create a new context.Context with custom values, turn to context.WithValue.
+func ContextWithValue(parent *Context, key, value any) *Context {
+	// the parent is must of type *Context, so we can avoid dialect and argstore checking,
+	// since any other path to create a *Context has already ensured those values are set.
+	return contextWithValue(parent, key, value)
+}
+
+// contextWithValue returns a new context with the given key and value.
+func contextWithValue(parent context.Context, key, value any) *Context {
+	return &Context{
 		parent: parent,
 		key:    key,
 		value:  value,
-	}, defaultDialect)
-}
-
-// EnsureContextValues ensures that the context has both a dialect and an ArgStore.
-func EnsureContextValues(parent context.Context, defaultDialect dialect.Dialect) *Context {
-	ctx, added := contextWithDefaultValue(parent, dialectKey{}, defaultDialect)
-	// ArgStore will surely exist if Dialect exists,
-	// so do default set of ArgStore only when the Dialect was newly added.
-	if added {
-		ctx, _ = contextWithDefaultValue(ctx, argStoreKey{}, defaultDialect.NewArgStore())
 	}
-	if ctx, ok := ctx.(*Context); ok {
-		return ctx
-	}
-	return &Context{
-		parent: ctx,
-	}
-}
-
-// contextWithDefaultValue returns a new context with the given key and value
-// only if the key is not already set in the context.
-func contextWithDefaultValue(ctx context.Context, key any, value any) (c context.Context, added bool) {
-	if v := ctx.Value(key); v != nil {
-		return ctx, false
-	}
-	return &Context{
-		parent: ctx,
-		key:    key,
-		value:  value,
-	}, true
 }
 
 // Deadline always returns false.
@@ -111,18 +101,33 @@ func (c *Context) CommitArg(arg any) string {
 }
 
 // ContextWithArgStore returns a new context with the given ArgStore.
-func ContextWithArgStore(ctx context.Context, store argstore.Store) *Context {
+// It panics if the store is nil.
+//
+// It's useful to set a custom ArgStore other than the default one from the dialect.
+// For example,
+//
+//	ctx = sqlf.NewContext(parentCtx, dialect.SQLite{})  // default is positional (?)
+//	ctx = sqlf.ContextWithArgStore(ctx, argstore.NewNumbered("$")) // switch to numbered ($1, $2, ...)
+func ContextWithArgStore(parent context.Context, store argstore.Store) *Context {
 	if store == nil {
 		panic("store cannot be nil")
 	}
-	return ContextWithValue(ctx, argStoreKey{}, store)
+	ctx := contextWithValue(parent, argStoreKey{}, store)
+	if parent.Value(dialectKey{}) == nil {
+		return contextWithValue(ctx, dialectKey{}, defaultDialect)
+	}
+	return ctx
 }
 
 type dialectKey struct{}
 
 // ContextWithDialect returns a new context with the given dialect.
-func ContextWithDialect(ctx context.Context, dialect dialect.Dialect) *Context {
-	return ContextWithValue(ctx, dialectKey{}, dialect)
+func ContextWithDialect(parent context.Context, dialect dialect.Dialect) *Context {
+	ctx := contextWithValue(parent, dialectKey{}, dialect)
+	if ctx.Value(argStoreKey{}) == nil {
+		return contextWithValue(ctx, argStoreKey{}, dialect.NewArgStore())
+	}
+	return ctx
 }
 
 // DialectFromContext retrieves the dialect from the context.
