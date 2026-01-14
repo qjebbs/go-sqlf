@@ -9,7 +9,11 @@ import (
 var _ Dialect = AnsiSQL{}
 
 // AnsiSQL is the ANSI SQL dialect.
-type AnsiSQL struct{}
+type AnsiSQL struct {
+	// BindVarStyle is the bind variable style to use.
+	// If zero, BindVarStyleQuestion is used.
+	BindVarStyle argstore.BindVarStyle
+}
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
 func (d AnsiSQL) QuoteIdentifier(name string) string {
@@ -18,7 +22,7 @@ func (d AnsiSQL) QuoteIdentifier(name string) string {
 
 // NewArgStore creates a new Positional ArgStore.
 func (d AnsiSQL) NewArgStore() argstore.Store {
-	return argstore.NewPositional()
+	return argstore.NewArgStoreFromBindVarStyle(d.BindVarStyle, argstore.BindVarStyleQuestion)
 }
 
 // TimeFormat returns the time format for the dialect.

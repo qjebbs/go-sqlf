@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/qjebbs/go-sqlf/v4"
+	"github.com/qjebbs/go-sqlf/v4/argstore"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
 )
 
@@ -91,7 +92,7 @@ func TestBuildIdentifiers(t *testing.T) {
 func TestBuild(t *testing.T) {
 	f := sqlf.JoinArgs(", ", 1, 2, 3)
 	ctx := sqlf.NewContext(context.Background(), dialect.SQLite{
-		BindVarStyle: dialect.SQLiteBindVarStyleDollarNumbered,
+		BindVarStyle: argstore.BindVarStyleDollarNumbered,
 	})
 	got, _, err := sqlf.Build(ctx, f)
 	if err != nil {

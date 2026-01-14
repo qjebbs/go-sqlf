@@ -9,7 +9,11 @@ import (
 var _ Dialect = PostgreSQL{}
 
 // PostgreSQL is the ANSI SQL dialect.
-type PostgreSQL struct{}
+type PostgreSQL struct {
+	// BindVarStyle is the bind variable style to use.
+	// If zero, BindVarStyleDollarNumbered is used.
+	BindVarStyle argstore.BindVarStyle
+}
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
 func (d PostgreSQL) QuoteIdentifier(name string) string {
@@ -18,7 +22,7 @@ func (d PostgreSQL) QuoteIdentifier(name string) string {
 
 // NewArgStore creates a new Positional ArgStore.
 func (d PostgreSQL) NewArgStore() argstore.Store {
-	return argstore.NewNumbered("$")
+	return argstore.NewArgStoreFromBindVarStyle(d.BindVarStyle, argstore.BindVarStyleDollarNumbered)
 }
 
 // TimeFormat returns the time format for the dialect.

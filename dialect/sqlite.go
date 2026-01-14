@@ -11,27 +11,9 @@ var _ Dialect = SQLite{}
 // SQLite is the ANSI SQL dialect.
 type SQLite struct {
 	// BindVarStyle is the bind variable style to use.
-	// If empty, "?" is used.
-	BindVarStyle SQLiteBindVarStyle
+	// If zero, BindVarStyleQuestion is used.
+	BindVarStyle argstore.BindVarStyle
 }
-
-// SQLiteBindVarStyle is the bind variable style to use.
-type SQLiteBindVarStyle int
-
-const (
-	// SQLiteBindVarStyleDefault is the default bind variable style.
-	SQLiteBindVarStyleDefault SQLiteBindVarStyle = iota
-	// SQLiteBindVarStyleQuestion is the "?" bind variable style.
-	SQLiteBindVarStyleQuestion
-	// SQLiteBindVarStyleQuestionNumbered is the "?NNN" bind variable style.
-	SQLiteBindVarStyleQuestionNumbered
-	// SQLiteBindVarStyleColonNamed is the ":AAAA" bind variable style.
-	SQLiteBindVarStyleColonNamed
-	// SQLiteBindVarStyleAtNamed is the "@AAAA" bind variable style.
-	SQLiteBindVarStyleAtNamed
-	// SQLiteBindVarStyleDollarNumbered is the "$AAAA" bind variable style.
-	SQLiteBindVarStyleDollarNumbered
-)
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
 func (d SQLite) QuoteIdentifier(name string) string {
@@ -40,22 +22,7 @@ func (d SQLite) QuoteIdentifier(name string) string {
 
 // NewArgStore creates a new Positional ArgStore.
 func (d SQLite) NewArgStore() argstore.Store {
-	switch d.BindVarStyle {
-	case SQLiteBindVarStyleQuestionNumbered:
-		return argstore.NewNumbered("?")
-	case SQLiteBindVarStyleColonNamed:
-		return argstore.NewNamed(":", "")
-	case SQLiteBindVarStyleAtNamed:
-		return argstore.NewNamed("@", "")
-	case SQLiteBindVarStyleDollarNumbered:
-		return argstore.NewNumbered("$")
-	case SQLiteBindVarStyleQuestion:
-		fallthrough
-	case SQLiteBindVarStyleDefault:
-		fallthrough
-	default:
-		return argstore.NewPositional()
-	}
+	return argstore.NewArgStoreFromBindVarStyle(d.BindVarStyle, argstore.BindVarStyleQuestion)
 }
 
 // TimeFormat returns the time format for the dialect.

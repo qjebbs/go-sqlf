@@ -9,7 +9,11 @@ import (
 var _ Dialect = SQLServer{}
 
 // SQLServer is the ANSI SQL dialect.
-type SQLServer struct{}
+type SQLServer struct {
+	// BindVarStyle is the bind variable style to use.
+	// If zero, BindVarStyleAtNamed is used.
+	BindVarStyle argstore.BindVarStyle
+}
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
 func (d SQLServer) QuoteIdentifier(name string) string {
@@ -18,7 +22,7 @@ func (d SQLServer) QuoteIdentifier(name string) string {
 
 // NewArgStore creates a new Positional ArgStore.
 func (d SQLServer) NewArgStore() argstore.Store {
-	return argstore.NewNamed("@", "p")
+	return argstore.NewArgStoreFromBindVarStyle(d.BindVarStyle, argstore.BindVarStyleAtNamed)
 }
 
 // TimeFormat returns the time format for the dialect.
