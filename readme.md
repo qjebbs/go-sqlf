@@ -15,14 +15,15 @@ import (
 	"github.com/qjebbs/go-sqlf/v4"
 )
 func Example_basic() {
+	ctx := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
 	query, args, _ := sqlf.F(
 		"SELECT * FROM foo WHERE ?",
 		sqlf.Join(
-			" AND "
-			sqlf.F("baz = $1", true),             
+			" AND ",
+			sqlf.F("baz = $1", true),
 			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
 		),
-	).BuildQuery(sqlf.BindStyleDollar)
+	).Build(ctx)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -31,7 +32,6 @@ func Example_basic() {
 }
 ```
 
-## QueryBuilder
+## Query Builder
 
-Package [go-sqlb](https://github.com/qjebbs/go-sqlb) provides a complex SQL query builder shipped  with WITH-CTE / JOIN 
-Elimination capabilities, while `go-sqlf` is the underlying foundation.
+Package [go-sqlb](https://github.com/qjebbs/go-sqlb) provides complex SQL builders and struct mapping capabilities, while `go-sqlf` is the underlying foundation.
