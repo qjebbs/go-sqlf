@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"reflect"
@@ -14,11 +15,13 @@ import (
 
 // Interpolate interpolates the args into the query.
 //
-// !!! Use it only on debug purposes.
-func Interpolate(dialect dialect.Dialect, query string, args []any) (string, error) {
-	exprs, err := syntax.Parse(query)
+// !!! Use it only on debug purposes. Due to complexity of SQL syntax
+// between different dialects, it may not work correctly in all cases.
+func Interpolate(dialect dialect.Dialect, query string, args []any) (string, bool) {
+	ok := true
+	exprs, err := syntax.ParseForInterpolating(query)
 	if err != nil {
-		return "", err
+		ok = false
 	}
 	b := new(strings.Builder)
 	for _, decl := range exprs.ExprList {
@@ -26,19 +29,50 @@ func Interpolate(dialect dialect.Dialect, query string, args []any) (string, err
 		case *syntax.PlainExpr:
 			b.WriteString(decl.Text)
 		case *syntax.BindVarExpr:
+			if decl.Name != "" {
+				val, found := findNamedArg(decl.Name, args)
+				if !found {
+					ok = false
+					b.Write([]byte(fmt.Sprintf("/* %s not found */", decl.Name)))
+				} else {
+					v, err := encodeValue(dialect, val)
+					if err != nil {
+						ok = false
+						v = []byte(fmt.Sprintf("/* %s */", err.Error()))
+					}
+					b.Write(v)
+				}
+				continue
+			}
 			if decl.Index < 1 || decl.Index > len(args) {
-				return "", fmt.Errorf("%s: bindvar index out of range: %d", decl.Pos(), decl.Index)
+				ok = false
+				b.Write([]byte(fmt.Sprintf("/* bindvar index out of range: %d */", decl.Index)))
+				continue
 			}
 			v, err := encodeValue(dialect, args[decl.Index-1])
 			if err != nil {
-				return "", err
+				ok = false
+				v = []byte(fmt.Sprintf("/* %s */", err.Error()))
 			}
 			b.Write(v)
 		default:
-			return "", fmt.Errorf("%s: unsupported declaration", decl.Pos())
+			ok = false
+			b.Write([]byte(fmt.Sprintf("/* unsupported declaration: %T */", decl)))
 		}
 	}
-	return b.String(), nil
+	return b.String(), ok
+}
+
+func findNamedArg(name string, args []any) (any, bool) {
+	for _, arg := range args {
+		switch v := arg.(type) {
+		case sql.NamedArg:
+			if v.Name == name {
+				return v.Value, true
+			}
+		}
+	}
+	return nil, false
 }
 
 func encodeValue(dialect dialect.Dialect, arg any) ([]byte, error) {

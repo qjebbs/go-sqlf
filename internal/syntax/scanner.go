@@ -10,12 +10,15 @@ type scanner struct {
 	tokens []*token
 	token  *token
 	state  scanFn
+
+	interpolating bool
 }
 
-func newScanner(input string) *scanner {
+func newScanner(input string, interpolating bool) *scanner {
 	s := &scanner{
-		lexerHelper: newLexerHelper(input),
-		state:       scanPlain,
+		lexerHelper:   newLexerHelper(input),
+		state:         scanPlain,
+		interpolating: interpolating,
 	}
 	return s
 }
@@ -44,12 +47,24 @@ func (s *scanner) NextToken() bool {
 	}
 	return false
 }
+
+// Rewind rewinds the scanner to the previous token
+func (s *scanner) Rewind(current, rewinds *token) {
+	s.tokens = append([]*token{rewinds}, s.tokens...)
+	s.token = current
+}
+
 func scanPlain(s *scanner) scanFn {
 	s.StartToken()
+	var extra1, extra2 = '?', '?'
+	if s.interpolating {
+		extra1 = ':'
+		extra2 = '@'
+	}
 	for r := s.rune; r != EOF; r = s.Next() {
 		switch r {
-		case '$', '?':
-			if s.Peek() == r {
+		case '$', '?', extra1, extra2:
+			if !s.interpolating && s.Peek() == r {
 				if s.current.offset > s.start.offset {
 					s.emitToken(_Plain, _StringLit, false)
 				}

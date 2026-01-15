@@ -61,6 +61,10 @@ func buildClause(ctx *Context, fragment *Fragment, clause *syntax.Clause) (strin
 		case *syntax.PlainExpr:
 			b.WriteString(expr.Text)
 		case *syntax.BindVarExpr:
+			if expr.Name != "" {
+				// should not happen
+				return "", fmt.Errorf("named bind vars not supported by *Fragment")
+			}
 			if expr.Index < 1 || expr.Index > len(props) {
 				return "", fmt.Errorf("invalid bind var index %d", expr.Index)
 			}

@@ -11,7 +11,7 @@ import (
 // Parse parses the input and returns the list of expressions.
 func Parse(input string) (*Clause, error) {
 	p := &parser{
-		scanner: newScanner(input),
+		scanner: newScanner(input, false),
 	}
 	if err := p.Parse(); err != nil {
 		return nil, err

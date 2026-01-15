@@ -1,6 +1,7 @@
 package util_test
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -28,12 +29,27 @@ func ExampleFlattenArgs() {
 func ExampleInterpolate() {
 	query := "SELECT * FROM foo WHERE status = ? AND created_at > ?"
 	args := []any{"ok", time.Date(2026, 01, 13, 0, 0, 0, 0, time.UTC)}
-	interpolated, err := util.Interpolate(dialect.PostgreSQL{}, query, args)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	interpolated, ok := util.Interpolate(dialect.PostgreSQL{}, query, args)
 	fmt.Println(interpolated)
+	fmt.Println(ok)
 	// Output:
 	// SELECT * FROM foo WHERE status = 'ok' AND created_at > '2026-01-13 00:00:00+00:00'
+	// true
+}
+
+func ExampleInterpolate_named() {
+	query := "SELECT * FROM foo WHERE status = @status AND created_at > @created_at"
+	args := []any{
+		sql.Named("status", "ok"),
+		sql.Named(
+			"created_at",
+			time.Date(2026, 01, 13, 0, 0, 0, 0, time.UTC),
+		),
+	}
+	interpolated, ok := util.Interpolate(dialect.SQLServer{}, query, args)
+	fmt.Println(interpolated)
+	fmt.Println(ok)
+	// Output:
+	// SELECT * FROM foo WHERE status = 'ok' AND created_at > '2026-01-13 00:00:00'
+	// true
 }

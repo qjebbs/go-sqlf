@@ -34,6 +34,7 @@ func (*node) aNode()     {}
 type BindVarExpr struct {
 	typ   bindStyle
 	Index int
+	Name  string
 	expr
 }
 
@@ -45,6 +46,14 @@ const (
 	bindStyleQuestion bindStyle = iota
 	// bindStyleDollarNumbered is the style of bind vars like $1, $2, $3
 	bindStyleDollarNumbered
+	// bindStyleQuestionNumbered is the style of bind vars like ?1, ?2, ?3
+	bindStyleQuestionNumbered
+	// bindStyleColonNamed is the style of bind vars like :name, :other
+	bindStyleColonNamed
+	// bindStyleColonNumbered is the style of bind vars like :1, :2, :3
+	bindStyleColonNumbered
+	// bindStyleAtNamed is the style of bind vars like @name, @other
+	bindStyleAtNamed
 )
 
 // PlainExpr is the plain text expression.

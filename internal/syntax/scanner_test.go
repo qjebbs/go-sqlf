@@ -58,7 +58,7 @@ func TestScanner(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.raw, func(t *testing.T) {
 			got := make([]token, 0)
-			s := newScanner(tc.raw)
+			s := newScanner(tc.raw, false)
 			for s.NextToken() {
 				// ignore Pos
 				s.token.pos = Pos{}
