@@ -41,10 +41,10 @@ type BindVarExpr struct {
 type bindStyle int
 
 const (
-	// bindStyleDollar is the style of bind vars like $1, $2, $3
-	bindStyleDollar bindStyle = iota
 	// bindStyleQuestion is the style of bind vars like ?, ?, ?
-	bindStyleQuestion
+	bindStyleQuestion bindStyle = iota
+	// bindStyleDollarNumbered is the style of bind vars like $1, $2, $3
+	bindStyleDollarNumbered
 )
 
 // PlainExpr is the plain text expression.

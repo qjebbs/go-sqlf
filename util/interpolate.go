@@ -26,6 +26,9 @@ func Interpolate(dialect dialect.Dialect, query string, args []any) (string, err
 		case *syntax.PlainExpr:
 			b.WriteString(decl.Text)
 		case *syntax.BindVarExpr:
+			if decl.Index < 1 || decl.Index > len(args) {
+				return "", fmt.Errorf("%s: bindvar index out of range: %d", decl.Pos(), decl.Index)
+			}
 			v, err := encodeValue(dialect, args[decl.Index-1])
 			if err != nil {
 				return "", err

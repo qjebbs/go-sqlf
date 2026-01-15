@@ -1,7 +1,5 @@
 package syntax
 
-import "strconv"
-
 // scanFn is the lexical scan function
 type scanFn func(*scanner) scanFn
 
@@ -46,25 +44,21 @@ func (s *scanner) NextToken() bool {
 	}
 	return false
 }
-
 func scanPlain(s *scanner) scanFn {
 	s.StartToken()
 	for r := s.rune; r != EOF; r = s.Next() {
 		switch r {
 		case '$', '?':
 			if s.Peek() == r {
-				s.Next()
-				continue
+				if s.current.offset > s.start.offset {
+					s.emitToken(_Plain, _StringLit, false)
+				}
+				return scanEscape
 			}
 			if s.current.offset > s.start.offset {
 				s.emitToken(_Plain, _StringLit, false)
 			}
 			return scanRef
-		case '#':
-			if s.current.offset > s.start.offset {
-				s.emitToken(_Plain, _StringLit, false)
-			}
-			return scanFunc
 		case '\'', '"', '`':
 			return scanQuotedPlain
 		}
@@ -78,23 +72,43 @@ func scanPlain(s *scanner) scanFn {
 	return nil
 }
 
+func scanEscape(s *scanner) scanFn {
+	s.StartToken()
+	s.Next()
+	s.Next()
+	s.emitToken(_Escape, _StringLit, false)
+	return scanPlain
+}
+
 func scanRef(s *scanner) scanFn {
 	s.StartToken()
 	s.Next()
 	s.emitToken(_Ref, _StringLit, false)
-	return scanIndex
+	switch s.rune {
+	case '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return scanIndex
+	}
+	return scanName
 }
 
 func scanIndex(s *scanner) scanFn {
-	switch s.rune {
-	case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		s.StartToken()
-		for r := s.rune; r != EOF; r = s.Next() {
-			if r < '0' || r > '9' {
-				break
-			}
+	s.StartToken()
+	for r := s.rune; r != EOF; r = s.Next() {
+		if r < '0' || r > '9' {
+			break
 		}
-		s.emitToken(_Literal, _NumberLit, false)
+	}
+	s.emitToken(_Literal, _NumberLit, false)
+	return scanPlain
+}
+
+func scanName(s *scanner) scanFn {
+	s.StartToken()
+	for s.IsLetter() {
+		s.Next()
+	}
+	if s.Advanced() {
+		s.emitToken(_Name, _StringLit, false)
 	}
 	return scanPlain
 }
@@ -114,97 +128,5 @@ func scanQuotedPlain(s *scanner) scanFn {
 	}
 	// EOF
 	s.emitToken(_Plain, _StringLit, true)
-	return scanPlain
-}
-
-func scanFunc(s *scanner) scanFn {
-	s.StartToken()
-	s.Next()
-	s.emitToken(_Hash, _StringLit, false)
-	return scanFuncName
-}
-
-func scanFuncName(s *scanner) scanFn {
-	s.StartToken()
-	for s.IsLetter() {
-		s.Next()
-	}
-	if !s.Advanced() {
-		return scanPlain
-	}
-	s.emitToken(_Name, _StringLit, false)
-	s.StartToken()
-	for s.IsDecimal() {
-		s.Next()
-	}
-	if s.Advanced() {
-		s.emitToken(_Literal, _NumberLit, false)
-		return scanPlain
-	}
-	if s.rune == '(' {
-		s.Next()
-		s.emitToken(_Lparen, _StringLit, false)
-		return scanFuncArgs
-	}
-	return scanPlain
-}
-
-func scanFuncArgs(s *scanner) scanFn {
-	s.SkipWhitespace()
-	s.StartToken()
-	r := s.rune
-	for r != EOF {
-		switch r {
-		case ',':
-			s.Next()
-			s.emitToken(_Comma, _StringLit, false)
-			return scanFuncArgs
-		case ')':
-			s.Next()
-			s.emitToken(_Rparen, _StringLit, false)
-			return scanPlain
-		case '\'':
-			return scanFuncArgQuoted
-		default:
-			for r != EOF && r != ',' && r != ')' {
-				r = s.Next()
-			}
-			if s.Advanced() {
-				fragment := s.input[s.start.offset:s.current.offset]
-				if fragment == "true" || fragment == "false" {
-					s.emitToken(_Literal, _BoolLit, false)
-					return scanFuncArgs
-				}
-				if fragment == "null" || fragment == "nil" {
-					s.emitToken(_Literal, _NilLit, false)
-					return scanFuncArgs
-				}
-				if _, err := strconv.ParseFloat(fragment, 64); err == nil {
-					s.emitToken(_Literal, _NumberLit, false)
-					return scanFuncArgs
-				}
-				s.emitToken(_Name, _StringLit, true)
-			}
-			return scanFuncArgs
-		}
-	}
-	return scanPlain
-}
-
-func scanFuncArgQuoted(s *scanner) scanFn {
-	quoter := s.rune
-	for r := s.Next(); r != EOF; r = s.Next() {
-		if r == quoter {
-			if quoter == '\'' && s.Peek() == '\'' {
-				s.Next()
-				continue
-			}
-			s.Next()
-			s.emitToken(_Literal, _StringLit, false)
-			return scanFuncArgs
-		}
-	}
-	// EOF
-	s.emitToken(_Literal, _StringLit, true)
 	return scanPlain
 }

@@ -49,32 +49,9 @@ func TestScanner(t *testing.T) {
 		{
 			raw: "$$1",
 			want: []token{
-				{typ: _Plain, lit: "$$1", bad: false, kind: _StringLit, start: 0, end: 3},
+				{typ: _Escape, lit: "$$", bad: false, kind: _StringLit, start: 0, end: 2},
+				{typ: _Plain, lit: "1", bad: false, kind: _StringLit, start: 2, end: 3},
 				{typ: _EOF, lit: "", bad: false, kind: _StringLit, start: 3, end: 3},
-			},
-		},
-		{
-			raw: "#a(1,2)aaaa",
-			want: []token{
-				{typ: _Hash, lit: "#", bad: false, kind: _StringLit, start: 0, end: 1},
-				{typ: _Name, lit: "a", bad: false, kind: _StringLit, start: 1, end: 2},
-				{typ: _Lparen, lit: "(", bad: false, kind: _StringLit, start: 2, end: 3},
-				{typ: _Literal, lit: "1", bad: false, kind: _NumberLit, start: 3, end: 4},
-				{typ: _Comma, lit: ",", bad: false, kind: _StringLit, start: 4, end: 5},
-				{typ: _Literal, lit: "2", bad: false, kind: _NumberLit, start: 5, end: 6},
-				{typ: _Rparen, lit: ")", bad: false, kind: _StringLit, start: 6, end: 7},
-				{typ: _Plain, lit: "aaaa", bad: false, kind: _StringLit, start: 7, end: 11},
-				{typ: _EOF, lit: "", bad: false, kind: _StringLit, start: 11, end: 11},
-			},
-		},
-		{
-			raw: "#a11aaaa",
-			want: []token{
-				{typ: _Hash, lit: "#", bad: false, kind: _StringLit, start: 0, end: 1},
-				{typ: _Name, lit: "a", bad: false, kind: _StringLit, start: 1, end: 2},
-				{typ: _Literal, lit: "11", bad: false, kind: _NumberLit, start: 2, end: 4},
-				{typ: _Plain, lit: "aaaa", bad: false, kind: _StringLit, start: 4, end: 8},
-				{typ: _EOF, lit: "", bad: false, kind: _StringLit, start: 8, end: 8},
 			},
 		},
 	}

@@ -20,12 +20,7 @@ const (
 	_Name    = "name"
 	_Literal = "literal"
 	_Plain   = "plain text"
-
-	// delimiter
-	_Hash   = "#"
-	_Lparen = "("
-	_Rparen = ")"
-	_Comma  = ","
+	_Escape  = "escape"
 )
 
 type litKind uint8

@@ -3,6 +3,9 @@ package syntax
 import (
 	"fmt"
 	"strconv"
+	"strings"
+
+	"github.com/qjebbs/go-sqlf/v4/internal/util"
 )
 
 // Parse parses the input and returns the list of expressions.
@@ -26,19 +29,21 @@ type parser struct {
 	c *Clause
 }
 
-func (p *parser) want(t TokenType) error {
-	if !p.got(t) {
+func (p *parser) want(typs ...TokenType) error {
+	if !p.got(typs...) {
 		return p.syntaxError(
-			fmt.Sprintf("syntax error: unexpected %s, want %s", p.token.typ, t),
+			fmt.Sprintf("syntax error: unexpected %s, want %s", p.token.typ, strings.Join(util.Map(typs, func(t TokenType) string { return string(t) }), " / ")),
 		)
 	}
 	return nil
 }
 
-func (p *parser) got(tok TokenType) bool {
+func (p *parser) got(typs ...TokenType) bool {
 	p.NextToken()
-	if p.token.typ == tok {
-		return true
+	for _, t := range typs {
+		if p.token.typ == t {
+			return true
+		}
 	}
 	return false
 }
@@ -65,6 +70,16 @@ L:
 				Text: p.token.lit,
 				expr: expr{node{p.token.pos}},
 			})
+		case _Escape:
+			p.c.ExprList = append(p.c.ExprList, &PlainExpr{
+				Text: p.token.lit[:1],
+				expr: expr{node{p.token.pos}},
+			})
+		case _Literal:
+			p.c.ExprList = append(p.c.ExprList, &PlainExpr{
+				Text: p.token.lit,
+				expr: expr{node{p.token.pos}},
+			})
 		default:
 			return p.syntaxError("unexpected token " + string(p.token.typ))
 		}
@@ -73,30 +88,15 @@ L:
 }
 
 func (p *parser) bindVarExpr() (Expr, error) {
-	pos := p.token.pos
+	startToken := p.token
+	pos := startToken.pos
 	var t bindStyle
-	switch p.token.lit {
+	switch startToken.lit {
 	case "$":
-		t = bindStyleDollar
-		p.bindVarIndex++
-		if p.bindVarStyle == 0 {
-			p.bindVarStyle = t
+		t = bindStyleDollarNumbered
+		if err := p.checkVarStyle(t); err != nil {
+			return nil, err
 		}
-		if p.bindVarStyle != t {
-			return nil, p.syntaxError("mixed bindvar styles")
-		}
-	case "?":
-		t = bindStyleQuestion
-		p.bindVarIndex++
-		if p.bindVarStyle == 0 {
-			p.bindVarStyle = t
-		}
-		if p.bindVarStyle != t {
-			return nil, p.syntaxError("mixed bindvar styles")
-		}
-	}
-	index := p.bindVarIndex
-	if t != bindStyleQuestion {
 		if err := p.want(_Literal); err != nil {
 			return nil, err
 		}
@@ -107,11 +107,33 @@ func (p *parser) bindVarExpr() (Expr, error) {
 		if err != nil {
 			return nil, p.syntaxError(err.Error())
 		}
-		index = int(val)
+		return &BindVarExpr{
+			typ:   t,
+			Index: int(val),
+			expr:  expr{node{pos}},
+		}, nil
+	case "?":
+		t = bindStyleQuestion
+		p.bindVarIndex++
+		if err := p.checkVarStyle(t); err != nil {
+			return nil, err
+		}
+		return &BindVarExpr{
+			typ:   t,
+			Index: p.bindVarIndex,
+			expr:  expr{node{pos}},
+		}, nil
+	default:
+		return nil, p.syntaxError("unknown bindvar style: " + startToken.lit)
 	}
-	return &BindVarExpr{
-		typ:   t,
-		Index: index,
-		expr:  expr{node{pos}},
-	}, nil
+}
+
+func (p *parser) checkVarStyle(t bindStyle) error {
+	if p.bindVarStyle == 0 {
+		p.bindVarStyle = t
+	}
+	if p.bindVarStyle != t {
+		return p.syntaxError("mixed bindvar styles")
+	}
+	return nil
 }

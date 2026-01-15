@@ -14,6 +14,11 @@ type Fragment struct {
 // F creates a new Fragment.
 // 'raw' uses the same bind variable syntax (? / $1) as database/sql.
 // Additionally, it allows you to bind other fragment builders.
+//
+// Markers Escaping:
+//
+// "?", "$" are special characters in SQL fragments used to denote bind variables.
+// To use them as ordinary characters outside quotes, double them.
 func F(raw string, args ...any) *Fragment {
 	return &Fragment{
 		raw:  raw,
