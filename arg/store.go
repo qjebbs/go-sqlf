@@ -1,4 +1,4 @@
-package argstore
+package arg
 
 // Store defines argument storage for SQL building.
 type Store interface {

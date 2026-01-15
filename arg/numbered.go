@@ -1,4 +1,4 @@
-package argstore
+package arg
 
 import (
 	"reflect"

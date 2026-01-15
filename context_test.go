@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qjebbs/go-sqlf/v4/argstore"
+	"github.com/qjebbs/go-sqlf/v4/arg"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
 )
 
@@ -49,7 +49,7 @@ func assertCongextValuest(t *testing.T, ctx *Context) {
 	if value == nil {
 		t.Fatal("ArgStore not found in context")
 	}
-	_, ok = value.(argstore.Store)
+	_, ok = value.(arg.Store)
 	if !ok {
 		t.Fatal("ArgStore has wrong type")
 	}

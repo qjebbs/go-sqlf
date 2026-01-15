@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/qjebbs/go-sqlf/v4/argstore"
+	"github.com/qjebbs/go-sqlf/v4/arg"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
 )
 
@@ -29,7 +29,7 @@ func NewContext(parent context.Context, dialect dialect.Dialect) *Context {
 //
 // If you want to create a new context.Context with custom values, turn to context.WithValue.
 func ContextWithValue(parent *Context, key, value any) *Context {
-	// the parent is must of type *Context, so we can avoid dialect and argstore checking,
+	// the parent is must of type *Context, so we can avoid dialect and arg checking,
 	// since any other path to create a *Context has already ensured those values are set.
 	return contextWithValue(parent, key, value)
 }
@@ -82,14 +82,14 @@ type argStoreKey struct{}
 
 // Args returns the built args of the context.
 func (c *Context) Args() []any {
-	store := c.Value(argStoreKey{}).(argstore.Store)
+	store := c.Value(argStoreKey{}).(arg.Store)
 	return store.Args()
 }
 
 // CommitArg commits an built arg to the context and returns the built bindvar.
-func (c *Context) CommitArg(arg any) string {
-	store := c.Value(argStoreKey{}).(argstore.Store)
-	return store.CommitArg(arg)
+func (c *Context) CommitArg(v any) string {
+	store := c.Value(argStoreKey{}).(arg.Store)
+	return store.CommitArg(v)
 }
 
 // ContextWithNewArgStore returns a new context with a new ArgStore created from the dialect in the parent context.
@@ -103,7 +103,7 @@ func ContextWithNewArgStore(parent *Context) *Context {
 
 // contextWithArgStore returns a new context with the given ArgStore.
 // It panics if the store is nil.
-func contextWithArgStore(parent context.Context, store argstore.Store) *Context {
+func contextWithArgStore(parent context.Context, store arg.Store) *Context {
 	if store == nil {
 		panic("store cannot be nil")
 	}

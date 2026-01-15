@@ -3,16 +3,16 @@ package dialect
 import (
 	"strings"
 
-	"github.com/qjebbs/go-sqlf/v4/argstore"
+	"github.com/qjebbs/go-sqlf/v4/arg"
 )
 
 var _ Dialect = Oracle{}
 
 // Oracle is the ANSI SQL dialect.
 type Oracle struct {
-	// BindVarStyle is the bind variable style to use.
-	// If empty, BindVarStyleColonNumbered is used.
-	BindVarStyle argstore.BindVarStyle
+	// Style is the bind variable style to use.
+	// If empty, StyleColonNumbered is used.
+	BindVarStyle arg.Style
 }
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
@@ -21,8 +21,8 @@ func (d Oracle) QuoteIdentifier(name string) string {
 }
 
 // NewArgStore creates a new Positional ArgStore.
-func (d Oracle) NewArgStore() argstore.Store {
-	return argstore.NewArgStoreFromBindVarStyle(d.BindVarStyle, argstore.BindVarStyleColonNumbered)
+func (d Oracle) NewArgStore() arg.Store {
+	return arg.NewArgStoreFromStyle(d.BindVarStyle, arg.StyleColonNumbered)
 }
 
 // TimeFormat returns the time format for the dialect.

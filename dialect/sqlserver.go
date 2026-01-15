@@ -3,16 +3,16 @@ package dialect
 import (
 	"strings"
 
-	"github.com/qjebbs/go-sqlf/v4/argstore"
+	"github.com/qjebbs/go-sqlf/v4/arg"
 )
 
 var _ Dialect = SQLServer{}
 
 // SQLServer is the ANSI SQL dialect.
 type SQLServer struct {
-	// BindVarStyle is the bind variable style to use.
-	// If zero, BindVarStyleAtNamed is used.
-	BindVarStyle argstore.BindVarStyle
+	// Style is the bind variable style to use.
+	// If zero, StyleAtNamed is used.
+	BindVarStyle arg.Style
 }
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
@@ -21,8 +21,8 @@ func (d SQLServer) QuoteIdentifier(name string) string {
 }
 
 // NewArgStore creates a new Positional ArgStore.
-func (d SQLServer) NewArgStore() argstore.Store {
-	return argstore.NewArgStoreFromBindVarStyle(d.BindVarStyle, argstore.BindVarStyleAtNamed)
+func (d SQLServer) NewArgStore() arg.Store {
+	return arg.NewArgStoreFromStyle(d.BindVarStyle, arg.StyleAtNamed)
 }
 
 // TimeFormat returns the time format for the dialect.
