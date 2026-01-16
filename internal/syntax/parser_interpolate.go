@@ -70,10 +70,12 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 		err = p.want(_Literal)
 		retrievedTokens = append(retrievedTokens, p.token)
 		if err != nil {
-			return nil, err
+			// not report error when it's not a valid bindvar, parsed as plain text.
+			// same for all other cases below
+			return nil, nil
 		}
 		if p.token.kind != _NumberLit {
-			return nil, err
+			return nil, nil
 		}
 		val, err := strconv.ParseUint(p.token.lit, 10, 64)
 		if err != nil {
@@ -88,13 +90,16 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 		err = p.want(_Literal, _Plain, _EOF)
 		retrievedTokens = append(retrievedTokens, p.token)
 		if err != nil {
-			return nil, err
+			return nil, nil
 		}
 		var index int
 		if p.token.typ == _Literal {
 			t = bindStyleQuestionNumbered
-			if p.token.kind != _NumberLit {
+			if err := p.checkVarStyle(t); err != nil {
 				return nil, err
+			}
+			if p.token.kind != _NumberLit {
+				return nil, nil
 			}
 			val, err := strconv.ParseUint(p.token.lit, 10, 64)
 			if err != nil {
@@ -104,13 +109,13 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 		} else {
 			// plain/EOF following "?" means it's not a numbered bindvar
 			t = bindStyleQuestion
+			if err := p.checkVarStyle(t); err != nil {
+				return nil, err
+			}
 			p.bindVarIndex++
 			index = p.bindVarIndex
 			p.Rewind(startToken, p.token)
 			retrievedTokens = retrievedTokens[:len(retrievedTokens)-1]
-		}
-		if err := p.checkVarStyle(t); err != nil {
-			return nil, err
 		}
 		return []Expr{&BindVarExpr{
 			typ:   t,
@@ -121,7 +126,7 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 		err = p.want(_Literal, _Name)
 		retrievedTokens = append(retrievedTokens, p.token)
 		if err != nil {
-			return nil, err
+			return nil, nil
 		}
 		if p.token.typ == _Name {
 			t = bindStyleColonNamed
@@ -139,7 +144,7 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 			return nil, err
 		}
 		if p.token.kind != _NumberLit {
-			return nil, err
+			return nil, nil
 		}
 		val, err := strconv.ParseUint(p.token.lit, 10, 64)
 		if err != nil {
@@ -154,7 +159,7 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 		err = p.want(_Name)
 		retrievedTokens = append(retrievedTokens, p.token)
 		if err != nil {
-			return nil, err
+			return nil, nil
 		}
 		t = bindStyleAtNamed
 		if err := p.checkVarStyle(t); err != nil {
