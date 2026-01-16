@@ -9,7 +9,8 @@ import (
 func ParseForInterpolating(input string) (*Clause, error) {
 	p := &inerpolatingParser{
 		parser: &parser{
-			scanner: newScanner(input, true),
+			bindVarStyle: BindStyleUnknown,
+			scanner:      newScanner(input, true),
 		},
 	}
 	p.Parse()
@@ -60,10 +61,10 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 		}
 	}()
 
-	var t bindStyle
+	var t BindStyle
 	switch startToken.lit {
 	case "$":
-		t = bindStyleDollarNumbered
+		t = BindStyleDollarNumbered
 		if err := p.checkVarStyle(t); err != nil {
 			return nil, err
 		}
@@ -94,7 +95,7 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 		}
 		var index int
 		if p.token.typ == _Literal {
-			t = bindStyleQuestionNumbered
+			t = BindStyleQuestionNumbered
 			if err := p.checkVarStyle(t); err != nil {
 				return nil, err
 			}
@@ -108,7 +109,7 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 			index = int(val)
 		} else {
 			// plain/EOF following "?" means it's not a numbered bindvar
-			t = bindStyleQuestion
+			t = BindStyleQuestion
 			if err := p.checkVarStyle(t); err != nil {
 				return nil, err
 			}
@@ -129,7 +130,7 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 			return nil, nil
 		}
 		if p.token.typ == _Name {
-			t = bindStyleColonNamed
+			t = BindStyleColonNamed
 			if err := p.checkVarStyle(t); err != nil {
 				return nil, err
 			}
@@ -139,7 +140,7 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 				expr: expr{node{pos}},
 			}}, nil
 		}
-		t = bindStyleColonNumbered
+		t = BindStyleColonNumbered
 		if err := p.checkVarStyle(t); err != nil {
 			return nil, err
 		}
@@ -161,7 +162,7 @@ func (p *inerpolatingParser) bindVarExprInterpolating() (exprs []Expr, err error
 		if err != nil {
 			return nil, nil
 		}
-		t = bindStyleAtNamed
+		t = BindStyleAtNamed
 		if err := p.checkVarStyle(t); err != nil {
 			return nil, err
 		}

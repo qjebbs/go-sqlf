@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/qjebbs/go-sqlf/v4/arg"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
+	"github.com/qjebbs/go-sqlf/v4/internal/arg"
 )
 
 func TestContextValues(t *testing.T) {

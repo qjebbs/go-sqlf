@@ -2,8 +2,6 @@ package dialect
 
 import (
 	"strings"
-
-	"github.com/qjebbs/go-sqlf/v4/arg"
 )
 
 var _ Dialect = AnsiSQL{}
@@ -12,17 +10,20 @@ var _ Dialect = AnsiSQL{}
 type AnsiSQL struct {
 	// Style is the bind variable style to use.
 	// If zero, StyleQuestion is used.
-	BindVarStyle arg.Style
+	BindVarStyle BindStyle
+}
+
+// BindStyle returns the bind variable style for the dialect.
+func (d AnsiSQL) BindStyle() BindStyle {
+	if d.BindVarStyle == BindStyleDefault {
+		return BindStyleQuestion
+	}
+	return d.BindVarStyle
 }
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
 func (d AnsiSQL) QuoteIdentifier(name string) string {
 	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
-}
-
-// NewArgStore creates a new Positional ArgStore.
-func (d AnsiSQL) NewArgStore() arg.Store {
-	return arg.NewArgStoreFromStyle(d.BindVarStyle, arg.StyleQuestion)
 }
 
 // TimeFormat returns the time format for the dialect.

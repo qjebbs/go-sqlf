@@ -2,8 +2,6 @@ package dialect
 
 import (
 	"strings"
-
-	"github.com/qjebbs/go-sqlf/v4/arg"
 )
 
 var _ Dialect = SQLite{}
@@ -12,17 +10,20 @@ var _ Dialect = SQLite{}
 type SQLite struct {
 	// Style is the bind variable style to use.
 	// If zero, StyleQuestion is used.
-	BindVarStyle arg.Style
+	BindVarStyle BindStyle
+}
+
+// BindStyle returns the bind variable style for the dialect.
+func (d SQLite) BindStyle() BindStyle {
+	if d.BindVarStyle == BindStyleDefault {
+		return BindStyleQuestion
+	}
+	return d.BindVarStyle
 }
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
 func (d SQLite) QuoteIdentifier(name string) string {
 	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
-}
-
-// NewArgStore creates a new Positional ArgStore.
-func (d SQLite) NewArgStore() arg.Store {
-	return arg.NewArgStoreFromStyle(d.BindVarStyle, arg.StyleQuestion)
 }
 
 // TimeFormat returns the time format for the dialect.

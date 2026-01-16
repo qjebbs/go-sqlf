@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/qjebbs/go-sqlf/v4/arg"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
+	"github.com/qjebbs/go-sqlf/v4/internal/arg"
 )
 
 var _ context.Context = (*Context)(nil)
@@ -20,7 +20,7 @@ type Context struct {
 // If no store is provided, a new one is created using the dialect's NewArgStore method.
 func NewContext(parent context.Context, dialect dialect.Dialect) *Context {
 	ctx := contextWithValue(parent, dialectKey{}, dialect)
-	ctx = contextWithValue(ctx, argStoreKey{}, dialect.NewArgStore())
+	ctx = contextWithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindStyle()))
 	return ctx
 }
 
@@ -97,7 +97,7 @@ func (c *Context) CommitArg(v any) string {
 // It's useful for creating sub-contexts that need their own ArgStore, like what sqlf.Build() does.
 func ContextWithNewArgStore(parent *Context) *Context {
 	dialect := parent.Value(dialectKey{}).(dialect.Dialect)
-	store := dialect.NewArgStore()
+	store := arg.NewArgStoreFromStyle(dialect.BindStyle())
 	return contextWithArgStore(parent, store)
 }
 
@@ -117,7 +117,7 @@ type dialectKey struct{}
 func ContextWithDialect(parent context.Context, dialect dialect.Dialect) *Context {
 	ctx := contextWithValue(parent, dialectKey{}, dialect)
 	if ctx.Value(argStoreKey{}) == nil {
-		return contextWithValue(ctx, argStoreKey{}, dialect.NewArgStore())
+		return contextWithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindStyle()))
 	}
 	return ctx
 }

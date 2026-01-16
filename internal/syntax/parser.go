@@ -23,7 +23,7 @@ type parser struct {
 	*scanner
 
 	bindVarIndex int
-	bindVarStyle bindStyle
+	bindVarStyle BindStyle
 	// buf []token
 
 	c *Clause
@@ -90,10 +90,10 @@ L:
 func (p *parser) bindVarExpr() (Expr, error) {
 	startToken := p.token
 	pos := startToken.pos
-	var t bindStyle
+	var t BindStyle
 	switch startToken.lit {
 	case "$":
-		t = bindStyleDollarNumbered
+		t = BindStyleDollarNumbered
 		if err := p.checkVarStyle(t); err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func (p *parser) bindVarExpr() (Expr, error) {
 			expr:  expr{node{pos}},
 		}, nil
 	case "?":
-		t = bindStyleQuestion
+		t = BindStyleQuestion
 		p.bindVarIndex++
 		if err := p.checkVarStyle(t); err != nil {
 			return nil, err
@@ -128,9 +128,10 @@ func (p *parser) bindVarExpr() (Expr, error) {
 	}
 }
 
-func (p *parser) checkVarStyle(t bindStyle) error {
-	if p.bindVarStyle == 0 {
+func (p *parser) checkVarStyle(t BindStyle) error {
+	if p.bindVarStyle == BindStyleUnknown {
 		p.bindVarStyle = t
+		return nil
 	}
 	if p.bindVarStyle != t {
 		return p.syntaxError("mixed bindvar styles")

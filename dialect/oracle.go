@@ -2,8 +2,6 @@ package dialect
 
 import (
 	"strings"
-
-	"github.com/qjebbs/go-sqlf/v4/arg"
 )
 
 var _ Dialect = Oracle{}
@@ -12,17 +10,20 @@ var _ Dialect = Oracle{}
 type Oracle struct {
 	// Style is the bind variable style to use.
 	// If empty, StyleColonNumbered is used.
-	BindVarStyle arg.Style
+	BindVarStyle BindStyle
+}
+
+// BindStyle returns the bind variable style for the dialect.
+func (d Oracle) BindStyle() BindStyle {
+	if d.BindVarStyle == BindStyleDefault {
+		return BindStyleColonNumbered
+	}
+	return d.BindVarStyle
 }
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
 func (d Oracle) QuoteIdentifier(name string) string {
 	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
-}
-
-// NewArgStore creates a new Positional ArgStore.
-func (d Oracle) NewArgStore() arg.Store {
-	return arg.NewArgStoreFromStyle(d.BindVarStyle, arg.StyleColonNumbered)
 }
 
 // TimeFormat returns the time format for the dialect.

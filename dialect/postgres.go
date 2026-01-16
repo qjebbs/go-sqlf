@@ -2,8 +2,6 @@ package dialect
 
 import (
 	"strings"
-
-	"github.com/qjebbs/go-sqlf/v4/arg"
 )
 
 var _ Dialect = PostgreSQL{}
@@ -12,17 +10,20 @@ var _ Dialect = PostgreSQL{}
 type PostgreSQL struct {
 	// Style is the bind variable style to use.
 	// If zero, StyleDollarNumbered is used.
-	BindVarStyle arg.Style
+	BindVarStyle BindStyle
+}
+
+// BindStyle returns the bind variable style for the dialect.
+func (d PostgreSQL) BindStyle() BindStyle {
+	if d.BindVarStyle == BindStyleDefault {
+		return BindStyleDollarNumbered
+	}
+	return d.BindVarStyle
 }
 
 // QuoteIdentifier quotes an identifier using ANSI SQL standard.
 func (d PostgreSQL) QuoteIdentifier(name string) string {
 	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
-}
-
-// NewArgStore creates a new Positional ArgStore.
-func (d PostgreSQL) NewArgStore() arg.Store {
-	return arg.NewArgStoreFromStyle(d.BindVarStyle, arg.StyleDollarNumbered)
 }
 
 // TimeFormat returns the time format for the dialect.
