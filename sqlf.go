@@ -2,8 +2,8 @@
 //
 // Unlike other SQL builders or ORMs, *Fragment is the only concept you need
 // to understand.
-// It uses the same bind variable syntax (? / $1) as database/sql, and also
-// supports binding other fragment builders for flexible query composition.
+// It uses the same bind variable syntax (? / $1) as database/sql,
+// which can refer to both ordinary args and fragment builders in args.
 package sqlf
 
 // Builder is a SQL fragment builder.

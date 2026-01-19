@@ -5,7 +5,7 @@ Package `sqlf` is dedicated to building SQL queries by composing fragments.
 > `v4` makes the package exceptionally lightweight and easy to use by preserving only the native bind variable syntax of `database/sql`.
 
 Unlike other SQL builders or ORMs, `*Fragment` is the only concept you need to understand.
-It uses the same bind variable syntax (`?` / `$1`) as `database/sql`, and also supports binding other fragment builders for flexible query composition.
+It uses the same bind variable syntax (`?` / `$1`) as `database/sql`, which can refer to both ordinary args and fragment builders in args.
 
 A `*Fragment` is created by `F()`.
 

@@ -20,6 +20,12 @@ func TestBuildFragment(t *testing.T) {
 		wantErr  bool
 	}{
 		{
+			name:     "escaping",
+			fragment: sqlf.F("WHERE foo -> ? ?? ?", "bar", "baz"),
+			want:     "WHERE foo -> $1 ? $2",
+			wantArgs: []any{"bar", "baz"},
+		},
+		{
 			name:     "build nil fragment",
 			fragment: (*sqlf.Fragment)(nil),
 			want:     "",

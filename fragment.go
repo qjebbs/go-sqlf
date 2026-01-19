@@ -12,13 +12,21 @@ type Fragment struct {
 }
 
 // F creates a new Fragment.
-// 'raw' uses the same bind variable syntax (? / $1) as database/sql.
-// Additionally, it allows you to bind other fragment builders.
 //
-// Markers Escaping:
+// ? / $1 in the raw string can refer to both ordinary args and fragment builders in args.
 //
-// "?", "$" are special characters in SQL fragments used to denote bind variables.
+// For example,
+//
+//	// refer to an ordinary arg
+//	cond := sqlf.F("name = ?", "jebbs")
+//	// refer to a fragment builder
+//	sqlf.F("WHERE ?", cond)
+//
 // To use them as ordinary characters outside quotes, double them.
+//
+//	// This will be built as "WHERE foo -> $1 ? $2"
+//	// with args ["bar", "baz"] for PostgreSQL.
+//	sqlf.F("WHERE foo -> $1 ?? $2", "bar", "baz")
 func F(raw string, args ...any) *Fragment {
 	return &Fragment{
 		raw:  raw,
