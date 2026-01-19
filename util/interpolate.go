@@ -13,13 +13,33 @@ import (
 	"github.com/qjebbs/go-sqlf/v4/internal/syntax"
 )
 
+// interpolateDefaultDialect is a dialect used for interpolation when no dialect is provided.
+// It uses ANSI SQL as the base dialect, but not specific about bind variable style,
+// leaving it to be determined by the parser.
+type interpolateDefaultDialect struct {
+	dialect.AnsiSQL
+}
+
+func (d interpolateDefaultDialect) BindStyle() dialect.BindStyle {
+	return dialect.BindStyleDefault // syntax.BindStyleUnknown
+}
+
 // Interpolate interpolates the args into the query.
+//
+// The dialect parameter is optional. If provided, it will be used to
+// determine the bind variable style and to format time values.
 //
 // !!! Use it only on debug purposes. Due to complexity of SQL syntax
 // between different dialects, it may not work correctly in all cases.
-func Interpolate(dialect dialect.Dialect, query string, args []any) (string, bool) {
+func Interpolate(query string, args []any, d ...dialect.Dialect) (string, bool) {
+	var dialect dialect.Dialect
+	if len(d) > 0 && d[0] != nil {
+		dialect = d[0]
+	} else {
+		dialect = interpolateDefaultDialect{}
+	}
 	ok := true
-	exprs, err := syntax.ParseForInterpolating(query)
+	exprs, err := syntax.ParseForInterpolating(query, dialect.BindStyle())
 	if err != nil {
 		ok = false
 	}

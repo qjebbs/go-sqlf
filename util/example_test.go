@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/qjebbs/go-sqlf/v4/dialect"
 	"github.com/qjebbs/go-sqlf/v4/util"
 )
 
@@ -29,11 +28,11 @@ func ExampleFlattenArgs() {
 func ExampleInterpolate() {
 	query := "SELECT * FROM foo WHERE status = ? AND created_at > ?"
 	args := []any{"ok", time.Date(2026, 01, 13, 0, 0, 0, 0, time.UTC)}
-	interpolated, ok := util.Interpolate(dialect.PostgreSQL{}, query, args)
+	interpolated, ok := util.Interpolate(query, args)
 	fmt.Println(interpolated)
 	fmt.Println(ok)
 	// Output:
-	// SELECT * FROM foo WHERE status = 'ok' AND created_at > '2026-01-13 00:00:00+00:00'
+	// SELECT * FROM foo WHERE status = 'ok' AND created_at > '2026-01-13 00:00:00'
 	// true
 }
 
@@ -46,7 +45,7 @@ func ExampleInterpolate_named() {
 			time.Date(2026, 01, 13, 0, 0, 0, 0, time.UTC),
 		),
 	}
-	interpolated, ok := util.Interpolate(dialect.SQLServer{}, query, args)
+	interpolated, ok := util.Interpolate(query, args)
 	fmt.Println(interpolated)
 	fmt.Println(ok)
 	// Output:
