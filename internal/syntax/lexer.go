@@ -151,7 +151,7 @@ func (l *lexerHelper) IsLetter() bool {
 	return 'a' <= l.Lower() && l.Lower() <= 'z' || l.rune == '_'
 }
 
-func (l *lexerHelper) IsDecimal() bool {
+func (l *lexerHelper) IsDigit() bool {
 	return '0' <= l.rune && l.rune <= '9'
 }
 

@@ -23,7 +23,7 @@ func newScanner(input string, interpolating bool) *scanner {
 	return s
 }
 
-func (s *scanner) emitToken(t TokenType, kind litKind, bad bool) {
+func (s *scanner) emitToken(t TokenType, kind kind, bad bool) {
 	s.tokens = append(s.tokens, &token{
 		typ:   t,
 		kind:  kind,
@@ -64,26 +64,34 @@ func scanPlain(s *scanner) scanFn {
 	for r := s.rune; r != EOF; r = s.Next() {
 		switch r {
 		case '$', '?', extra1, extra2:
-			if !s.interpolating && s.Peek() == r {
+			if s.Peek() == r {
+				if s.interpolating {
+					// In interpolating mode, $$, ??, ::, @@ are not escapes,
+					// neither are they bind vars. Just treat them as plain text.
+					s.Next()
+					continue
+				}
 				if s.current.offset > s.start.offset {
-					s.emitToken(_Plain, _StringLit, false)
+					s.emitToken(_Plain, 0, false)
 				}
 				return scanEscape
 			}
 			if s.current.offset > s.start.offset {
-				s.emitToken(_Plain, _StringLit, false)
+				s.emitToken(_Plain, 0, false)
 			}
 			return scanRef
-		case '\'', '"', '`':
+		case '\'':
 			return scanQuotedPlain
+		case '"':
+			return scanIdentity
 		}
 	}
 	// EOF
 	if s.current.offset > s.start.offset {
-		s.emitToken(_Plain, _StringLit, false)
+		s.emitToken(_Plain, 0, false)
 		return scanPlain
 	}
-	s.emitToken(_EOF, _StringLit, false)
+	s.emitToken(_EOF, 0, false)
 	return nil
 }
 
@@ -91,57 +99,104 @@ func scanEscape(s *scanner) scanFn {
 	s.StartToken()
 	s.Next()
 	s.Next()
-	s.emitToken(_Escape, _StringLit, false)
+	s.emitToken(_Escape, 0, false)
 	return scanPlain
 }
 
 func scanRef(s *scanner) scanFn {
 	s.StartToken()
+	prefix := s.rune
 	s.Next()
-	s.emitToken(_Ref, _StringLit, false)
-	switch s.rune {
-	case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		return scanIndex
-	}
-	return scanName
-}
 
-func scanIndex(s *scanner) scanFn {
-	s.StartToken()
-	for r := s.rune; r != EOF; r = s.Next() {
-		if r < '0' || r > '9' {
-			break
+	switch prefix {
+	case '?':
+		if !s.interpolating || !s.IsDigit() {
+			s.emitToken(_Ref, _KindRefPositional, false)
+			return scanPlain
 		}
+		for s.IsDigit() {
+			s.Next()
+		}
+		s.emitToken(_Ref, _KindRefNumbered, false)
+		return scanPlain
+	case '$':
+		if !s.IsDigit() {
+			if s.interpolating {
+				s.emitToken(_Plain, 0, true)
+			} else {
+				s.emitToken(_Ref, _KindRefNumbered, true)
+			}
+			return scanPlain
+		}
+		for s.IsDigit() {
+			s.Next()
+		}
+		s.emitToken(_Ref, _KindRefNumbered, false)
+		return scanPlain
+	case '@':
+		if !s.IsLetter() {
+			s.emitToken(_Ref, _KindRefNamed, true)
+			return scanPlain
+		}
+		for s.IsLetter() || s.IsDigit() {
+			s.Next()
+		}
+		s.emitToken(_Ref, _KindRefNamed, false)
+		return scanPlain
+	case ':':
+		if s.IsLetter() {
+			for s.IsLetter() || s.IsDigit() {
+				s.Next()
+			}
+			s.emitToken(_Ref, _KindRefNamed, false)
+			return scanPlain
+		}
+		if s.IsDigit() {
+			for s.rune >= '0' && s.rune <= '9' {
+				s.Next()
+			}
+			s.emitToken(_Ref, _KindRefNumbered, false)
+			return scanPlain
+		}
+		s.emitToken(_Ref, _KindRefNumbered, true)
+		return scanPlain
+	default:
+		return scanPlain
 	}
-	s.emitToken(_Literal, _NumberLit, false)
-	return scanPlain
-}
-
-func scanName(s *scanner) scanFn {
-	s.StartToken()
-	for s.IsLetter() {
-		s.Next()
-	}
-	if s.Advanced() {
-		s.emitToken(_Name, _StringLit, false)
-	}
-	return scanPlain
 }
 
 func scanQuotedPlain(s *scanner) scanFn {
 	quoter := s.rune
 	for r := s.Next(); r != EOF; r = s.Next() {
 		if r == quoter {
-			if quoter == '\'' && s.Peek() == '\'' {
+			if s.Peek() == quoter {
 				s.Next()
 				continue
 			}
 			s.Next()
-			s.emitToken(_Plain, _StringLit, false)
+			s.emitToken(_Plain, 0, false)
 			return scanPlain
 		}
 	}
 	// EOF
-	s.emitToken(_Plain, _StringLit, true)
+	s.emitToken(_Plain, 0, true)
+	return scanPlain
+}
+
+func scanIdentity(s *scanner) scanFn {
+	quoter := s.rune
+	for r := s.Next(); r != EOF; r = s.Next() {
+		if r == quoter {
+			if s.Peek() == quoter {
+				s.Next()
+				continue
+			}
+			s.Next()
+			s.emitToken(_Literal, _KindLitString, false)
+			return scanPlain
+		}
+	}
+	// EOF
+	s.emitToken(_Literal, _KindLitString, true)
 	return scanPlain
 }

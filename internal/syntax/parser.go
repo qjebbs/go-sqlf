@@ -88,22 +88,27 @@ L:
 }
 
 func (p *parser) bindVarExpr() (Expr, error) {
-	startToken := p.token
-	pos := startToken.pos
-	var t BindStyle
-	switch startToken.lit {
-	case "$":
-		t = BindStyleDollarNumbered
-		if err := p.checkVarStyle(t); err != nil {
-			return nil, err
-		}
-		if err := p.want(_Literal); err != nil {
-			return nil, err
-		}
-		if p.token.kind != _NumberLit {
-			return nil, p.syntaxError("unexpected '" + p.token.lit + "', want bindvar index")
-		}
-		val, err := strconv.ParseUint(p.token.lit, 10, 64)
+	if p.token.bad {
+		return nil, p.syntaxError("invalid bind variable: " + p.token.lit)
+	}
+
+	t := getBindVarStyle(p.token)
+	if err := p.checkVarStyle(t); err != nil {
+		return nil, err
+	}
+
+	pos := p.token.pos
+	lit := p.token.lit[1:]
+	switch p.token.kind {
+	case _KindRefPositional:
+		p.bindVarIndex++
+		return &BindVarExpr{
+			typ:   t,
+			Index: p.bindVarIndex,
+			expr:  expr{node{pos}},
+		}, nil
+	case _KindRefNumbered:
+		val, err := strconv.ParseUint(lit, 10, 64)
 		if err != nil {
 			return nil, p.syntaxError(err.Error())
 		}
@@ -112,19 +117,14 @@ func (p *parser) bindVarExpr() (Expr, error) {
 			Index: int(val),
 			expr:  expr{node{pos}},
 		}, nil
-	case "?":
-		t = BindStyleQuestion
-		p.bindVarIndex++
-		if err := p.checkVarStyle(t); err != nil {
-			return nil, err
-		}
+	case _KindRefNamed:
 		return &BindVarExpr{
-			typ:   t,
-			Index: p.bindVarIndex,
-			expr:  expr{node{pos}},
+			typ:  t,
+			Name: lit,
+			expr: expr{node{pos}},
 		}, nil
 	default:
-		return nil, p.syntaxError("unknown bindvar style: " + startToken.lit)
+		return nil, p.syntaxError("unknown bindvar style: " + p.token.lit)
 	}
 }
 
@@ -137,4 +137,31 @@ func (p *parser) checkVarStyle(t BindStyle) error {
 		return p.syntaxError("mixed bindvar styles")
 	}
 	return nil
+}
+
+func getBindVarStyle(token *token) BindStyle {
+	switch token.kind {
+	case _KindRefPositional:
+		return BindStyleQuestion
+	}
+	prefix := token.lit[:1]
+	switch token.kind {
+	case _KindRefNumbered:
+		switch prefix {
+		case "$":
+			return BindStyleDollarNumbered
+		case ":":
+			return BindStyleColonNumbered
+		case "?":
+			return BindStyleQuestionNumbered
+		}
+	case _KindRefNamed:
+		switch prefix {
+		case "@":
+			return BindStyleAtNamed
+		case ":":
+			return BindStyleColonNamed
+		}
+	}
+	return BindStyleUnknown
 }

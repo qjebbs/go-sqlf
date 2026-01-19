@@ -4,7 +4,7 @@ type token struct {
 	typ   TokenType
 	lit   string
 	bad   bool
-	kind  litKind
+	kind  kind
 	start int
 	end   int
 	pos   Pos
@@ -17,17 +17,19 @@ const (
 	_EOF TokenType = "EOF"
 
 	_Ref     = "ref"
-	_Name    = "name"
 	_Literal = "literal"
-	_Plain   = "plain text"
 	_Escape  = "escape"
+	_Plain   = "plain text"
 )
 
-type litKind uint8
+type kind uint8
 
 const (
-	_NumberLit litKind = iota
-	_StringLit
-	_BoolLit
-	_NilLit
+	_KindNone kind = iota
+	_KindLitNumber
+	_KindLitString
+
+	_KindRefNamed
+	_KindRefNumbered
+	_KindRefPositional
 )

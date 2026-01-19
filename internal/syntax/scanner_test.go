@@ -13,45 +13,50 @@ func TestScanner(t *testing.T) {
 		{
 			raw: "$1,$2",
 			want: []token{
-				{typ: _Ref, lit: "$", bad: false, kind: _StringLit, start: 0, end: 1},
-				{typ: _Literal, lit: "1", bad: false, kind: _NumberLit, start: 1, end: 2},
-				{typ: _Plain, lit: ",", bad: false, kind: _StringLit, start: 2, end: 3},
-				{typ: _Ref, lit: "$", bad: false, kind: _StringLit, start: 3, end: 4},
-				{typ: _Literal, lit: "2", bad: false, kind: _NumberLit, start: 4, end: 5},
-				{typ: _EOF, lit: "", bad: false, kind: _StringLit, start: 5, end: 5},
+				{typ: _Ref, lit: "$1", bad: false, kind: _KindRefNumbered, start: 0, end: 2},
+				{typ: _Plain, lit: ",", bad: false, kind: 0, start: 2, end: 3},
+				{typ: _Ref, lit: "$2", bad: false, kind: _KindRefNumbered, start: 3, end: 5},
+				{typ: _EOF, lit: "", bad: false, kind: 0, start: 5, end: 5},
 			},
 		},
 		{
 			raw: "a IN (?,?)",
 			want: []token{
-				{typ: _Plain, lit: "a IN (", bad: false, kind: _StringLit, start: 0, end: 6},
-				{typ: _Ref, lit: "?", bad: false, kind: _StringLit, start: 6, end: 7},
-				{typ: _Plain, lit: ",", bad: false, kind: _StringLit, start: 7, end: 8},
-				{typ: _Ref, lit: "?", bad: false, kind: _StringLit, start: 8, end: 9},
-				{typ: _Plain, lit: ")", bad: false, kind: _StringLit, start: 9, end: 10},
-				{typ: _EOF, lit: "", bad: false, kind: _StringLit, start: 10, end: 10},
+				{typ: _Plain, lit: "a IN (", bad: false, kind: 0, start: 0, end: 6},
+				{typ: _Ref, lit: "?", bad: false, kind: _KindRefPositional, start: 6, end: 7},
+				{typ: _Plain, lit: ",", bad: false, kind: 0, start: 7, end: 8},
+				{typ: _Ref, lit: "?", bad: false, kind: _KindRefPositional, start: 8, end: 9},
+				{typ: _Plain, lit: ")", bad: false, kind: 0, start: 9, end: 10},
+				{typ: _EOF, lit: "", bad: false, kind: 0, start: 10, end: 10},
 			},
 		},
 		{
 			raw: "'a''b'",
 			want: []token{
-				{typ: _Plain, lit: "'a''b'", bad: false, kind: _StringLit, start: 0, end: 6},
-				{typ: _EOF, lit: "", bad: false, kind: _StringLit, start: 6, end: 6},
+				{typ: _Plain, lit: "'a''b'", bad: false, kind: 0, start: 0, end: 6},
+				{typ: _EOF, lit: "", bad: false, kind: 0, start: 6, end: 6},
 			},
 		},
 		{
 			raw: "'a''b",
 			want: []token{
-				{typ: _Plain, lit: "'a''b", bad: true, kind: _StringLit, start: 0, end: 5},
-				{typ: _EOF, lit: "", bad: false, kind: _StringLit, start: 5, end: 5},
+				{typ: _Plain, lit: "'a''b", bad: true, kind: 0, start: 0, end: 5},
+				{typ: _EOF, lit: "", bad: false, kind: 0, start: 5, end: 5},
+			},
+		},
+		{
+			raw: `"a""b"`,
+			want: []token{
+				{typ: _Literal, lit: `"a""b"`, bad: false, kind: _KindLitString, start: 0, end: 6},
+				{typ: _EOF, lit: "", bad: false, kind: 0, start: 6, end: 6},
 			},
 		},
 		{
 			raw: "$$1",
 			want: []token{
-				{typ: _Escape, lit: "$$", bad: false, kind: _StringLit, start: 0, end: 2},
-				{typ: _Plain, lit: "1", bad: false, kind: _StringLit, start: 2, end: 3},
-				{typ: _EOF, lit: "", bad: false, kind: _StringLit, start: 3, end: 3},
+				{typ: _Escape, lit: "$$", bad: false, kind: 0, start: 0, end: 2},
+				{typ: _Plain, lit: "1", bad: false, kind: 0, start: 2, end: 3},
+				{typ: _EOF, lit: "", bad: false, kind: 0, start: 3, end: 3},
 			},
 		},
 	}
