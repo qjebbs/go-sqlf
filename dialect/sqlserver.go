@@ -1,29 +1,31 @@
 package dialect
 
-import (
-	"strings"
-)
-
 var _ Dialect = SQLServer{}
 
 // SQLServer is the ANSI SQL dialect.
 type SQLServer struct {
-	// Style is the bind variable style to use.
+	// BindVar is the bind variable style to use.
 	// If zero, StyleAtNamed is used.
-	BindVarStyle BindStyle
+	BindVar BindVarStyle
+	// Quote is the identifier quote style to use.
+	// If zero, StyleSquareBracket is used.
+	Quote QuoteStyle
 }
 
-// BindStyle returns the bind variable style for the dialect.
-func (d SQLServer) BindStyle() BindStyle {
-	if d.BindVarStyle == BindStyleDefault {
-		return BindStyleAtNamed
+// BindVarStyle returns the bind variable style for the dialect.
+func (d SQLServer) BindVarStyle() BindVarStyle {
+	if d.BindVar == BindVarStyleDefault {
+		return BindVarStyleAtNamed
 	}
-	return d.BindVarStyle
+	return d.BindVar
 }
 
-// QuoteIdentifier quotes an identifier using ANSI SQL standard.
-func (d SQLServer) QuoteIdentifier(name string) string {
-	return `[` + strings.ReplaceAll(name, `]`, `]]`) + `]`
+// QuoteStyle returns the identifier quote style for the dialect.
+func (d SQLServer) QuoteStyle() QuoteStyle {
+	if d.Quote == QuoteStyleDefault {
+		return QuoteStyleSquareBracket
+	}
+	return d.Quote
 }
 
 // TimeFormat returns the time format for the dialect.

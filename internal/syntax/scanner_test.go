@@ -33,14 +33,14 @@ func TestScanner(t *testing.T) {
 		{
 			raw: "'a''b'",
 			want: []token{
-				{typ: _Plain, lit: "'a''b'", bad: false, kind: 0, start: 0, end: 6},
+				{typ: _Literal, lit: "'a''b'", bad: false, kind: _KindLitString, start: 0, end: 6},
 				{typ: _EOF, lit: "", bad: false, kind: 0, start: 6, end: 6},
 			},
 		},
 		{
 			raw: "'a''b",
 			want: []token{
-				{typ: _Plain, lit: "'a''b", bad: true, kind: 0, start: 0, end: 5},
+				{typ: _Literal, lit: "'a''b", bad: true, kind: _KindLitString, start: 0, end: 5},
 				{typ: _EOF, lit: "", bad: false, kind: 0, start: 5, end: 5},
 			},
 		},

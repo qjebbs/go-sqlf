@@ -91,7 +91,7 @@ func TestBuildIdentifiers(t *testing.T) {
 func TestBuild(t *testing.T) {
 	f := sqlf.JoinArgs(", ", 1, 2, 3)
 	ctx := sqlf.NewContext(context.Background(), dialect.SQLite{
-		BindVarStyle: dialect.BindStyleDollarNumbered,
+		BindVar: dialect.BindVarStyleDollarNumbered,
 	})
 	got, _, err := sqlf.Build(ctx, f)
 	if err != nil {

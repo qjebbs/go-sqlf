@@ -3,19 +3,19 @@ package arg
 import "github.com/qjebbs/go-sqlf/v4/internal/syntax"
 
 // NewArgStoreFromStyle creates a new ArgStore based on the given Style.
-func NewArgStoreFromStyle(style syntax.BindStyle) Store {
+func NewArgStoreFromStyle(style syntax.BindVarStyle) Store {
 	switch style {
-	case syntax.BindStyleQuestion:
+	case syntax.BindVarStyleQuestion:
 		return NewPositional()
-	case syntax.BindStyleDollarNumbered:
+	case syntax.BindVarStyleDollarNumbered:
 		return NewNumbered("$")
-	case syntax.BindStyleQuestionNumbered:
+	case syntax.BindVarStyleQuestionNumbered:
 		return NewNumbered("?")
-	case syntax.BindStyleColonNamed:
+	case syntax.BindVarStyleColonNamed:
 		return NewNamed(":", "p")
-	case syntax.BindStyleColonNumbered:
+	case syntax.BindVarStyleColonNumbered:
 		return NewNumbered(":")
-	case syntax.BindStyleAtNamed:
+	case syntax.BindVarStyleAtNamed:
 		return NewNamed("@", "p")
 	default:
 		// unknown style, return default

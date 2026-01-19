@@ -1,29 +1,31 @@
 package dialect
 
-import (
-	"strings"
-)
-
 var _ Dialect = AnsiSQL{}
 
 // AnsiSQL is the ANSI SQL dialect.
 type AnsiSQL struct {
-	// Style is the bind variable style to use.
+	// BindVar is the bind variable style to use.
 	// If zero, StyleQuestion is used.
-	BindVarStyle BindStyle
+	BindVar BindVarStyle
+	// Quote is the identifier quote style to use.
+	// If zero, StyleDoubleQuote is used.
+	Quote QuoteStyle
 }
 
-// BindStyle returns the bind variable style for the dialect.
-func (d AnsiSQL) BindStyle() BindStyle {
-	if d.BindVarStyle == BindStyleDefault {
-		return BindStyleQuestion
+// BindVarStyle returns the bind variable style for the dialect.
+func (d AnsiSQL) BindVarStyle() BindVarStyle {
+	if d.BindVar == BindVarStyleDefault {
+		return BindVarStyleQuestion
 	}
-	return d.BindVarStyle
+	return d.BindVar
 }
 
-// QuoteIdentifier quotes an identifier using ANSI SQL standard.
-func (d AnsiSQL) QuoteIdentifier(name string) string {
-	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
+// QuoteStyle returns the identifier quote style for the dialect.
+func (d AnsiSQL) QuoteStyle() QuoteStyle {
+	if d.Quote == QuoteStyleDefault {
+		return QuoteStyleDoubleQuote
+	}
+	return d.Quote
 }
 
 // TimeFormat returns the time format for the dialect.

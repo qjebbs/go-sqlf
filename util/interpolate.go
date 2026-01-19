@@ -20,8 +20,8 @@ type interpolateDefaultDialect struct {
 	dialect.AnsiSQL
 }
 
-func (d interpolateDefaultDialect) BindStyle() dialect.BindStyle {
-	return dialect.BindStyleDefault // syntax.BindStyleUnknown
+func (d interpolateDefaultDialect) BindVarStyle() dialect.BindVarStyle {
+	return dialect.BindVarStyleDefault // syntax.BindVarStyleUnknown
 }
 
 // Interpolate interpolates the args into the query.
@@ -39,7 +39,7 @@ func Interpolate(query string, args []any, d ...dialect.Dialect) (string, bool) 
 		dialect = interpolateDefaultDialect{}
 	}
 	ok := true
-	exprs, err := syntax.ParseForInterpolating(query, dialect.BindStyle())
+	exprs, err := syntax.ParseForInterpolating(query, dialect.BindVarStyle())
 	if err != nil {
 		ok = false
 	}

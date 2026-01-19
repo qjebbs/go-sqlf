@@ -20,7 +20,7 @@ type Context struct {
 // If no store is provided, a new one is created using the dialect's NewArgStore method.
 func NewContext(parent context.Context, dialect dialect.Dialect) *Context {
 	ctx := contextWithValue(parent, dialectKey{}, dialect)
-	ctx = contextWithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindStyle()))
+	ctx = contextWithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindVarStyle()))
 	return ctx
 }
 
@@ -97,7 +97,7 @@ func (c *Context) CommitArg(v any) string {
 // It's useful for creating sub-contexts that need their own ArgStore, like what sqlf.Build() does.
 func ContextWithNewArgStore(parent *Context) *Context {
 	dialect := parent.Value(dialectKey{}).(dialect.Dialect)
-	store := arg.NewArgStoreFromStyle(dialect.BindStyle())
+	store := arg.NewArgStoreFromStyle(dialect.BindVarStyle())
 	return contextWithArgStore(parent, store)
 }
 
@@ -117,7 +117,7 @@ type dialectKey struct{}
 func ContextWithDialect(parent context.Context, dialect dialect.Dialect) *Context {
 	ctx := contextWithValue(parent, dialectKey{}, dialect)
 	if ctx.Value(argStoreKey{}) == nil {
-		return contextWithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindStyle()))
+		return contextWithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindVarStyle()))
 	}
 	return ctx
 }

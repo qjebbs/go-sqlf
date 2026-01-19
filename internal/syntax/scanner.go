@@ -56,14 +56,14 @@ func (s *scanner) Rewind(current, rewinds *token) {
 
 func scanPlain(s *scanner) scanFn {
 	s.StartToken()
-	var extra1, extra2 = '?', '?'
+	var bindExtra1, bindExtra2 = '?', '?'
 	if s.interpolating {
-		extra1 = ':'
-		extra2 = '@'
+		bindExtra1 = ':'
+		bindExtra2 = '@'
 	}
 	for r := s.rune; r != EOF; r = s.Next() {
 		switch r {
-		case '$', '?', extra1, extra2:
+		case '$', '?', bindExtra1, bindExtra2:
 			if s.Peek() == r {
 				if s.interpolating {
 					// In interpolating mode, $$, ??, ::, @@ are not escapes,
@@ -80,10 +80,11 @@ func scanPlain(s *scanner) scanFn {
 				s.emitToken(_Plain, 0, false)
 			}
 			return scanRef
-		case '\'':
-			return scanQuotedPlain
-		case '"':
-			return scanIdentity
+		case '\'', '"':
+			if s.current.offset > s.start.offset {
+				s.emitToken(_Plain, 0, false)
+			}
+			return scanQuoted
 		}
 	}
 	// EOF
@@ -165,25 +166,8 @@ func scanRef(s *scanner) scanFn {
 	}
 }
 
-func scanQuotedPlain(s *scanner) scanFn {
-	quoter := s.rune
-	for r := s.Next(); r != EOF; r = s.Next() {
-		if r == quoter {
-			if s.Peek() == quoter {
-				s.Next()
-				continue
-			}
-			s.Next()
-			s.emitToken(_Plain, 0, false)
-			return scanPlain
-		}
-	}
-	// EOF
-	s.emitToken(_Plain, 0, true)
-	return scanPlain
-}
-
-func scanIdentity(s *scanner) scanFn {
+func scanQuoted(s *scanner) scanFn {
+	s.StartToken()
 	quoter := s.rune
 	for r := s.Next(); r != EOF; r = s.Next() {
 		if r == quoter {

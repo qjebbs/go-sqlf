@@ -61,3 +61,20 @@ func Example_insert() {
 	// INSERT INTO users (name, email) VALUES ($1, $2), ($3, $4)
 	// [alice alice@example.org bob bob@example.org]
 }
+
+func Example_dialect() {
+	ctx := sqlf.NewContext(context.Background(), dialect.MySQL{})
+	query, args, err := sqlf.F(
+		`SELECT * FROM foo WHERE "baz" = $1`,
+		1,
+	).Build(ctx)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(query)
+	fmt.Println(args)
+	// Output:
+	// SELECT * FROM foo WHERE `baz` = ?
+	// [1]
+}

@@ -23,7 +23,7 @@ type parser struct {
 	*scanner
 
 	bindVarIndex int
-	bindVarStyle BindStyle
+	bindVarStyle BindVarStyle
 	// buf []token
 
 	c *Clause
@@ -60,11 +60,11 @@ L:
 		case _EOF:
 			break L
 		case _Ref:
-			d, err := p.bindVarExpr()
+			expr, err := p.bindVarExpr()
 			if err != nil {
 				return err
 			}
-			p.c.ExprList = append(p.c.ExprList, d)
+			p.c.ExprList = append(p.c.ExprList, expr)
 		case _Plain:
 			p.c.ExprList = append(p.c.ExprList, &PlainExpr{
 				Text: p.token.lit,
@@ -76,15 +76,73 @@ L:
 				expr: expr{node{p.token.pos}},
 			})
 		case _Literal:
-			p.c.ExprList = append(p.c.ExprList, &PlainExpr{
-				Text: p.token.lit,
-				expr: expr{node{p.token.pos}},
-			})
+			expr, err := p.literalExpr()
+			if err != nil {
+				return err
+			}
+			p.c.ExprList = append(p.c.ExprList, expr)
 		default:
 			return p.syntaxError("unexpected token " + string(p.token.typ))
 		}
 	}
 	return nil
+}
+
+func (p *parser) literalExpr() (Expr, error) {
+	if p.token.bad {
+		return nil, p.syntaxError("invalid literal: " + p.token.lit)
+	}
+
+	pos := p.token.pos
+	lit := p.token.lit
+	switch p.token.kind {
+	case _KindLitNumber:
+		return &PlainExpr{
+			Text: lit,
+			expr: expr{node{pos}},
+		}, nil
+	case _KindLitString:
+		quoter := lit[:1]
+		if quoter == "'" {
+			return &PlainExpr{
+				Text: lit,
+				expr: expr{node{pos}},
+			}, nil
+		}
+		unquoted, err := unquoteString(lit)
+		if err != nil {
+			return nil, p.syntaxError(err.Error())
+		}
+		return &IdentityExpr{
+			Name: unquoted,
+			expr: expr{node{pos}},
+		}, nil
+	default:
+		return nil, p.syntaxError("unknown literal type: " + p.token.lit)
+	}
+}
+
+func unquoteString(lit string) (string, error) {
+	if len(lit) < 2 {
+		return "", fmt.Errorf("invalid string literal: %s", lit)
+	}
+	quote := lit[0]
+	if lit[len(lit)-1] != quote {
+		return "", fmt.Errorf("mismatched quotes in string literal: %s", lit)
+	}
+	content := lit[1 : len(lit)-1]
+	switch quote {
+	case '\'':
+		return strings.ReplaceAll(content, "''", "'"), nil
+	case '"':
+		return strings.ReplaceAll(content, `""`, `"`), nil
+	// case '`':
+	// 	return strings.ReplaceAll(content, "``", "`"), nil
+	// case '[':
+	// 	return strings.ReplaceAll(content, "]]", "]"), nil
+	default:
+		return "", fmt.Errorf("unknown quote character: %c", quote)
+	}
 }
 
 func (p *parser) bindVarExpr() (Expr, error) {
@@ -128,8 +186,8 @@ func (p *parser) bindVarExpr() (Expr, error) {
 	}
 }
 
-func (p *parser) checkVarStyle(t BindStyle) error {
-	if p.bindVarStyle == BindStyleUnknown {
+func (p *parser) checkVarStyle(t BindVarStyle) error {
+	if p.bindVarStyle == BindVarStyleUnknown {
 		p.bindVarStyle = t
 		return nil
 	}
@@ -139,29 +197,29 @@ func (p *parser) checkVarStyle(t BindStyle) error {
 	return nil
 }
 
-func getBindVarStyle(token *token) BindStyle {
+func getBindVarStyle(token *token) BindVarStyle {
 	switch token.kind {
 	case _KindRefPositional:
-		return BindStyleQuestion
+		return BindVarStyleQuestion
 	}
 	prefix := token.lit[:1]
 	switch token.kind {
 	case _KindRefNumbered:
 		switch prefix {
 		case "$":
-			return BindStyleDollarNumbered
+			return BindVarStyleDollarNumbered
 		case ":":
-			return BindStyleColonNumbered
+			return BindVarStyleColonNumbered
 		case "?":
-			return BindStyleQuestionNumbered
+			return BindVarStyleQuestionNumbered
 		}
 	case _KindRefNamed:
 		switch prefix {
 		case "@":
-			return BindStyleAtNamed
+			return BindVarStyleAtNamed
 		case ":":
-			return BindStyleColonNamed
+			return BindVarStyleColonNamed
 		}
 	}
-	return BindStyleUnknown
+	return BindVarStyleUnknown
 }

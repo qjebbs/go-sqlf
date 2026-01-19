@@ -118,7 +118,7 @@ func PrefixSuffix(prefix, suffix string, b Builder) Builder {
 func Identifier(name string) Builder {
 	return Func(func(ctx *Context) (string, error) {
 		dialect := ctx.Dialect()
-		quoted := dialect.QuoteIdentifier(name)
+		quoted := dialect.QuoteStyle().QuoteIdentifier(name)
 		return quoted, nil
 	})
 }

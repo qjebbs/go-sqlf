@@ -32,31 +32,37 @@ func (*node) aNode()     {}
 
 // BindVarExpr is the bind var expression.
 type BindVarExpr struct {
-	typ   BindStyle
+	typ   BindVarStyle
 	Index int
 	Name  string
 	expr
 }
 
-// BindStyle is the type of bind vars.
-type BindStyle int
+// BindVarStyle is the type of bind vars.
+type BindVarStyle int
 
 const (
-	// BindStyleUnknown is the unknown style of bind vars.
-	BindStyleUnknown BindStyle = iota
-	// BindStyleQuestion is the style of bind vars like ?, ?, ?
-	BindStyleQuestion
-	// BindStyleDollarNumbered is the style of bind vars like $1, $2, $3
-	BindStyleDollarNumbered
-	// BindStyleQuestionNumbered is the style of bind vars like ?1, ?2, ?3
-	BindStyleQuestionNumbered
-	// BindStyleColonNamed is the style of bind vars like :name, :other
-	BindStyleColonNamed
-	// BindStyleColonNumbered is the style of bind vars like :1, :2, :3
-	BindStyleColonNumbered
-	// BindStyleAtNamed is the style of bind vars like @name, @other
-	BindStyleAtNamed
+	// BindVarStyleUnknown is the unknown style of bind vars.
+	BindVarStyleUnknown BindVarStyle = iota
+	// BindVarStyleQuestion is the style of bind vars like ?, ?, ?
+	BindVarStyleQuestion
+	// BindVarStyleDollarNumbered is the style of bind vars like $1, $2, $3
+	BindVarStyleDollarNumbered
+	// BindVarStyleQuestionNumbered is the style of bind vars like ?1, ?2, ?3
+	BindVarStyleQuestionNumbered
+	// BindVarStyleColonNamed is the style of bind vars like :name, :other
+	BindVarStyleColonNamed
+	// BindVarStyleColonNumbered is the style of bind vars like :1, :2, :3
+	BindVarStyleColonNumbered
+	// BindVarStyleAtNamed is the style of bind vars like @name, @other
+	BindVarStyleAtNamed
 )
+
+// IdentityExpr is the identity expression.
+type IdentityExpr struct {
+	Name string
+	expr
+}
 
 // PlainExpr is the plain text expression.
 type PlainExpr struct {

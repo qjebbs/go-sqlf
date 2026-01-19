@@ -2,7 +2,7 @@ package syntax
 
 // ParseForInterpolating parses the input for interpolation and returns the list of expressions.
 // It always returns a Clause, even if there are errors during parsing.
-func ParseForInterpolating(input string, bindStyle BindStyle) (*Clause, error) {
+func ParseForInterpolating(input string, bindStyle BindVarStyle) (*Clause, error) {
 	p := &inerpolatingParser{
 		parser: &parser{
 			bindVarStyle: bindStyle,

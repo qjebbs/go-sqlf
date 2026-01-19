@@ -37,24 +37,24 @@ func TestParser(t *testing.T) {
 		{
 			raw: "?1",
 			want: []Expr{
-				&BindVarExpr{typ: BindStyleQuestion, Index: 1, expr: newExpr(1, 1)},
+				&BindVarExpr{typ: BindVarStyleQuestion, Index: 1, expr: newExpr(1, 1)},
 				&PlainExpr{Text: "1", expr: newExpr(1, 2)},
 			},
 		},
 		{
 			raw: "?,?,?",
 			want: []Expr{
-				&BindVarExpr{typ: BindStyleQuestion, Index: 1, expr: newExpr(1, 1)},
+				&BindVarExpr{typ: BindVarStyleQuestion, Index: 1, expr: newExpr(1, 1)},
 				&PlainExpr{Text: ",", expr: newExpr(1, 2)},
-				&BindVarExpr{typ: BindStyleQuestion, Index: 2, expr: newExpr(1, 3)},
+				&BindVarExpr{typ: BindVarStyleQuestion, Index: 2, expr: newExpr(1, 3)},
 				&PlainExpr{Text: ",", expr: newExpr(1, 4)},
-				&BindVarExpr{typ: BindStyleQuestion, Index: 3, expr: newExpr(1, 5)},
+				&BindVarExpr{typ: BindVarStyleQuestion, Index: 3, expr: newExpr(1, 5)},
 			},
 		},
 		{
 			raw: "$1'?,?,$1'",
 			want: []Expr{
-				&BindVarExpr{typ: BindStyleDollarNumbered, Index: 1, expr: newExpr(1, 1)},
+				&BindVarExpr{typ: BindVarStyleDollarNumbered, Index: 1, expr: newExpr(1, 1)},
 				&PlainExpr{Text: "'?,?,$1'", expr: newExpr(1, 3)},
 			},
 		},
