@@ -25,7 +25,7 @@ L:
 		switch p.token.typ {
 		case _EOF:
 			break L
-		case _Ref:
+		case _BindVar:
 			expr, err := p.bindVarExpr()
 			if err != nil && p.err == nil {
 				p.err = err

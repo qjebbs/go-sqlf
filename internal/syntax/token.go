@@ -11,16 +11,32 @@ type token struct {
 }
 
 // TokenType is the type of token.
-type TokenType string
+type TokenType uint8
 
 const (
-	_EOF TokenType = "EOF"
+	_EOF TokenType = iota
 
-	_Ref     = "ref"
-	_Literal = "literal"
-	_Escape  = "escape"
-	_Plain   = "plain text"
+	_BindVar
+	_Literal
+	_Escape
+	_Raw
 )
+
+func (t TokenType) String() string {
+	switch t {
+	case _EOF:
+		return "EOF"
+	case _BindVar:
+		return "BindVar"
+	case _Literal:
+		return "Literal"
+	case _Escape:
+		return "Escape"
+	case _Raw:
+		return "Raw"
+	}
+	return "Unknown"
+}
 
 type kind uint8
 

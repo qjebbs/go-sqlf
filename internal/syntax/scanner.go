@@ -58,7 +58,7 @@ func scanPlain(s *scanner) scanFn {
 	s.StartToken()
 	defer func() {
 		if s.current.offset > s.start.offset {
-			s.emitToken(_Plain, 0, false)
+			s.emitToken(_Raw, 0, false)
 		}
 	}()
 
@@ -115,54 +115,54 @@ func scanRef(s *scanner) scanFn {
 	switch prefix {
 	case '?':
 		if !s.interpolating || !s.IsDigit() {
-			s.emitToken(_Ref, _KindRefPositional, false)
+			s.emitToken(_BindVar, _KindRefPositional, false)
 			return scanPlain
 		}
 		for s.IsDigit() {
 			s.Next()
 		}
-		s.emitToken(_Ref, _KindRefNumbered, false)
+		s.emitToken(_BindVar, _KindRefNumbered, false)
 		return scanPlain
 	case '$':
 		if !s.IsDigit() {
 			if s.interpolating {
-				s.emitToken(_Plain, 0, true)
+				s.emitToken(_Raw, 0, true)
 			} else {
-				s.emitToken(_Ref, _KindRefNumbered, true)
+				s.emitToken(_BindVar, _KindRefNumbered, true)
 			}
 			return scanPlain
 		}
 		for s.IsDigit() {
 			s.Next()
 		}
-		s.emitToken(_Ref, _KindRefNumbered, false)
+		s.emitToken(_BindVar, _KindRefNumbered, false)
 		return scanPlain
 	case '@':
 		if !s.IsLetter() {
-			s.emitToken(_Ref, _KindRefNamed, true)
+			s.emitToken(_BindVar, _KindRefNamed, true)
 			return scanPlain
 		}
 		for s.IsLetter() || s.IsDigit() {
 			s.Next()
 		}
-		s.emitToken(_Ref, _KindRefNamed, false)
+		s.emitToken(_BindVar, _KindRefNamed, false)
 		return scanPlain
 	case ':':
 		if s.IsLetter() {
 			for s.IsLetter() || s.IsDigit() {
 				s.Next()
 			}
-			s.emitToken(_Ref, _KindRefNamed, false)
+			s.emitToken(_BindVar, _KindRefNamed, false)
 			return scanPlain
 		}
 		if s.IsDigit() {
 			for s.rune >= '0' && s.rune <= '9' {
 				s.Next()
 			}
-			s.emitToken(_Ref, _KindRefNumbered, false)
+			s.emitToken(_BindVar, _KindRefNumbered, false)
 			return scanPlain
 		}
-		s.emitToken(_Ref, _KindRefNumbered, true)
+		s.emitToken(_BindVar, _KindRefNumbered, true)
 		return scanPlain
 	default:
 		return scanPlain

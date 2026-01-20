@@ -13,20 +13,20 @@ func TestScanner(t *testing.T) {
 		{
 			raw: "$1,$2",
 			want: []token{
-				{typ: _Ref, lit: "$1", bad: false, kind: _KindRefNumbered, start: 0, end: 2},
-				{typ: _Plain, lit: ",", bad: false, kind: 0, start: 2, end: 3},
-				{typ: _Ref, lit: "$2", bad: false, kind: _KindRefNumbered, start: 3, end: 5},
+				{typ: _BindVar, lit: "$1", bad: false, kind: _KindRefNumbered, start: 0, end: 2},
+				{typ: _Raw, lit: ",", bad: false, kind: 0, start: 2, end: 3},
+				{typ: _BindVar, lit: "$2", bad: false, kind: _KindRefNumbered, start: 3, end: 5},
 				{typ: _EOF, lit: "", bad: false, kind: 0, start: 5, end: 5},
 			},
 		},
 		{
 			raw: "a IN (?,?)",
 			want: []token{
-				{typ: _Plain, lit: "a IN (", bad: false, kind: 0, start: 0, end: 6},
-				{typ: _Ref, lit: "?", bad: false, kind: _KindRefPositional, start: 6, end: 7},
-				{typ: _Plain, lit: ",", bad: false, kind: 0, start: 7, end: 8},
-				{typ: _Ref, lit: "?", bad: false, kind: _KindRefPositional, start: 8, end: 9},
-				{typ: _Plain, lit: ")", bad: false, kind: 0, start: 9, end: 10},
+				{typ: _Raw, lit: "a IN (", bad: false, kind: 0, start: 0, end: 6},
+				{typ: _BindVar, lit: "?", bad: false, kind: _KindRefPositional, start: 6, end: 7},
+				{typ: _Raw, lit: ",", bad: false, kind: 0, start: 7, end: 8},
+				{typ: _BindVar, lit: "?", bad: false, kind: _KindRefPositional, start: 8, end: 9},
+				{typ: _Raw, lit: ")", bad: false, kind: 0, start: 9, end: 10},
 				{typ: _EOF, lit: "", bad: false, kind: 0, start: 10, end: 10},
 			},
 		},
@@ -55,7 +55,7 @@ func TestScanner(t *testing.T) {
 			raw: "$$1",
 			want: []token{
 				{typ: _Escape, lit: "$$", bad: false, kind: 0, start: 0, end: 2},
-				{typ: _Plain, lit: "1", bad: false, kind: 0, start: 2, end: 3},
+				{typ: _Raw, lit: "1", bad: false, kind: 0, start: 2, end: 3},
 				{typ: _EOF, lit: "", bad: false, kind: 0, start: 3, end: 3},
 			},
 		},

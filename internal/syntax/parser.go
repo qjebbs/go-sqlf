@@ -32,7 +32,12 @@ type parser struct {
 func (p *parser) want(typs ...TokenType) error {
 	if !p.got(typs...) {
 		return p.syntaxError(
-			fmt.Sprintf("syntax error: unexpected %s, want %s", p.token.typ, strings.Join(util.Map(typs, func(t TokenType) string { return string(t) }), " / ")),
+			fmt.Sprintf("syntax error: unexpected %s, want %s", p.token.typ, strings.Join(
+				util.Map(typs, func(t TokenType) string {
+					return t.String()
+				}),
+				" / ",
+			)),
 		)
 	}
 	return nil
@@ -59,13 +64,13 @@ L:
 		switch p.token.typ {
 		case _EOF:
 			break L
-		case _Ref:
+		case _BindVar:
 			expr, err := p.bindVarExpr()
 			if err != nil {
 				return err
 			}
 			p.c.ExprList = append(p.c.ExprList, expr)
-		case _Plain:
+		case _Raw:
 			p.c.ExprList = append(p.c.ExprList, &PlainExpr{
 				Text: p.token.lit,
 				expr: expr{node{p.token.pos}},
