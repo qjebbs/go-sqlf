@@ -41,13 +41,12 @@ L:
 }
 
 func (p *inerpolatingParser) bindVarExpr() (exp Expr, err error) {
-	defer func() {
-		if exp == nil {
-			exp = &PlainExpr{
-				Text: p.token.lit,
-				expr: expr{node{p.token.pos}},
-			}
+	exp, err = p.parser.bindVarExpr()
+	if exp == nil {
+		exp = &PlainExpr{
+			Text: p.token.lit,
+			expr: expr{node{p.token.pos}},
 		}
-	}()
-	return p.parser.bindVarExpr()
+	}
+	return
 }
