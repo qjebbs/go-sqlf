@@ -65,7 +65,7 @@ func Example_insert() {
 func Example_dialect() {
 	ctx := sqlf.NewContext(context.Background(), dialect.MySQL{})
 	query, args, err := sqlf.F(
-		`SELECT * FROM foo WHERE "baz" = $1`,
+		`SELECT * FROM foo WHERE "bar" = $1`,
 		1,
 	).Build(ctx)
 	if err != nil {
@@ -75,6 +75,6 @@ func Example_dialect() {
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
-	// SELECT * FROM foo WHERE `baz` = ?
+	// SELECT * FROM foo WHERE `bar` = ?
 	// [1]
 }

@@ -13,20 +13,26 @@ type Fragment struct {
 
 // F creates a new Fragment.
 //
-// ? / $1 in the raw string can refer to both ordinary args and fragment builders in args.
+// # Bind Variables
 //
-// For example,
+// ? / $1 in the raw string can refer to both ordinary args and fragment builders in args.
+// To use them as ordinary characters outside quotes, double them.
 //
 //	// refer to an ordinary arg
 //	cond := sqlf.F("name = ?", "jebbs")
 //	// refer to a fragment builder
 //	sqlf.F("WHERE ?", cond)
-//
-// To use them as ordinary characters outside quotes, double them.
-//
-//	// This will be built as "WHERE foo -> $1 ? $2"
-//	// with args ["bar", "baz"] for PostgreSQL.
+//	// will be built as "WHERE foo -> $1 ? $2" for PostgreSQL
 //	sqlf.F("WHERE foo -> $1 ?? $2", "bar", "baz")
+//
+// # Identifiers and Literals
+//
+// Single quotes ('string'), double quotes ("name"), and backticks (`name`)
+// are used for quoting. Bind variables inside quoted strings are not
+// processed. To include a quote character within a quoted string, double it.
+//
+//	// will be built as "[name] = 'alice'" for SQL Server
+//	sqlf.F(`"name" = 'alice'`)
 func F(raw string, args ...any) *Fragment {
 	return &Fragment{
 		raw:  raw,

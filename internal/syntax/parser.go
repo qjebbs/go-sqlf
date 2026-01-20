@@ -136,8 +136,8 @@ func unquoteString(lit string) (string, error) {
 		return strings.ReplaceAll(content, "''", "'"), nil
 	case '"':
 		return strings.ReplaceAll(content, `""`, `"`), nil
-	// case '`':
-	// 	return strings.ReplaceAll(content, "``", "`"), nil
+	case '`':
+		return strings.ReplaceAll(content, "``", "`"), nil
 	// case '[':
 	// 	return strings.ReplaceAll(content, "]]", "]"), nil
 	default:

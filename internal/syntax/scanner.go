@@ -67,6 +67,18 @@ func scanPlain(s *scanner) scanFn {
 		bindExtra1 = ':'
 		bindExtra2 = '@'
 	}
+
+	// In interpolating mode, we intentionally do not support non-standard quote
+	// styles [name]. This is because a simple lexer cannot reliably distinguish
+	// a quoted identifier (e.g., [column]) from other SQL constructs like array
+	// access (e.g., array_column[1]). Attempting to do so without a full parser
+	// would be complex and error-prone.
+	//
+	// The trade-off is that text within an identifier that resembles a bind
+	// variable (e.g., [my-col-$1]) may be incorrectly interpreted as a bind
+	// variable, breaking the identifier and interpolating. This is an acceptable
+	// limitation to avoid the complexity of a full SQL parser.
+
 	for r := s.rune; r != EOF; r = s.Next() {
 		switch r {
 		case '$', '?', bindExtra1, bindExtra2:
@@ -80,7 +92,7 @@ func scanPlain(s *scanner) scanFn {
 				return scanEscape
 			}
 			return scanRef
-		case '\'', '"':
+		case '\'', '"', '`':
 			return scanQuoted
 		}
 	}
