@@ -2,9 +2,9 @@ package sqlf
 
 import "fmt"
 
-// Fragment is the builder for a part of, or even an entire, SQL query.
+// Fragment represents a composable SQL query fragment.
 //
-// To create a Fragment, use the F() function.
+// Use the F() function to create a new Fragment.
 type Fragment struct {
 	raw          string // Raw string support bind vars (?, $1)
 	args         []any  // Args that can be referenced by the Raw. An arg can be either an ordinary arg or a Builder.
@@ -15,24 +15,35 @@ type Fragment struct {
 //
 // # Bind Variables
 //
-// ? / $1 in the raw string can refer to both ordinary args and fragment builders in args.
-// To use them as ordinary characters outside quotes, double them.
+// Placeholders in the raw SQL string can be used to bind arguments.
+// These arguments can be simple values or other fragment builders
+// who implement sqlf.Builder.
 //
-//	// refer to an ordinary arg
+// There are two types of placeholders:
+//   - `?`: A positional placeholder. Arguments are bound in order.
+//   - `$N`: An indexed placeholder (e.g., $1, $2), where N is a 1-based index.
+//
+// To include a literal `?` or `$` in your SQL, double it (e.g., `??` or `$$`).
+//
+//	// Bind a simple value using a positional placeholder
 //	cond := sqlf.F("name = ?", "jebbs")
-//	// refer to a fragment builder
-//	sqlf.F("WHERE ?", cond)
-//	// will be built as "WHERE foo -> $1 ? $2" for PostgreSQL
+//	// Bind another builder
+//	where := sqlf.F("WHERE ?", cond)
+//
+//	// Escape a placeholder to include it literally in the output.
+//	// This example builds "WHERE foo -> $1 ? $2" for PostgreSQL.
 //	sqlf.F("WHERE foo -> $1 ?? $2", "bar", "baz")
 //
 // # Identifiers and Literals
 //
-// Single quotes ('string'), double quotes ("name"), and backticks (`name`)
-// are used for quoting. Bind variables inside quoted strings are not
-// processed. To include a quote character within a quoted string, double it.
+// SQL identifiers and string literals can be quoted using single quotes ('string'),
+// double quotes ("identifier"), or backticks (`identifier`).
+// Placeholders within quoted sections are ignored.
 //
-//	// will be built as "[name] = 'alice'" for SQL Server
-//	sqlf.F(`"name" = 'alice'`)
+// To include a quote character within a quoted string, double it.
+//
+//	// Builds `[name] = 'alice''s friend'` for SQL Server
+//	sqlf.F(`"name" = 'alice''s friend'`)
 func F(raw string, args ...any) *Fragment {
 	return &Fragment{
 		raw:  raw,

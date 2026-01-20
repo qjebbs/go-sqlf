@@ -10,8 +10,7 @@ import (
 )
 
 func Example_basic() {
-	ctx := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
-	query, args, _ := sqlf.F(
+	b := sqlf.F(
 		"SELECT * FROM foo WHERE ?",
 		sqlf.Join(
 			[]sqlf.Builder{
@@ -20,7 +19,9 @@ func Example_basic() {
 			},
 			" AND ",
 		),
-	).Build(ctx)
+	)
+	ctx := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
+	query, args, _ := b.Build(ctx)
 	fmt.Println(query)
 	fmt.Println(args)
 	// Output:
@@ -70,8 +71,7 @@ func Example_insert() {
 func Example_dialect() {
 	ctx := sqlf.NewContext(context.Background(), dialect.MySQL{})
 	query, args, err := sqlf.F(
-		`SELECT * FROM foo WHERE "bar" = $1`,
-		1,
+		`SELECT * FROM foo WHERE "bar" = $1`, 1,
 	).Build(ctx)
 	if err != nil {
 		fmt.Println(err)

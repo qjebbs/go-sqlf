@@ -9,19 +9,14 @@ import (
 
 var _ Builder = (*Fragment)(nil)
 
-// Build builds the given builder into a query string and args slice.
-// The default dialect and argument store will be used if not set in the context.
-// To customize the dialect or argument store, use ContextWithDialect or ContextWithArgStore
-// to create a new context and pass it to this function.
-// E.g.:
-//
-//	ctx = sqlf.ContextWithDialect(ctx, dialect.PostgreSQL{})
-//	query, args, err := f.Build(ctx)
+// Build builds f into a query string and its corresponding arguments.
+// It creates a new context to ensure that the original context is not modified.
 func (f *Fragment) Build(ctx *Context) (query string, args []any, err error) {
 	return Build(ctx, f)
 }
 
-// BuildTo builds the fragment into the given context.
+// BuildTo builds the SQL fragment for f based on the given
+// context, and commits any arguments to the context.
 func (f *Fragment) BuildTo(ctx *Context) (string, error) {
 	if f == nil {
 		return "", nil

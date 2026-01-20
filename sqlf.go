@@ -1,20 +1,20 @@
-// Package sqlf is dedicated to building SQL queries by composing fragments.
+// Package sqlf provides a simple way to build SQL queries by composing fragments.
 //
-// Unlike other SQL builders or ORMs, *Fragment is the only concept you need
-// to understand.
-// It uses the same bind variable syntax (? / $1) as database/sql,
-// which can refer to both ordinary args and fragment builders in args.
+// The core concept is the Fragment, which represents a piece of SQL with
+// arguments. Fragments can be composed to build complex queries. It uses the
+// same bind variable syntax (? or $N) as database/sql.
 package sqlf
 
-// Builder is a SQL fragment builder.
+// Builder is the interface implemented by types that can build themselves
+// into a SQL query string.
 type Builder interface {
-	// BuildTo builds current fragment into the given context, together with other fragments.
-	// The args should be committed to the ctx if any.
+	// BuildTo builds the SQL fragment for the current builder based on the given
+	// context, and commits any arguments to the context.
 	BuildTo(ctx *Context) (query string, err error)
 }
 
-// Build builds the given builder into a query string and args slice.
-// Unlike Builder.BuildTo, this function does not commit args to the ctx.
+// Build builds a Builder into a query string and its corresponding arguments.
+// It creates a new context to ensure that the original context is not modified.
 func Build(ctx *Context, b Builder) (query string, args []any, err error) {
 	if b == nil {
 		return "", nil, nil
