@@ -62,10 +62,10 @@ func TestBuildFragment(t *testing.T) {
 			fragment: sqlf.F(
 				"WHERE foo=? AND bar IN (?)",
 				1,
-				sqlf.JoinArgs(",", 1, 2, 3),
+				sqlf.JoinArgs([]any{1, 2, 1}, ", "),
 			),
-			want:     "WHERE foo=$1 AND bar IN ($1,$2,$3)",
-			wantArgs: []any{1, 2, 3},
+			want:     "WHERE foo=$1 AND bar IN ($1, $2, $1)",
+			wantArgs: []any{1, 2},
 		},
 		{
 			name:     "prefix and suffix",
@@ -118,7 +118,11 @@ func TestBuildWithCancelledContext(t *testing.T) {
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("got err %v, want context.Canceled", err)
 	}
-	_, err = sqlf.JoinArgs(",", 1, 2, 3).BuildTo(buildCtx)
+	_, err = sqlf.F("SELECT 1").BuildTo(buildCtx)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("got err %v, want context.Canceled", err)
+	}
+	_, err = sqlf.Identifier("name").BuildTo(buildCtx)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("got err %v, want context.Canceled", err)
 	}

@@ -20,7 +20,7 @@ func TestBuildFragmentFn(t *testing.T) {
 	}{
 		{
 			name:     "join",
-			builder:  sqlf.JoinArgs(",", 1, 2),
+			builder:  sqlf.JoinArgs([]any{1, 2}, ","),
 			want:     "?,?",
 			wantArgs: []any{1, 2},
 		},
@@ -89,7 +89,7 @@ func TestBuildIdentifiers(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	f := sqlf.JoinArgs(", ", 1, 2, 3)
+	f := sqlf.JoinArgs([]any{1, 2, 3}, ", ")
 	ctx := sqlf.NewContext(context.Background(), dialect.SQLite{
 		BindVar: dialect.BindVarStyleDollarNumbered,
 	})

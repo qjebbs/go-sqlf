@@ -7,7 +7,7 @@ import (
 // Join creates a new fragment builder that joins the given builders with the specified separator.
 //
 // An arg could be either an ordinary arg or a Builder.
-func Join(sep string, builders ...Builder) Builder {
+func Join(builders []Builder, sep string) Builder {
 	return Func(func(ctx *Context) (string, error) {
 		if len(builders) == 0 {
 			return "", nil
@@ -32,7 +32,7 @@ func Join(sep string, builders ...Builder) Builder {
 }
 
 // JoinArgs creates a new fragment builder that joins args with the specified separator.
-func JoinArgs[T any](sep string, args ...T) Builder {
+func JoinArgs[T any](args []T, sep string) Builder {
 	return Func(func(ctx *Context) (string, error) {
 		if len(args) == 0 {
 			return "", nil
@@ -41,12 +41,12 @@ func JoinArgs[T any](sep string, args ...T) Builder {
 		for _, a := range args {
 			props = append(props, newArgProperty(a))
 		}
-		return Join(sep, props...).BuildTo(ctx)
+		return Join(props, sep).BuildTo(ctx)
 	})
 }
 
 // JoinMixed creates a new fragment builder that joins mixed Builders and args with the specified separator.
-func JoinMixed(sep string, args ...any) Builder {
+func JoinMixed(args []any, sep string) Builder {
 	return Func(func(ctx *Context) (string, error) {
 		if len(args) == 0 {
 			return "", nil
@@ -59,7 +59,7 @@ func JoinMixed(sep string, args ...any) Builder {
 			}
 			props = append(props, newArgProperty(a))
 		}
-		return Join(sep, props...).BuildTo(ctx)
+		return Join(props, sep).BuildTo(ctx)
 	})
 }
 

@@ -14,9 +14,11 @@ func Example_basic() {
 	query, args, _ := sqlf.F(
 		"SELECT * FROM foo WHERE ?",
 		sqlf.Join(
+			[]sqlf.Builder{
+				sqlf.F("baz = $1", true),
+				sqlf.F("bar BETWEEN ? AND ?", 1, 100),
+			},
 			" AND ",
-			sqlf.F("baz = $1", true),
-			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
 		),
 	).Build(ctx)
 	fmt.Println(query)
@@ -40,13 +42,16 @@ func Example_insert() {
 	f := sqlf.F(
 		"INSERT INTO ? (?) VALUES ?",
 		table,
-		sqlf.Join(", ", fields...),
-		sqlf.Join(", ", util.Map(values, func(value []string) sqlf.Builder {
-			return sqlf.F(
-				"(?)",
-				sqlf.JoinArgs(", ", value...),
-			)
-		})...),
+		sqlf.Join(fields, ", "),
+		sqlf.Join(
+			util.Map(values, func(values []string) sqlf.Builder {
+				return sqlf.F(
+					"(?)",
+					sqlf.JoinArgs(values, ", "),
+				)
+			}),
+			", ",
+		),
 	)
 
 	ctx := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
