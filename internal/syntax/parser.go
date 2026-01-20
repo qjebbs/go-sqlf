@@ -163,14 +163,14 @@ func (p *parser) bindVarExpr() (Expr, error) {
 	pos := p.token.pos
 	lit := p.token.lit[1:]
 	switch p.token.kind {
-	case _KindRefPositional:
+	case _KindBindVarPositional:
 		p.bindVarIndex++
 		return &BindVarExpr{
 			typ:   t,
 			Index: p.bindVarIndex,
 			expr:  expr{node{pos}},
 		}, nil
-	case _KindRefNumbered:
+	case _KindBindVarNumbered:
 		val, err := strconv.ParseUint(lit, 10, 64)
 		if err != nil {
 			return nil, p.syntaxError(err.Error())
@@ -180,7 +180,7 @@ func (p *parser) bindVarExpr() (Expr, error) {
 			Index: int(val),
 			expr:  expr{node{pos}},
 		}, nil
-	case _KindRefNamed:
+	case _KindBindVarNamed:
 		return &BindVarExpr{
 			typ:  t,
 			Name: lit,
@@ -204,12 +204,12 @@ func (p *parser) checkVarStyle(t BindVarStyle) error {
 
 func getBindVarStyle(token *token) BindVarStyle {
 	switch token.kind {
-	case _KindRefPositional:
+	case _KindBindVarPositional:
 		return BindVarStyleQuestion
 	}
 	prefix := token.lit[:1]
 	switch token.kind {
-	case _KindRefNumbered:
+	case _KindBindVarNumbered:
 		switch prefix {
 		case "$":
 			return BindVarStyleDollarNumbered
@@ -218,7 +218,7 @@ func getBindVarStyle(token *token) BindVarStyle {
 		case "?":
 			return BindVarStyleQuestionNumbered
 		}
-	case _KindRefNamed:
+	case _KindBindVarNamed:
 		switch prefix {
 		case "@":
 			return BindVarStyleAtNamed

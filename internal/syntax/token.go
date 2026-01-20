@@ -42,10 +42,29 @@ type kind uint8
 
 const (
 	_KindNone kind = iota
+
 	_KindLitNumber
 	_KindLitString
 
-	_KindRefNamed
-	_KindRefNumbered
-	_KindRefPositional
+	_KindBindVarNamed
+	_KindBindVarNumbered
+	_KindBindVarPositional
 )
+
+func (k kind) String() string {
+	switch k {
+	case _KindNone:
+		return "None"
+	case _KindLitNumber:
+		return "LitNumber"
+	case _KindLitString:
+		return "LitString"
+	case _KindBindVarNamed:
+		return "BindVarNamed"
+	case _KindBindVarNumbered:
+		return "BindVarNumbered"
+	case _KindBindVarPositional:
+		return "BindVarPositional"
+	}
+	return "Unknown"
+}

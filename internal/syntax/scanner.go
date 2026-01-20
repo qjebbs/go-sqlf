@@ -115,54 +115,54 @@ func scanRef(s *scanner) scanFn {
 	switch prefix {
 	case '?':
 		if !s.interpolating || !s.IsDigit() {
-			s.emitToken(_BindVar, _KindRefPositional, false)
+			s.emitToken(_BindVar, _KindBindVarPositional, false)
 			return scanPlain
 		}
 		for s.IsDigit() {
 			s.Next()
 		}
-		s.emitToken(_BindVar, _KindRefNumbered, false)
+		s.emitToken(_BindVar, _KindBindVarNumbered, false)
 		return scanPlain
 	case '$':
 		if !s.IsDigit() {
 			if s.interpolating {
 				s.emitToken(_Raw, 0, true)
 			} else {
-				s.emitToken(_BindVar, _KindRefNumbered, true)
+				s.emitToken(_BindVar, _KindBindVarNumbered, true)
 			}
 			return scanPlain
 		}
 		for s.IsDigit() {
 			s.Next()
 		}
-		s.emitToken(_BindVar, _KindRefNumbered, false)
+		s.emitToken(_BindVar, _KindBindVarNumbered, false)
 		return scanPlain
 	case '@':
 		if !s.IsLetter() {
-			s.emitToken(_BindVar, _KindRefNamed, true)
+			s.emitToken(_BindVar, _KindBindVarNamed, true)
 			return scanPlain
 		}
 		for s.IsLetter() || s.IsDigit() {
 			s.Next()
 		}
-		s.emitToken(_BindVar, _KindRefNamed, false)
+		s.emitToken(_BindVar, _KindBindVarNamed, false)
 		return scanPlain
 	case ':':
 		if s.IsLetter() {
 			for s.IsLetter() || s.IsDigit() {
 				s.Next()
 			}
-			s.emitToken(_BindVar, _KindRefNamed, false)
+			s.emitToken(_BindVar, _KindBindVarNamed, false)
 			return scanPlain
 		}
 		if s.IsDigit() {
 			for s.rune >= '0' && s.rune <= '9' {
 				s.Next()
 			}
-			s.emitToken(_BindVar, _KindRefNumbered, false)
+			s.emitToken(_BindVar, _KindBindVarNumbered, false)
 			return scanPlain
 		}
-		s.emitToken(_BindVar, _KindRefNumbered, true)
+		s.emitToken(_BindVar, _KindBindVarNumbered, true)
 		return scanPlain
 	default:
 		return scanPlain
