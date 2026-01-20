@@ -22,20 +22,22 @@ const (
 	_Raw
 )
 
+var tokenTypeStrings = [...]string{
+	_EOF: "EOF",
+
+	_BindVar: "BindVar",
+	_Literal: "Literal",
+	_Escape:  "Escape",
+	_Raw:     "Raw",
+
+	"Unknown",
+}
+
 func (t TokenType) String() string {
-	switch t {
-	case _EOF:
-		return "EOF"
-	case _BindVar:
-		return "BindVar"
-	case _Literal:
-		return "Literal"
-	case _Escape:
-		return "Escape"
-	case _Raw:
-		return "Raw"
+	if t > _Raw {
+		return tokenTypeStrings[len(tokenTypeStrings)-1]
 	}
-	return "Unknown"
+	return tokenTypeStrings[t]
 }
 
 type kind uint8
@@ -51,20 +53,22 @@ const (
 	_KindBindVarPositional
 )
 
+var kindStrings = [...]string{
+	_KindNone: "None",
+
+	_KindLitNumber: "LitNumber",
+	_KindLitString: "LitString",
+
+	_KindBindVarNamed:      "BindVarNamed",
+	_KindBindVarNumbered:   "BindVarNumbered",
+	_KindBindVarPositional: "BindVarPositional",
+
+	"Unknown",
+}
+
 func (k kind) String() string {
-	switch k {
-	case _KindNone:
-		return "None"
-	case _KindLitNumber:
-		return "LitNumber"
-	case _KindLitString:
-		return "LitString"
-	case _KindBindVarNamed:
-		return "BindVarNamed"
-	case _KindBindVarNumbered:
-		return "BindVarNumbered"
-	case _KindBindVarPositional:
-		return "BindVarPositional"
+	if k > _KindBindVarPositional {
+		return kindStrings[len(kindStrings)-1]
 	}
-	return "Unknown"
+	return kindStrings[k]
 }
