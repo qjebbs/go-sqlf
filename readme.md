@@ -14,14 +14,14 @@ import (
 	"fmt"
 	"github.com/qjebbs/go-sqlf/v4"
 )
+
 func Example_basic() {
 	b := sqlf.F(
 		"SELECT * FROM foo WHERE ?",
-		sqlf.Join(
-			" AND ",
+		sqlf.Join([]sqlf.Builder{
 			sqlf.F("baz = $1", true),
 			sqlf.F("bar BETWEEN ? AND ?", 1, 100),
-		),
+		}, " AND "),
 	)
 	ctx := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
 	query, args, _ := b.Build(ctx)
