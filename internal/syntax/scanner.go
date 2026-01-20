@@ -56,6 +56,12 @@ func (s *scanner) Rewind(current, rewinds *token) {
 
 func scanPlain(s *scanner) scanFn {
 	s.StartToken()
+	defer func() {
+		if s.current.offset > s.start.offset {
+			s.emitToken(_Plain, 0, false)
+		}
+	}()
+
 	var bindExtra1, bindExtra2 = '?', '?'
 	if s.interpolating {
 		bindExtra1 = ':'
@@ -71,29 +77,14 @@ func scanPlain(s *scanner) scanFn {
 					s.Next()
 					continue
 				}
-				if s.current.offset > s.start.offset {
-					s.emitToken(_Plain, 0, false)
-				}
 				return scanEscape
-			}
-			if s.current.offset > s.start.offset {
-				s.emitToken(_Plain, 0, false)
 			}
 			return scanRef
 		case '\'', '"':
-			if s.current.offset > s.start.offset {
-				s.emitToken(_Plain, 0, false)
-			}
 			return scanQuoted
 		}
 	}
-	// EOF
-	if s.current.offset > s.start.offset {
-		s.emitToken(_Plain, 0, false)
-		return scanPlain
-	}
-	s.emitToken(_EOF, 0, false)
-	return nil
+	return scanEnd
 }
 
 func scanEscape(s *scanner) scanFn {
@@ -182,5 +173,11 @@ func scanQuoted(s *scanner) scanFn {
 	}
 	// EOF
 	s.emitToken(_Literal, _KindLitString, true)
-	return scanPlain
+	return scanEnd
+}
+
+func scanEnd(s *scanner) scanFn {
+	s.StartToken()
+	s.emitToken(_EOF, 0, false)
+	return nil
 }
