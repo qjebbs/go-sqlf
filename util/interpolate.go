@@ -128,7 +128,7 @@ func encodeValue(dialect dialect.Dialect, arg any) ([]byte, error) {
 		buf.WriteString(v.Format(timeFormat))
 		buf.WriteRune('\'')
 	case fmt.Stringer:
-		buf.Write(quoteStringValue(v.String()))
+		buf.WriteString(dialect.QuoteString(v.String()))
 	default:
 		for rv.Kind() == reflect.Ptr {
 			if rv.IsNil() {
@@ -150,33 +150,10 @@ func encodeValue(dialect dialect.Dialect, arg any) ([]byte, error) {
 		case reflect.Float32, reflect.Float64:
 			buf.WriteString(fmt.Sprintf("%f", rv.Float()))
 		case reflect.String:
-			buf.Write(quoteStringValue(rv.String()))
+			buf.Write([]byte(dialect.QuoteString(rv.String())))
 		default:
 			return nil, fmt.Errorf("unsupported type %T", arg)
 		}
 	}
 	return buf.Bytes(), nil
-}
-
-func quoteStringValue(s string) []byte {
-	buf := bytes.NewBuffer(nil)
-	buf.WriteRune('\'')
-	buf.WriteString(strings.ReplaceAll(s, "'", "''"))
-	buf.WriteRune('\'')
-	return buf.Bytes()
-}
-
-var escaping = []struct {
-	from rune
-	to   string
-}{
-	{'\x00', `\0`},
-	{'\n', `\n`},
-	{'\r', `\r`},
-	{'\b', `\b`},
-	{'\t', `\t`},
-	{'\x1a', `\Z`},
-	{'\'', "''"},
-	{'"', `\"`},
-	{'\\', `\\`},
 }

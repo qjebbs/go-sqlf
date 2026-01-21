@@ -14,6 +14,16 @@ type Dialect interface {
 	QuoteStyle() QuoteStyle
 	// TimeFormat returns the time format for the dialect.
 	TimeFormat() string
+	// QuoteString quotes a string for use in a query.
+	//
+	// It should escape any special characters as needed by the dialect,
+	// and take care of any necessary prefixing (e.g. E'...' in PostgreSQL, N'...' in SQL Server).
+	//
+	// Examples:
+	//   QuoteString("str") // 'str'
+	//   SQLite.QuoteString("str\nstr") // 'str' || CHAR(10) || 'str'
+	//   PostgreSQL.QuoteString("str\nstr") // E'str\nstr'
+	QuoteString(s string) string
 }
 
 // BindVarStyle is the bind variable style to use.

@@ -1,10 +1,13 @@
 package util_test
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
 
+	"github.com/qjebbs/go-sqlf/v4"
+	"github.com/qjebbs/go-sqlf/v4/dialect"
 	"github.com/qjebbs/go-sqlf/v4/util"
 )
 
@@ -50,5 +53,17 @@ func ExampleInterpolate_named() {
 	fmt.Println(ok)
 	// Output:
 	// SELECT * FROM foo WHERE status = 'ok' AND created_at > '2026-01-13 00:00:00'
+	// true
+}
+
+func ExampleInterpolate_stringEscape() {
+	dialect := dialect.PostgreSQL{}
+	query, args, _ := sqlf.F("SELECT ?", "It's a test: \r\x00").
+		Build(sqlf.NewContext(context.Background(), dialect))
+	interpolated, ok := util.Interpolate(query, args, dialect)
+	fmt.Println(interpolated)
+	fmt.Println(ok)
+	// Output:
+	// SELECT E'It''s a test: \r\x00'
 	// true
 }
