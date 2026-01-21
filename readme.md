@@ -1,8 +1,9 @@
 ## Go SQL Fragment (go-sqlf)
 
-Package `sqlf` is dedicated to building SQL queries by composing fragments.
+> [!WARNING]
+> This package is in an alpha stage. The API is subject to change.
 
-> `v4` makes the package exceptionally lightweight and easy to use by preserving only the native bind variable syntax of `database/sql`.
+Package `sqlf` is dedicated to building SQL queries by composing fragments.
 
 Unlike other SQL builders or ORMs, `*Fragment` is the only concept you need to understand.
 It uses the same bind variable syntax (`?` / `$1`) as `database/sql`, which can refer to both ordinary args and fragment builders in args.
@@ -11,8 +12,11 @@ A `*Fragment` is created by `F()`.
 
 ```go
 import (
+	"context"
 	"fmt"
+
 	"github.com/qjebbs/go-sqlf/v4"
+	"github.com/qjebbs/go-sqlf/v4/dialect"
 )
 
 func Example_basic() {
