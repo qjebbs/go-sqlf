@@ -7,9 +7,9 @@ type MySQL struct {
 	// BindVar is the bind variable style to use.
 	// If empty, StyleQuestion is used.
 	BindVar BindVarStyle
-	// Quote is the identifier quote style to use.
-	// If zero, StyleBacktick is used.
-	Quote QuoteStyle
+	// IdentifierQuote is the identifier quote style to use.
+	// If zero, IdentifierQuoteStyleBacktick is used.
+	IdentifierQuote IdentifierQuoteStyle
 }
 
 // BindVarStyle returns the bind variable style for the dialect.
@@ -22,8 +22,8 @@ func (d MySQL) BindVarStyle() BindVarStyle {
 
 // QuoteIdentifier returns the identifier quote style for the dialect.
 func (d MySQL) QuoteIdentifier(name string) string {
-	if d.Quote == QuoteStyleDefault {
-		return QuoteStyleBacktick.QuoteIdentifier(name)
+	if d.IdentifierQuote == IdentifierQuoteStyleDefault {
+		return IdentifierQuoteStyleBacktick.Quote(name)
 	}
-	return d.Quote.QuoteIdentifier(name)
+	return d.IdentifierQuote.Quote(name)
 }

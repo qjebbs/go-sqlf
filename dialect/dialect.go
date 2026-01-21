@@ -38,28 +38,28 @@ const (
 	BindVarStyleAtNamed BindVarStyle = syntax.BindVarStyleAtNamed
 )
 
-// QuoteStyle is the identifier quote style to use.
-type QuoteStyle int
+// IdentifierQuoteStyle is the identifier quote style to use.
+type IdentifierQuoteStyle int
 
 const (
-	// QuoteStyleDefault quotes identifiers with the default style.
-	QuoteStyleDefault QuoteStyle = iota
-	// QuoteStyleDoubleQuote quotes identifiers with double quotes, e.g. "identifier".
-	QuoteStyleDoubleQuote
-	// QuoteStyleBacktick quotes identifiers with backticks, e.g. `identifier`.
-	QuoteStyleBacktick
-	// QuoteStyleSquareBracket quotes identifiers with square brackets, e.g. [identifier].
-	QuoteStyleSquareBracket
+	// IdentifierQuoteStyleDefault quotes identifiers with the default style.
+	IdentifierQuoteStyleDefault IdentifierQuoteStyle = iota
+	// IdentifierQuoteStyleDoubleQuote quotes identifiers with double quotes, e.g. "identifier".
+	IdentifierQuoteStyleDoubleQuote
+	// IdentifierQuoteStyleBacktick quotes identifiers with backticks, e.g. `identifier`.
+	IdentifierQuoteStyleBacktick
+	// IdentifierQuoteStyleSquareBracket quotes identifiers with square brackets, e.g. [identifier].
+	IdentifierQuoteStyleSquareBracket
 )
 
-// QuoteIdentifier quotes an identifier using the given quote style.
-func (s QuoteStyle) QuoteIdentifier(name string) string {
+// Quote quotes an identifier using the given quote style.
+func (s IdentifierQuoteStyle) Quote(name string) string {
 	switch s {
-	case QuoteStyleDoubleQuote:
+	case IdentifierQuoteStyleDoubleQuote:
 		return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
-	case QuoteStyleBacktick:
+	case IdentifierQuoteStyleBacktick:
 		return "`" + strings.ReplaceAll(name, "`", "``") + "`"
-	case QuoteStyleSquareBracket:
+	case IdentifierQuoteStyleSquareBracket:
 		return `[` + strings.ReplaceAll(name, `]`, `]]`) + `]`
 	default:
 		return name

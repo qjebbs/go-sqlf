@@ -7,9 +7,9 @@ type SQLServer struct {
 	// BindVar is the bind variable style to use.
 	// If zero, StyleAtNamed is used.
 	BindVar BindVarStyle
-	// Quote is the identifier quote style to use.
-	// If zero, StyleSquareBracket is used.
-	Quote QuoteStyle
+	// IdentifierQuote is the identifier quote style to use.
+	// If zero, IdentifierQuoteStyleSquareBracket is used.
+	IdentifierQuote IdentifierQuoteStyle
 }
 
 // BindVarStyle returns the bind variable style for the dialect.
@@ -22,8 +22,8 @@ func (d SQLServer) BindVarStyle() BindVarStyle {
 
 // QuoteIdentifier returns the identifier quote style for the dialect.
 func (d SQLServer) QuoteIdentifier(name string) string {
-	if d.Quote == QuoteStyleDefault {
-		return QuoteStyleSquareBracket.QuoteIdentifier(name)
+	if d.IdentifierQuote == IdentifierQuoteStyleDefault {
+		return IdentifierQuoteStyleSquareBracket.Quote(name)
 	}
-	return d.Quote.QuoteIdentifier(name)
+	return d.IdentifierQuote.Quote(name)
 }
