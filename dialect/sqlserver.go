@@ -1,11 +1,5 @@
 package dialect
 
-import (
-	"strconv"
-	"strings"
-	"unicode"
-)
-
 var _ Dialect = SQLServer{}
 
 // SQLServer is the ANSI SQL dialect.
@@ -26,71 +20,10 @@ func (d SQLServer) BindVarStyle() BindVarStyle {
 	return d.BindVar
 }
 
-// QuoteStyle returns the identifier quote style for the dialect.
-func (d SQLServer) QuoteStyle() QuoteStyle {
+// QuoteIdentifier returns the identifier quote style for the dialect.
+func (d SQLServer) QuoteIdentifier(name string) string {
 	if d.Quote == QuoteStyleDefault {
-		return QuoteStyleSquareBracket
+		return QuoteStyleSquareBracket.QuoteIdentifier(name)
 	}
-	return d.Quote
-}
-
-// TimeFormat returns the time format for the dialect.
-func (d SQLServer) TimeFormat() string {
-	return "2006-01-02 15:04:05.999"
-}
-
-// QuoteString escapes a string for use in a query, e.g. 'string'.
-func (d SQLServer) QuoteString(s string) string {
-	if s == "" {
-		return "''"
-	}
-	var hasUnicode bool
-	for _, r := range s {
-		if r > 255 {
-			hasUnicode = true
-			break
-		}
-	}
-
-	const concatOperator = " + "
-	var b strings.Builder
-	inQuote := false
-	for i, r := range s {
-		if i > 0 && !inQuote {
-			b.WriteString(concatOperator)
-		}
-		isControl := unicode.IsControl(r)
-		if isControl {
-			if inQuote {
-				b.WriteString("'")
-				b.WriteString(concatOperator)
-				inQuote = false
-			}
-			if r > 255 {
-				b.WriteString("NCHAR(")
-			} else {
-				b.WriteString("CHAR(")
-			}
-			b.WriteString(strconv.FormatInt(int64(r), 10))
-			b.WriteString(")")
-		} else {
-			if !inQuote {
-				if hasUnicode {
-					b.WriteString("N'")
-				} else {
-					b.WriteString("'")
-				}
-				inQuote = true
-			}
-			if r == '\'' {
-				b.WriteString("''")
-			} else {
-				b.WriteRune(r)
-			}
-		}
-	}
-	if inQuote {
-		b.WriteString("'")
-	}
-	return b.String()
+	return d.Quote.QuoteIdentifier(name)
 }

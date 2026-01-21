@@ -13,30 +13,21 @@ import (
 	"github.com/qjebbs/go-sqlf/v4/internal/syntax"
 )
 
-// interpolateDefaultDialect is a dialect used for interpolation when no dialect is provided.
-// It uses ANSI SQL as the base dialect, but not specific about bind variable style,
-// leaving it to be determined by the parser.
-type interpolateDefaultDialect struct {
-	dialect.AnsiSQL
-}
-
-func (d interpolateDefaultDialect) BindVarStyle() dialect.BindVarStyle {
-	return dialect.BindVarStyleDefault // syntax.BindVarStyleUnknown
-}
-
 // Interpolate interpolates the args into the query.
 //
 // The dialect parameter is optional. If provided, it will be used to
 // determine the bind variable style and to format time values.
+// To customize string quoting behavior, the provided dialect must implement
+// the `util.Dialect` interface.
 //
 // !!! Use it only on debug purposes. Due to complexity of SQL syntax
 // between different dialects, it may not work correctly in all cases.
 func Interpolate(query string, args []any, d ...dialect.Dialect) (string, bool) {
-	var dialect dialect.Dialect
+	var dialect Dialect
 	if len(d) > 0 && d[0] != nil {
-		dialect = d[0]
+		dialect = asMyDialect(d[0])
 	} else {
-		dialect = interpolateDefaultDialect{}
+		dialect = defaultDialect{}
 	}
 	ok := true
 	exprs, err := syntax.ParseForInterpolating(query, dialect.BindVarStyle())
@@ -95,7 +86,7 @@ func findNamedArg(name string, args []any) (any, bool) {
 	return nil, false
 }
 
-func encodeValue(dialect dialect.Dialect, arg any) ([]byte, error) {
+func encodeValue(dialect Dialect, arg any) ([]byte, error) {
 	if arg == nil {
 		return []byte("NULL"), nil
 	}
@@ -119,13 +110,8 @@ func encodeValue(dialect dialect.Dialect, arg any) ([]byte, error) {
 		}
 		buf.Write(enc)
 	case time.Time:
-		timeFormat := dialect.TimeFormat()
-		if !strings.Contains(timeFormat, "07") {
-			v = v.UTC()
-		}
-		v = v.Round(time.Microsecond)
 		buf.WriteRune('\'')
-		buf.WriteString(v.Format(timeFormat))
+		buf.WriteString(dialect.FormatTime(v))
 		buf.WriteRune('\'')
 	case fmt.Stringer:
 		buf.WriteString(dialect.QuoteString(v.String()))
