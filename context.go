@@ -2,7 +2,6 @@ package sqlf
 
 import (
 	"context"
-	"time"
 
 	"github.com/qjebbs/go-sqlf/v4/dialect"
 	"github.com/qjebbs/go-sqlf/v4/internal/arg"
@@ -10,15 +9,20 @@ import (
 
 var _ context.Context = (*Context)(nil)
 
+var defaultDialect dialect.Dialect = dialect.PostgreSQL{}
+
 // Context is the context for fragment building.
 type Context struct {
-	parent     context.Context
+	context.Context
 	key, value any
 }
 
 // NewContext returns a new Context with an argument store for the given dialect.
 // If no store is provided, a new one is created using the dialect's NewArgStore method.
 func NewContext(parent context.Context, dialect dialect.Dialect) *Context {
+	if dialect == nil {
+		dialect = defaultDialect
+	}
 	ctx := contextWithValue(parent, dialectKey{}, dialect)
 	ctx = contextWithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindVarStyle()))
 	return ctx
@@ -36,35 +40,14 @@ func ContextWithValue(parent *Context, key, value any) *Context {
 
 // contextWithValue returns a new context with the given key and value.
 func contextWithValue(parent context.Context, key, value any) *Context {
+	if parent == nil {
+		panic("cannot create context from nil parent")
+	}
 	return &Context{
-		parent: parent,
-		key:    key,
-		value:  value,
+		Context: parent,
+		key:     key,
+		value:   value,
 	}
-}
-
-// Deadline always returns false.
-func (c *Context) Deadline() (deadline time.Time, ok bool) {
-	if c.parent != nil {
-		return c.parent.Deadline()
-	}
-	return
-}
-
-// Done always returns nil.
-func (c *Context) Done() <-chan struct{} {
-	if c.parent != nil {
-		return c.parent.Done()
-	}
-	return nil
-}
-
-// Err always returns nil.
-func (c *Context) Err() error {
-	if c.parent != nil {
-		return c.parent.Err()
-	}
-	return nil
 }
 
 // Value retrieves the value in the context.
@@ -72,10 +55,7 @@ func (c *Context) Value(key any) any {
 	if c.key == key {
 		return c.value
 	}
-	if c.parent != nil {
-		return c.parent.Value(key)
-	}
-	return nil
+	return c.Context.Value(key)
 }
 
 type argStoreKey struct{}
@@ -104,9 +84,6 @@ func ContextWithNewArgStore(parent *Context) *Context {
 // contextWithArgStore returns a new context with the given ArgStore.
 // It panics if the store is nil.
 func contextWithArgStore(parent context.Context, store arg.Store) *Context {
-	if store == nil {
-		panic("store cannot be nil")
-	}
 	ctx := contextWithValue(parent, argStoreKey{}, store)
 	return ctx
 }
@@ -117,18 +94,14 @@ type dialectKey struct{}
 func ContextWithDialect(parent context.Context, dialect dialect.Dialect) *Context {
 	ctx := contextWithValue(parent, dialectKey{}, dialect)
 	if ctx.Value(argStoreKey{}) == nil {
-		return contextWithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindVarStyle()))
+		return contextWithArgStore(ctx, arg.NewArgStoreFromStyle(dialect.BindVarStyle()))
 	}
 	return ctx
 }
 
 // DialectFromContext retrieves the dialect from the context.
 func DialectFromContext(ctx context.Context) (dialect.Dialect, bool) {
-	value := ctx.Value(dialectKey{})
-	if value == nil {
-		return nil, false
-	}
-	if d, ok := value.(dialect.Dialect); ok {
+	if d, ok := ctx.Value(dialectKey{}).(dialect.Dialect); ok {
 		return d, true
 	}
 	return nil, false
