@@ -117,7 +117,7 @@ func PrefixSuffix(prefix, suffix string, b Builder) Builder {
 // Identifier creates a new fragment builder that quotes the given identifier using current dialect.
 func Identifier(name string) Builder {
 	return Func(func(ctx Context) (string, error) {
-		dialect := ctx.Dialect()
+		dialect := ctx.BaseDialect()
 		quoted := dialect.QuoteIdentifier(name)
 		return quoted, nil
 	})

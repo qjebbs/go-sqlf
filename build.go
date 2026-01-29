@@ -56,7 +56,7 @@ func buildClause(ctx Context, fragment *Fragment, clause *syntax.Clause) (string
 		case *syntax.PlainExpr:
 			b.WriteString(expr.Text)
 		case *syntax.IdentityExpr:
-			b.WriteString(ctx.Dialect().QuoteIdentifier(expr.Name))
+			b.WriteString(ctx.BaseDialect().QuoteIdentifier(expr.Name))
 		case *syntax.BindVarExpr:
 			if expr.Name != "" {
 				// should not happen

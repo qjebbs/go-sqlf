@@ -22,8 +22,12 @@ type Builder interface {
 // Context is the context for fragment building.
 type Context interface {
 	context.Context
-	Dialect() dialect.Dialect
+	// BaseDialect returns the base dialect of the context,
+	// which is the minimal implementation required by sqlf package.
+	BaseDialect() dialect.Dialect
+	// Args returns the committed arguments in order.
 	Args() []any
+	// CommitArg commits an argument to the context and returns the built bindvar.
 	CommitArg(v any) string
 }
 

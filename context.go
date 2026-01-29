@@ -68,12 +68,12 @@ func ContextWithNewArgStore(parent Context) Context {
 	if parent == nil {
 		panic("cannot create context from nil parent")
 	}
-	store := arg.NewArgStoreFromStyle(parent.Dialect().BindVarStyle())
+	store := arg.NewArgStoreFromStyle(parent.BaseDialect().BindVarStyle())
 	return ContextWithValue(parent, argStoreKey{}, store)
 }
 
-// Dialect returns the dialect of the context.
-func (c *defaultCtx) Dialect() dialect.Dialect {
+// BaseDialect implemens the Context interface.
+func (c *defaultCtx) BaseDialect() dialect.Dialect {
 	// no need to check nil c, since user cannot create defaultCtx directly.
 	if c.d != nil {
 		return c.d
@@ -83,12 +83,12 @@ func (c *defaultCtx) Dialect() dialect.Dialect {
 	return c.d
 }
 
-// Args returns the built args of the context.
+// Args implements the Context interface.
 func (c *defaultCtx) Args() []any {
 	return c.store().Args()
 }
 
-// CommitArg commits an built arg to the context and returns the built bindvar.
+// CommitArg implements the Context interface.
 func (c *defaultCtx) CommitArg(v any) string {
 	return c.store().CommitArg(v)
 }
