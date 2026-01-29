@@ -16,6 +16,10 @@ type dialectKey struct{}
 
 type defaultCtx struct {
 	context.Context
+
+	// cached values
+	d dialect.Dialect
+	s arg.Store
 }
 
 // NewContext returns a new Context with both the dialect and arg store set.
@@ -26,9 +30,14 @@ func NewContext(parent context.Context, dialect dialect.Dialect) Context {
 	if dialect == nil {
 		dialect = defaultDialect
 	}
+	store := arg.NewArgStoreFromStyle(dialect.BindVarStyle())
 	ctx := context.WithValue(parent, dialectKey{}, dialect)
-	ctx = context.WithValue(ctx, argStoreKey{}, arg.NewArgStoreFromStyle(dialect.BindVarStyle()))
-	return &defaultCtx{ctx}
+	ctx = context.WithValue(ctx, argStoreKey{}, store)
+	return &defaultCtx{
+		Context: ctx,
+		d:       dialect,
+		s:       store,
+	}
 }
 
 // ContextWithValue returns a new Context derived from parent with the key and value set.
@@ -42,13 +51,13 @@ func ContextWithValue(parent Context, key, value any) Context {
 	if ctx, ok := parent.(*defaultCtx); ok {
 		// optimize for the common case
 		return &defaultCtx{
-			context.WithValue(ctx.Context, key, value),
+			Context: context.WithValue(ctx.Context, key, value),
 		}
 	}
 	// the parent must of type Context, so we can avoid dialect and arg checking,
 	// since any other path to create a Context has already ensured those values are set.
 	return &defaultCtx{
-		context.WithValue(parent, key, value),
+		Context: context.WithValue(parent, key, value),
 	}
 }
 
@@ -65,19 +74,29 @@ func ContextWithNewArgStore(parent Context) Context {
 
 // Dialect returns the dialect of the context.
 func (c *defaultCtx) Dialect() dialect.Dialect {
-	// no need to check nil, since user cannot create _Context directly.
+	// no need to check nil c, since user cannot create defaultCtx directly.
+	if c.d != nil {
+		return c.d
+	}
 	// no need to check existence, since NewContext always sets it.
-	return c.Value(dialectKey{}).(dialect.Dialect)
+	c.d = c.Value(dialectKey{}).(dialect.Dialect)
+	return c.d
 }
 
 // Args returns the built args of the context.
 func (c *defaultCtx) Args() []any {
-	store := c.Value(argStoreKey{}).(arg.Store)
-	return store.Args()
+	return c.store().Args()
 }
 
 // CommitArg commits an built arg to the context and returns the built bindvar.
 func (c *defaultCtx) CommitArg(v any) string {
-	store := c.Value(argStoreKey{}).(arg.Store)
-	return store.CommitArg(v)
+	return c.store().CommitArg(v)
+}
+
+func (c *defaultCtx) store() arg.Store {
+	if c.s != nil {
+		return c.s
+	}
+	c.s = c.Value(argStoreKey{}).(arg.Store)
+	return c.s
 }
