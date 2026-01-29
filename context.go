@@ -48,17 +48,20 @@ func ContextWithValue(parent Context, key, value any) Context {
 	if parent == nil {
 		panic("cannot create context from nil parent")
 	}
-	if ctx, ok := parent.(*defaultCtx); ok {
-		// optimize for the common case
-		return &defaultCtx{
-			Context: context.WithValue(ctx.Context, key, value),
-		}
-	}
 	// the parent must of type Context, so we can avoid dialect and arg checking,
 	// since any other path to create a Context has already ensured those values are set.
 	return &defaultCtx{
-		Context: context.WithValue(parent, key, value),
+		Context: context.WithValue(unwrapContext(parent), key, value),
 	}
+}
+
+// unwrapContext extracts *defaultCtx.Context to avoid double wrapping.
+func unwrapContext(ctx Context) context.Context {
+	if ctx, ok := ctx.(*defaultCtx); ok {
+		// optimize for the common case
+		return ctx.Context
+	}
+	return ctx
 }
 
 // ContextWithNewArgStore returns a new context with a new ArgStore created from the dialect in the parent context.
