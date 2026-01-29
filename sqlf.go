@@ -5,17 +5,31 @@
 // same bind variable syntax (? or $N) as database/sql.
 package sqlf
 
+import (
+	"context"
+
+	"github.com/qjebbs/go-sqlf/v4/dialect"
+)
+
 // Builder is the interface implemented by types that can build themselves
 // into a SQL query string.
 type Builder interface {
 	// BuildTo builds the SQL fragment for the current builder based on the given
 	// context, and commits any arguments to the context.
-	BuildTo(ctx *Context) (query string, err error)
+	BuildTo(ctx Context) (query string, err error)
+}
+
+// Context is the context for fragment building.
+type Context interface {
+	context.Context
+	Dialect() dialect.Dialect
+	Args() []any
+	CommitArg(v any) string
 }
 
 // Build builds a Builder into a query string and its corresponding arguments.
 // It creates a new context to ensure that the original context is not modified.
-func Build(ctx *Context, b Builder) (query string, args []any, err error) {
+func Build(ctx Context, b Builder) (query string, args []any, err error) {
 	if b == nil {
 		return "", nil, nil
 	}

@@ -34,7 +34,7 @@ func (p *defaultProperty) Used() bool {
 }
 
 // Build builds the fragment.
-func (p *defaultProperty) BuildTo(ctx *Context) (string, error) {
+func (p *defaultProperty) BuildTo(ctx Context) (string, error) {
 	p.used = true
 	return p.value.BuildTo(ctx)
 }
@@ -50,7 +50,7 @@ type argBuilder struct {
 }
 
 // Build implements FragmentBuilder
-func (c *argBuilder) BuildTo(ctx *Context) (query string, err error) {
+func (c *argBuilder) BuildTo(ctx Context) (query string, err error) {
 	built := ctx.CommitArg(c.any)
 	return built, nil
 }

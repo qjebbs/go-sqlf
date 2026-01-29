@@ -8,7 +8,7 @@ import (
 //
 // An arg could be either an ordinary arg or a Builder.
 func Join(builders []Builder, sep string) Builder {
-	return Func(func(ctx *Context) (string, error) {
+	return Func(func(ctx Context) (string, error) {
 		if len(builders) == 0 {
 			return "", nil
 		}
@@ -33,7 +33,7 @@ func Join(builders []Builder, sep string) Builder {
 
 // JoinArgs creates a new fragment builder that joins args with the specified separator.
 func JoinArgs[T any](args []T, sep string) Builder {
-	return Func(func(ctx *Context) (string, error) {
+	return Func(func(ctx Context) (string, error) {
 		if len(args) == 0 {
 			return "", nil
 		}
@@ -47,7 +47,7 @@ func JoinArgs[T any](args []T, sep string) Builder {
 
 // JoinMixed creates a new fragment builder that joins mixed Builders and args with the specified separator.
 func JoinMixed(args []any, sep string) Builder {
-	return Func(func(ctx *Context) (string, error) {
+	return Func(func(ctx Context) (string, error) {
 		if len(args) == 0 {
 			return "", nil
 		}
@@ -65,7 +65,7 @@ func JoinMixed(args []any, sep string) Builder {
 
 // Prefix creates a new fragment builder that prefixes the given builder if it's built not empty.
 func Prefix(prefix string, b Builder) Builder {
-	return Func(func(ctx *Context) (query string, err error) {
+	return Func(func(ctx Context) (query string, err error) {
 		if b == nil {
 			return "", nil
 		}
@@ -82,7 +82,7 @@ func Prefix(prefix string, b Builder) Builder {
 
 // Suffix creates a new fragment builder that suffixes the given builder if it's built not empty.
 func Suffix(suffix string, b Builder) Builder {
-	return Func(func(ctx *Context) (query string, err error) {
+	return Func(func(ctx Context) (query string, err error) {
 		if b == nil {
 			return "", nil
 		}
@@ -99,7 +99,7 @@ func Suffix(suffix string, b Builder) Builder {
 
 // PrefixSuffix creates a new fragment builder that prefixes and suffixes the given builder if it's built not empty.
 func PrefixSuffix(prefix, suffix string, b Builder) Builder {
-	return Func(func(ctx *Context) (query string, err error) {
+	return Func(func(ctx Context) (query string, err error) {
 		if b == nil {
 			return "", nil
 		}
@@ -116,7 +116,7 @@ func PrefixSuffix(prefix, suffix string, b Builder) Builder {
 
 // Identifier creates a new fragment builder that quotes the given identifier using current dialect.
 func Identifier(name string) Builder {
-	return Func(func(ctx *Context) (string, error) {
+	return Func(func(ctx Context) (string, error) {
 		dialect := ctx.Dialect()
 		quoted := dialect.QuoteIdentifier(name)
 		return quoted, nil
@@ -124,7 +124,7 @@ func Identifier(name string) Builder {
 }
 
 // Func is a helper to create fragment builder with function.
-func Func(fn func(ctx *Context) (query string, err error)) Builder {
+func Func(fn func(ctx Context) (query string, err error)) Builder {
 	return &builder{
 		fn: fn,
 	}
@@ -133,10 +133,10 @@ func Func(fn func(ctx *Context) (query string, err error)) Builder {
 var _ Builder = (*builder)(nil)
 
 type builder struct {
-	fn func(ctx *Context) (query string, err error)
+	fn func(ctx Context) (query string, err error)
 }
 
-func (b *builder) BuildTo(ctx *Context) (string, error) {
+func (b *builder) BuildTo(ctx Context) (string, error) {
 	if b == nil || b.fn == nil {
 		return "", nil
 	}

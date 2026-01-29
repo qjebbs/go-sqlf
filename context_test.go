@@ -11,18 +11,12 @@ import (
 func TestContextValues(t *testing.T) {
 	testCases := []struct {
 		name string
-		fn   func(context.Context) *Context
+		fn   func(context.Context) Context
 	}{
 		{
 			name: "NewContext",
-			fn: func(ctx context.Context) *Context {
+			fn: func(ctx context.Context) Context {
 				return NewContext(ctx, dialect.PostgreSQL{})
-			},
-		},
-		{
-			name: "ContextWithDialect",
-			fn: func(ctx context.Context) *Context {
-				return ContextWithDialect(ctx, dialect.PostgreSQL{})
 			},
 		},
 	}
@@ -35,7 +29,7 @@ func TestContextValues(t *testing.T) {
 	}
 }
 
-func assertCongextValuest(t *testing.T, ctx *Context) {
+func assertCongextValuest(t *testing.T, ctx Context) {
 	t.Helper()
 	value := ctx.Value(dialectKey{})
 	if value == nil {
