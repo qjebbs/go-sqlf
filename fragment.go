@@ -11,38 +11,35 @@ type Fragment struct {
 	noUsageCheck bool   // If true, skip checking whether all bind vars are used.
 }
 
-// F creates a new Fragment.
+// F constructs a new Fragment from SQL template and arguments.
 //
-// # Bind Variables
+// # Bindings
 //
-// Placeholders in the raw SQL string can be used to bind arguments.
-// These arguments can be simple values or other fragment builders
-// who implement sqlf.Builder.
+//   - ?: Positional (bound in order)
+//   - $N: Indexed (1-based N)
 //
-// There are two types of placeholders:
-//   - `?`: A positional placeholder. Arguments are bound in order.
-//   - `$N`: An indexed placeholder (e.g., $1, $2), where N is a 1-based index.
+// Escape literals with `??` or `$$`.
+// Arguments support simple values or sqlf.Builder implementations.
 //
-// To include a literal `?` or `$` in your SQL, double it (e.g., `??` or `$$`).
+// # Identifiers and Strings
 //
-//	// Bind a simple value using a positional placeholder
-//	cond := sqlf.F("name = ?", "jebbs")
-//	// Bind another builder
-//	where := sqlf.F("WHERE ?", cond)
+//   - `name`: Identifier
+//   - "name": Identifier
+//   - 'string': String literal
 //
-//	// Escape a placeholder to include it literally in the output.
-//	// This example builds "WHERE foo -> $1 ? $2" for PostgreSQL.
+// Double a quote character to escape in quoted strings.
+//
+// # Examples
+//
+//	// Positional binding
+//	inner := sqlf.F("name = ?", "alice")
+//	// Indexed binding
+//	inner = sqlf.F("name = $1", "alice")
+//	// Nested fragments
+//	where := sqlf.F("WHERE ?", inner)
+//	// Escape binding mark
 //	sqlf.F("WHERE foo -> $1 ?? $2", "bar", "baz")
-//
-// # Identifiers and Literals
-//
-// SQL identifiers and string literals can be quoted using single quotes ('string'),
-// double quotes ("identifier"), or backticks (`identifier`).
-// Placeholders within quoted sections are ignored.
-//
-// To include a quote character within a quoted string, double it.
-//
-//	// Builds `[name] = 'alice''s friend'` for SQL Server
+//	// Identifier and string literal
 //	sqlf.F(`"name" = 'alice''s friend'`)
 func F(raw string, args ...any) *Fragment {
 	return &Fragment{
