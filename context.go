@@ -7,20 +7,7 @@ import (
 	"github.com/qjebbs/go-sqlf/v4/internal/arg"
 )
 
-var _ Context = (*defaultCtx)(nil)
-
 var defaultDialect dialect.Dialect = dialect.PostgreSQL{}
-
-type argStoreKey struct{}
-type dialectKey struct{}
-
-type defaultCtx struct {
-	context.Context
-
-	// cached values
-	d dialect.Dialect
-	s arg.Store
-}
 
 // NewContext returns a new Context with both the dialect and arg store set.
 func NewContext(parent context.Context, dialect dialect.Dialect) Context {
@@ -30,14 +17,7 @@ func NewContext(parent context.Context, dialect dialect.Dialect) Context {
 	if dialect == nil {
 		dialect = defaultDialect
 	}
-	store := arg.NewArgStoreFromStyle(dialect.BindVarStyle())
-	ctx := context.WithValue(parent, dialectKey{}, dialect)
-	ctx = context.WithValue(ctx, argStoreKey{}, store)
-	return &defaultCtx{
-		Context: ctx,
-		d:       dialect,
-		s:       store,
-	}
+	return newDeafultCtx(parent, dialect)
 }
 
 // ContextWithValue returns a new Context derived from parent with the key and value set.
@@ -51,7 +31,24 @@ func ContextWithValue(parent Context, key, value any) Context {
 	// the parent must of type Context, so we can avoid dialect and arg checking,
 	// since any other path to create a Context has already ensured those values are set.
 	return &defaultCtx{
-		Context: context.WithValue(unwrapContext(parent), key, value),
+		Context: context.WithValue(
+			unwrapContext(parent), key, value,
+		),
+	}
+}
+
+// ContextWithNewArgStore returns a new context with a new ArgStore created from the dialect in the parent context.
+//
+// It's useful for creating sub-contexts that need their own ArgStore, like what sqlf.Build() does.
+func ContextWithNewArgStore(parent Context) Context {
+	if parent == nil {
+		panic("cannot create context from nil parent")
+	}
+	store := arg.NewArgStoreFromStyle(parent.BaseDialect().BindVarStyle())
+	return &defaultCtx{
+		Context: context.WithValue(
+			unwrapContext(parent), argStoreKey{}, store,
+		),
 	}
 }
 
@@ -64,25 +61,37 @@ func unwrapContext(ctx Context) context.Context {
 	return ctx
 }
 
-// ContextWithNewArgStore returns a new context with a new ArgStore created from the dialect in the parent context.
-//
-// It's useful for creating sub-contexts that need their own ArgStore, like what sqlf.Build() does.
-func ContextWithNewArgStore(parent Context) Context {
-	if parent == nil {
-		panic("cannot create context from nil parent")
+var _ Context = (*defaultCtx)(nil)
+
+type defaultCtx struct {
+	context.Context
+
+	// cached values
+	d dialect.Dialect
+	s arg.Store
+}
+
+type argStoreKey struct{}
+type dialectKey struct{}
+
+func newDeafultCtx(parent context.Context, dialect dialect.Dialect) *defaultCtx {
+	store := arg.NewArgStoreFromStyle(dialect.BindVarStyle())
+	ctx := context.WithValue(parent, dialectKey{}, dialect)
+	ctx = context.WithValue(ctx, argStoreKey{}, store)
+	return &defaultCtx{
+		Context: ctx,
+		d:       dialect,
+		s:       store,
 	}
-	store := arg.NewArgStoreFromStyle(parent.BaseDialect().BindVarStyle())
-	return ContextWithValue(parent, argStoreKey{}, store)
 }
 
 // BaseDialect implemens the Context interface.
 func (c *defaultCtx) BaseDialect() dialect.Dialect {
 	// no need to check nil c, since user cannot create defaultCtx directly.
-	if c.d != nil {
-		return c.d
+	if c.d == nil {
+		// no need to check existence, since newDeafultCtx always sets it.
+		c.d = c.Value(dialectKey{}).(dialect.Dialect)
 	}
-	// no need to check existence, since NewContext always sets it.
-	c.d = c.Value(dialectKey{}).(dialect.Dialect)
 	return c.d
 }
 
@@ -97,9 +106,8 @@ func (c *defaultCtx) CommitArg(v any) string {
 }
 
 func (c *defaultCtx) store() arg.Store {
-	if c.s != nil {
-		return c.s
+	if c.s == nil {
+		c.s = c.Value(argStoreKey{}).(arg.Store)
 	}
-	c.s = c.Value(argStoreKey{}).(arg.Store)
 	return c.s
 }
