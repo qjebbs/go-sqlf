@@ -30,9 +30,8 @@ type contextConstraint interface {
 //
 // The new context does not dowgrade the parent context.
 //
-//	var ctx ExtendedContext // implements sqlf.Context
-//	ctx = NewExtendedContext(...)
-//	ctx = sqlf.ContextWithValue(ctx, ...) // still a ExtendedContext
+//	var ctx ExtendedContext = ...
+//	ctx = sqlf.ContextWithValue(ctx, ...) // still an ExtendedContext
 func ContextWithValue[T contextConstraint](parent T, key, value any) T {
 	var zero T
 	if parent == zero {
@@ -45,9 +44,8 @@ func ContextWithValue[T contextConstraint](parent T, key, value any) T {
 //
 // The new context does not dowgrade the parent context.
 //
-//	var ctx ExtendedContext // implements sqlf.Context
-//	ctx = NewExtendedContext(...)
-//	ctx = sqlf.ContextWithNewArgStore(ctx) // still a ExtendedContext
+//	var ctx ExtendedContext = ...
+//	ctx = sqlf.ContextWithNewArgStore(ctx) // still an ExtendedContext
 func ContextWithNewArgStore[T contextConstraint](parent T) T {
 	var zero T
 	if parent == zero {
@@ -63,7 +61,7 @@ func contextWithValue[T contextConstraint](parent T, key, value any) T {
 	newCtx := parent.ContextWithValue(key, value)
 	ctx, ok := newCtx.(T)
 	if !ok {
-		panic(fmt.Errorf("%T.ContextWithValue returns %T which does not implement the expected interface", parent, newCtx))
+		panic(fmt.Errorf("%T.ContextWithValue returns a different type of %T", parent, newCtx))
 	}
 	return ctx
 }

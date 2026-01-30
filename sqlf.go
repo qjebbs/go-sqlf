@@ -23,12 +23,24 @@ type Builder interface {
 // Context is the context for fragment building.
 type Context interface {
 	context.Context
-	// ContextWithValue returns a NEW Context carrying the given key/value.
+	// ContextWithValue returns a new Context derived from the current context
+	// that carries the given key/value pair.
+	// This method exists to allow the sqlf package to set key/value pairs on
+	// external extended Context implementations without downgrading them to
+	// sqlf.Context.
 	//
-	// Implementations MUST NOT mutate the receiver and SHOULD preserve any
-	// current-level extensions so the returned Context does not get "downgraded".
+	// Implementations MUST NOT mutate the receiver and SHOULD return a NEW
+	// context of the SAME TYPE so that the type assertion in
+	// sqlf.ContextWithValue always works.
 	//
-	// Callers should normally use sqlf.ContextWithValue to ensure type preservation.
+	// Example:
+	//   func (c *extCtx) ContextWithValue(key, value any) sqlf.Context {
+	//   	return &extCtx{...} // new extCtx with key/value set
+	//   }
+	//   var ptr *extCtx = ...
+	//   var ctx ExtendedContext = ptr
+	//   ptr = sqlf.ContextWithValue(ctx, ...) // still an *extCtx
+	//   ctx = sqlf.ContextWithValue(ctx, ...) // still an ExtendedContext
 	ContextWithValue(key, value any) Context
 	// BaseDialect returns the base dialect of the context,
 	// which is the minimal implementation required by sqlf package.
