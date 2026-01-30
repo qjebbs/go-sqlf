@@ -2,6 +2,7 @@ package sqlf
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/qjebbs/go-sqlf/v4/dialect"
 	"github.com/qjebbs/go-sqlf/v4/internal/arg"
@@ -20,19 +21,24 @@ func NewContext(parent context.Context, dialect dialect.Dialect) Context {
 	return newDeafultCtx(parent, dialect)
 }
 
+type contextConstraint interface {
+	Context
+	comparable
+}
+
 // ContextWithValue returns a new Context derived from parent with the key and value set.
 //
 // The new context does not dowgrade the parent context.
 //
 //	var ctx ExtendedContext // implements sqlf.Context
 //	ctx = NewExtendedContext(...)
-//	ctx = sqlf.ContextWithValue(ctx, ...).(ExtendedContext) // still implements ExtendedContext
-func ContextWithValue(parent Context, key, value any) Context {
-	if parent == nil {
+//	ctx = sqlf.ContextWithValue(ctx, ...) // still a ExtendedContext
+func ContextWithValue[T contextConstraint](parent T, key, value any) T {
+	var zero T
+	if parent == zero {
 		panic("cannot create context from nil parent")
 	}
-	// MUST use parent.ContextWithValue to avoid context downgrading
-	return parent.ContextWithValue(key, value)
+	return contextWithValue(parent, key, value)
 }
 
 // ContextWithNewArgStore returns a new context with a new ArgStore created from the dialect in the parent context.
@@ -41,14 +47,25 @@ func ContextWithValue(parent Context, key, value any) Context {
 //
 //	var ctx ExtendedContext // implements sqlf.Context
 //	ctx = NewExtendedContext(...)
-//	ctx = sqlf.ContextWithNewArgStore(ctx).(ExtendedContext) // still implements ExtendedContext
-func ContextWithNewArgStore(parent Context) Context {
-	if parent == nil {
+//	ctx = sqlf.ContextWithNewArgStore(ctx) // still a ExtendedContext
+func ContextWithNewArgStore[T contextConstraint](parent T) T {
+	var zero T
+	if parent == zero {
 		panic("cannot create context from nil parent")
 	}
 	store := arg.NewArgStoreFromStyle(parent.BaseDialect().BindVarStyle())
 	// MUST use parent.ContextWithValue to avoid context downgrading
-	return parent.ContextWithValue(argStoreKey{}, store)
+	return contextWithValue(parent, argStoreKey{}, store)
+}
+
+func contextWithValue[T contextConstraint](parent T, key, value any) T {
+	// MUST use parent.ContextWithValue to avoid context downgrading
+	newCtx := parent.ContextWithValue(key, value)
+	ctx, ok := newCtx.(T)
+	if !ok {
+		panic(fmt.Errorf("%T.ContextWithValue returns %T which does not implement the expected interface", parent, newCtx))
+	}
+	return ctx
 }
 
 var _ Context = (*defaultCtx)(nil)
