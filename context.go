@@ -22,43 +22,33 @@ func NewContext(parent context.Context, dialect dialect.Dialect) Context {
 
 // ContextWithValue returns a new Context derived from parent with the key and value set.
 //
-// Use this when creating a Context from an existing Context.
-// If you want to create from context.Context to context.Context, use context.WithValue.
+// The new context does not dowgrade the parent context.
+//
+//	var ctx ExtendedContext // implements sqlf.Context
+//	ctx = NewExtendedContext(...)
+//	ctx = sqlf.ContextWithValue(ctx, ...).(ExtendedContext) // still implements ExtendedContext
 func ContextWithValue(parent Context, key, value any) Context {
 	if parent == nil {
 		panic("cannot create context from nil parent")
 	}
-	// the parent must of type Context, so we can avoid dialect and arg checking,
-	// since any other path to create a Context has already ensured those values are set.
-	return &defaultCtx{
-		Context: context.WithValue(
-			unwrapContext(parent), key, value,
-		),
-	}
+	// MUST use parent.ContextWithValue to avoid context downgrading
+	return parent.ContextWithValue(key, value)
 }
 
 // ContextWithNewArgStore returns a new context with a new ArgStore created from the dialect in the parent context.
 //
-// It's useful for creating sub-contexts that need their own ArgStore, like what sqlf.Build() does.
+// The new context does not dowgrade the parent context.
+//
+//	var ctx ExtendedContext // implements sqlf.Context
+//	ctx = NewExtendedContext(...)
+//	ctx = sqlf.ContextWithNewArgStore(ctx).(ExtendedContext) // still implements ExtendedContext
 func ContextWithNewArgStore(parent Context) Context {
 	if parent == nil {
 		panic("cannot create context from nil parent")
 	}
 	store := arg.NewArgStoreFromStyle(parent.BaseDialect().BindVarStyle())
-	return &defaultCtx{
-		Context: context.WithValue(
-			unwrapContext(parent), argStoreKey{}, store,
-		),
-	}
-}
-
-// unwrapContext extracts *defaultCtx.Context to avoid double wrapping.
-func unwrapContext(ctx Context) context.Context {
-	if ctx, ok := ctx.(*defaultCtx); ok {
-		// optimize for the common case
-		return ctx.Context
-	}
-	return ctx
+	// MUST use parent.ContextWithValue to avoid context downgrading
+	return parent.ContextWithValue(argStoreKey{}, store)
 }
 
 var _ Context = (*defaultCtx)(nil)
@@ -82,6 +72,13 @@ func newDeafultCtx(parent context.Context, dialect dialect.Dialect) *defaultCtx 
 		Context: ctx,
 		d:       dialect,
 		s:       store,
+	}
+}
+
+// ContextWithValue implements the Context interface.
+func (c *defaultCtx) ContextWithValue(key, value any) Context {
+	return &defaultCtx{
+		Context: context.WithValue(c.Context, key, value),
 	}
 }
 
