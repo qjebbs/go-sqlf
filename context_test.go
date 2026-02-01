@@ -1,50 +1,40 @@
-package sqlf
+package sqlf_test
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
+	"github.com/qjebbs/go-sqlf/v4"
 	"github.com/qjebbs/go-sqlf/v4/dialect"
-	"github.com/qjebbs/go-sqlf/v4/internal/arg"
 )
 
-func TestContextValues(t *testing.T) {
-	testCases := []struct {
-		name string
-		fn   func(context.Context) Context
-	}{
-		{
-			name: "NewContext",
-			fn: func(ctx context.Context) Context {
-				return NewContext(ctx, dialect.PostgreSQL{})
-			},
-		},
-	}
+func TestWithContextFunc(t *testing.T) {
+	parent := sqlf.NewContext(context.Background(), dialect.PostgreSQL{})
+	child := sqlf.ContextWithValue(parent, "k", "v")
+	typeParent := reflect.TypeOf(parent)
+	typeChild := reflect.TypeOf(child)
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			ctx := tc.fn(context.Background())
-			assertCongextValuest(t, ctx)
-		})
+	if typeParent != typeChild {
+		t.Fatalf("expected child context to have same type as parent: got %v, want %v", typeChild, typeParent)
+	}
+	if value := child.Value("k"); value != "v" {
+		t.Fatalf("expected context value to be 'v': got %v", value)
 	}
 }
 
-func assertCongextValuest(t *testing.T, ctx Context) {
-	t.Helper()
-	value := ctx.Value(dialectKey{})
-	if value == nil {
-		t.Fatal("Dialect not found in context")
+func TestNewContextValues(t *testing.T) {
+	want := dialect.PostgreSQL{}
+	ctx := sqlf.NewContext(context.Background(), want)
+	got := ctx.BaseDialect()
+	if got != want {
+		t.Fatal("BaseDialect returned wrong value")
 	}
-	_, ok := value.(dialect.Dialect)
-	if !ok {
-		t.Fatal("Dialect not found in context")
-	}
-	value = ctx.Value(argStoreKey{})
-	if value == nil {
-		t.Fatal("ArgStore not found in context")
-	}
-	_, ok = value.(arg.Store)
-	if !ok {
-		t.Fatal("ArgStore has wrong type")
+
+	ctx.CommitArg(1)
+	wantArgs := []any{1}
+	gotArgs := ctx.Args()
+	if !reflect.DeepEqual(gotArgs, wantArgs) {
+		t.Fatalf("Args returned wrong value: got %v, want %v", gotArgs, wantArgs)
 	}
 }
