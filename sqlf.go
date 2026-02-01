@@ -23,25 +23,29 @@ type Builder interface {
 // Context is the context for fragment building.
 type Context interface {
 	context.Context
-	// ContextWithValue returns a new Context derived from the current context
-	// that carries the given key/value pair.
-	// This method exists to allow the sqlf package to set key/value pairs on
-	// external extended Context implementations without downgrading them to
-	// sqlf.Context.
+	// WithContextFunc returns a new Context derived from the current context by
+	// applying the provided ContextDeriver function.
+	// This method exists to allow the sqlf package to set values or behavior on
+	// external extended Context implementations without downgrading them to sqlf.Context.
 	//
 	// Implementations MUST NOT mutate the receiver and SHOULD return a NEW
 	// context of the SAME TYPE so that the type assertion in
 	// sqlf.ContextWithValue always works.
 	//
 	// Example:
-	//   func (c *extCtx) ContextWithValue(key, value any) sqlf.Context {
-	//   	return &extCtx{...} // new extCtx with key/value set
+	//   type extCtx struct {
+	//     sqlf.Context
+	//   }
+	//   func (c *extCtx) WithContextFunc(fn sqlf.ContextDeriver) sqlf.Context {
+	//   	return &extCtx{
+	//        Context: c.Context.WithContextFunc(fn),
+	//      }
 	//   }
 	//   var ptr *extCtx = ...
 	//   var ctx ExtendedContext = ptr
 	//   ptr = sqlf.ContextWithValue(ctx, ...) // still an *extCtx
 	//   ctx = sqlf.ContextWithValue(ctx, ...) // still an ExtendedContext
-	ContextWithValue(key, value any) Context
+	WithContextFunc(fn ContextDeriver) Context
 	// BaseDialect returns the base dialect of the context,
 	// which is the minimal implementation required by sqlf package.
 	BaseDialect() dialect.Dialect
@@ -50,6 +54,9 @@ type Context interface {
 	// CommitArg commits an argument to the context and returns the built bindvar.
 	CommitArg(v any) string
 }
+
+// ContextDeriver is a function that derives a new context from the current context.
+type ContextDeriver func(current context.Context) context.Context
 
 // Build builds a Builder into a query string and its corresponding arguments.
 // It creates a new context to ensure that the original context is not modified.

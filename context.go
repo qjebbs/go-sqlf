@@ -52,16 +52,17 @@ func ContextWithNewArgStore[T contextConstraint](parent T) T {
 		panic("cannot create context from nil parent")
 	}
 	store := arg.NewArgStoreFromStyle(parent.BaseDialect().BindVarStyle())
-	// MUST use parent.ContextWithValue to avoid context downgrading
 	return contextWithValue(parent, argStoreKey{}, store)
 }
 
 func contextWithValue[T contextConstraint](parent T, key, value any) T {
-	// MUST use parent.ContextWithValue to avoid context downgrading
-	newCtx := parent.ContextWithValue(key, value)
+	// MUST use parent.WithContextFunc to avoid context downgrading
+	newCtx := parent.WithContextFunc(func(current context.Context) context.Context {
+		return context.WithValue(current, key, value)
+	})
 	ctx, ok := newCtx.(T)
 	if !ok {
-		panic(fmt.Errorf("%T.ContextWithValue returns a different type of %T", parent, newCtx))
+		panic(fmt.Errorf("%T.WithContextFunc returns a different type of %T", parent, newCtx))
 	}
 	return ctx
 }
@@ -90,10 +91,10 @@ func newDeafultCtx(parent context.Context, dialect dialect.Dialect) *defaultCtx 
 	}
 }
 
-// ContextWithValue implements the Context interface.
-func (c *defaultCtx) ContextWithValue(key, value any) Context {
+// WithContextFunc implements the Context interface.
+func (c *defaultCtx) WithContextFunc(fn ContextDeriver) Context {
 	return &defaultCtx{
-		Context: context.WithValue(c.Context, key, value),
+		Context: fn(c.Context),
 	}
 }
 
