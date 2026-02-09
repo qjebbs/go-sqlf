@@ -23,14 +23,14 @@ import (
 // !!! Use it only on debug purposes. Due to complexity of SQL syntax
 // between different dialects, it may not work correctly in all cases.
 func Interpolate(query string, args []any, d ...dialect.Dialect) (string, bool) {
-	var dialect Dialect
+	var dlct dialect.Dialect
 	if len(d) > 0 && d[0] != nil {
-		dialect = asMyDialect(d[0])
+		dlct = d[0]
 	} else {
-		dialect = defaultDialect{}
+		dlct = dialectAnsiAutoBindVarStyle{}
 	}
 	ok := true
-	exprs, err := syntax.ParseForInterpolating(query, dialect.BindVarStyle())
+	exprs, err := syntax.ParseForInterpolating(query, dlct.BindVarStyle())
 	if err != nil {
 		ok = false
 	}
@@ -46,7 +46,7 @@ func Interpolate(query string, args []any, d ...dialect.Dialect) (string, bool) 
 					ok = false
 					b.Write([]byte(fmt.Sprintf("/* %s not found */", decl.Name)))
 				} else {
-					v, err := encodeValue(dialect, val)
+					v, err := encodeValue(dlct, val)
 					if err != nil {
 						ok = false
 						v = []byte(fmt.Sprintf("/* %s */", err.Error()))
@@ -60,7 +60,7 @@ func Interpolate(query string, args []any, d ...dialect.Dialect) (string, bool) 
 				b.Write([]byte(fmt.Sprintf("/* bindvar index out of range: %d */", decl.Index)))
 				continue
 			}
-			v, err := encodeValue(dialect, args[decl.Index-1])
+			v, err := encodeValue(dlct, args[decl.Index-1])
 			if err != nil {
 				ok = false
 				v = []byte(fmt.Sprintf("/* %s */", err.Error()))
@@ -86,7 +86,7 @@ func findNamedArg(name string, args []any) (any, bool) {
 	return nil, false
 }
 
-func encodeValue(dialect Dialect, arg any) ([]byte, error) {
+func encodeValue(dialect dialect.Dialect, arg any) ([]byte, error) {
 	if arg == nil {
 		return []byte("NULL"), nil
 	}
@@ -142,4 +142,14 @@ func encodeValue(dialect Dialect, arg any) ([]byte, error) {
 		}
 	}
 	return buf.Bytes(), nil
+}
+
+var _ dialect.Dialect = dialectAnsiAutoBindVarStyle{}
+
+type dialectAnsiAutoBindVarStyle struct {
+	dialect.AnsiSQL
+}
+
+func (d dialectAnsiAutoBindVarStyle) BindVarStyle() dialect.BindVarStyle {
+	return syntax.BindVarStyleUnknown
 }

@@ -2,6 +2,7 @@ package dialect
 
 import (
 	"strings"
+	"time"
 
 	"github.com/qjebbs/go-sqlf/v4/internal/syntax"
 )
@@ -16,6 +17,19 @@ type Dialect interface {
 	//   MySQL.QuoteIdentifier("identifier") // `identifier`
 	//   SQLServer.QuoteIdentifier("identifier") // [identifier]
 	QuoteIdentifier(name string) string
+	// QuoteString quotes a string for use in a query.
+	// It's used in Interpolate() only.
+	//
+	// It should escape any special characters as needed by the dialect,
+	// and take care of any necessary prefixing (e.g. E'...' in PostgreSQL, N'...' in SQL Server).
+	//
+	// Examples:
+	//   QuoteString("str") // 'str'
+	//   SQLite.QuoteString("str\nstr") // 'str' || CHAR(10) || 'str'
+	//   PostgreSQL.QuoteString("str\nstr") // E'str\nstr'
+	QuoteString(s string) string
+	// FormatTime formats time strings for the dialect.
+	FormatTime(t time.Time) string
 }
 
 // BindVarStyle is the bind variable style to use.
