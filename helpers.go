@@ -123,6 +123,13 @@ func Identifier(name string) Builder {
 	})
 }
 
+// Error creates a new fragment builder that always returns the given error.
+func Error(err error) Builder {
+	return Func(func(ctx Context) (string, error) {
+		return "", err
+	})
+}
+
 // Func is a helper to create fragment builder with function.
 func Func(fn func(ctx Context) (query string, err error)) Builder {
 	return &builder{
