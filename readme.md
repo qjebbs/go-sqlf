@@ -1,8 +1,5 @@
 ## Go SQL Fragment (go-sqlf)
 
-> [!WARNING]
-> This package is in an alpha stage. The API is subject to change.
-
 Package `sqlf` is dedicated to building SQL queries by composing fragments.
 
 Unlike other SQL builders or ORMs, `*Fragment` is the only concept you need to understand.
@@ -37,6 +34,10 @@ func Example_basic() {
 }
 ```
 
-## Query Builder
+## The Go SQL Tools Family
 
-Package [go-sqlb](https://github.com/qjebbs/go-sqlb) provides complex SQL builders and struct mapping capabilities, while `go-sqlf` is the underlying foundation.
+This project is part of a family of Go SQL tools, each designed for a different level of abstraction and automation:
+
+1. **go-sqlf (this project)** — Minimalist SQL fragment builder. For simple, manual SQL composition with parameter binding and zero magic.
+2. **[go-sqlb](https://github.com/qjebbs/go-sqlb)** — Advanced SQL builder. For programmatically building complex queries (CTE, JOIN, expressions, etc.) with chainable, declarative, and composable APIs.
+3. **[go-sqlm](https://github.com/qjebbs/sqlm)** — Struct mapping. Declarative struct mapping, automatic CRUD, batch operations, and high-performance zero-reflection code generation.
